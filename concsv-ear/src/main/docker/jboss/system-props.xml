@@ -1,0 +1,6 @@
+    <system-properties>
+        <property name="es.caib.concsv.properties" value="/home/jboss/apps/concsv/concsv.properties"/>
+        <property name="es.caib.concsv.system.properties" value="/home/jboss/apps/concsv/concsv-system.properties"/>
+        <property name="javax.net.ssl.trustStore" value="/home/jboss/apps/concsv/truststore.jks"/>
+        <property name="javax.net.ssl.trustStorePassword" value="tecnologies"/>
+    </system-properties>

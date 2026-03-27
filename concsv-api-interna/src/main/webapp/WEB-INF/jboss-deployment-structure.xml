@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
+	<deployment>
+		<dependencies>
+			<system export="true">
+				<paths>
+					<path name="com/sun/management"/>
+				</paths>
+			</system>
+		</dependencies>
+		<exclusions>
+			<module name="com.fasterxml.jackson.core"/>
+			<module name="com.fasterxml.jackson.jaxrs"/>
+			<module name="com.fasterxml.jackson.dataformat.yaml"/>
+		</exclusions>
+	</deployment>
+</jboss-deployment-structure>

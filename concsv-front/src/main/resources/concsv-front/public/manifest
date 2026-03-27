@@ -1,0 +1,10 @@
+window.__MANIFEST__ = {
+/*    "Manifest-Version": "1.0",
+    "Created-By": "Maven EAR Plugin 3.2.0",
+    "Build-Jdk-Spec": "11",
+    "Build-Timestamp": "2025-02-05T08:05:43Z",
+    "Implementation-SCM-Branch": "dev",
+    "Implementation-SCM-Revision": "5068efd3b56ced8c6f1b0d8dc582dd3c2918ec57",
+    "Implementation-Vendor": "Límit Tecnologies",
+    "Implementation-Version": "2.1.0",*/
+}

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+    <display-name>ConCSV: API REST INTERNA</display-name>
+
+    <context-param>
+        <param-name>es.caib.concsv.commons.rest.supportedLocales</param-name>
+        <param-value>ca,es</param-value>
+    </context-param>
+    
+    <!--  Es treu la seguretat per problemes de rendiment en l'autenticació
+    <security-constraint>
+        <display-name>Accés restringit</display-name>
+        <web-resource-collection>
+            <web-resource-name>restringit</web-resource-name>
+            <description>Restringim l'accés a tots els recursos REST</description>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>CSV_REST</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Unauthenticated areas</display-name>
+        <web-resource-collection>
+            <web-resource-name>Obert</web-resource-name>
+            <url-pattern>/appInfo</url-pattern>
+            <url-pattern>/salut</url-pattern>
+            <url-pattern>/salutPerformance</url-pattern>
+            <url-pattern>/openapi</url-pattern>
+            <url-pattern>/swagger/*</url-pattern>
+        </web-resource-collection>
+    </security-constraint>
+
+    <security-role>
+        <role-name>CSV_REST</role-name>
+    </security-role>
+
+    <login-config>
+        <auth-method>KEYCLOAK</auth-method>
+        <realm-name>Govern de les Illes Balears</realm-name>
+    </login-config>
+    -->
+	<security-constraint>
+		<display-name>Swagger Static</display-name>
+		<web-resource-collection>
+			<web-resource-name>Swagger</web-resource-name>
+			<url-pattern>/swagger/*</url-pattern>
+		</web-resource-collection>
+	</security-constraint>
+	<!--  Si se vuelve a activar la seguridad, debe borrarse el siguente bloque security-constraint -->
+	<security-constraint>
+		<display-name>Unauthenticated</display-name>
+		<web-resource-collection>
+			<web-resource-name>Unauthenticated</web-resource-name>
+			<url-pattern>/*</url-pattern>
+		</web-resource-collection>
+	</security-constraint>
+
+</web-app>

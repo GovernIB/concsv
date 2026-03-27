@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+
+    You may not modify, use, reproduce, or distribute this software except in
+    compliance with  the terms of the License at:
+    https://github.com/javaee/tutorial-examples/LICENSE.txt
+
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<title>Index Page</title>
+<script type="text/javascript">
+<!--
+const locationSearch = window.location.search;
+if (locationSearch?.startsWith('?hash=')) {
+	const hashValue = locationSearch.substring('?hash='.length);
+	const newLocation = 'view/' + hashValue;
+	window.location.href = newLocation;
+} else {
+	const newLocation = 'home';
+	window.location.href = newLocation;
+}
+-->
+</script>
+</head>
+<body>
+</body>
+</html>

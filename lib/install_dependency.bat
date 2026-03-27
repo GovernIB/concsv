@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile=arxiudigital-apirest-1.0.0.jar -DgroupId=es.caib.arxiudigital -DartifactId=arxiudigital-apirest -Dversion=1.0.0 -Dpackaging=jar

@@ -1,0 +1,69 @@
+version: "3"
+
+services:
+  concsv:
+    image: concsv:2.1.2
+    ports:
+      - ${APP_PORT:-8080}:8080
+      - ${DEBUG_PORT:-8787}:8787
+      - ${MGM_PORT:-9990}:9990
+    environment:
+      - JBOSS_APP_NAME=${APP_NAME:-concsv}
+      - JBOSS_DB_ENABLED=${DB_ENABLED:-false}
+      - JAVA_OPTS=-Dhibernate.dialect=${HIBERNATE_DIALECT}
+      - JBOSS_DB_DRIVER=${DB_DRIVER}
+      - JBOSS_DB_URL=${DB_URL}
+      - JBOSS_DB_USERNAME=${DB_USERNAME}
+      - JBOSS_DB_PASSWORD=${DB_PASSWORD}
+      - JBOSS_AUTH_URL=${AUTH_URL}
+      - JBOSS_AUTH_REALM=${AUTH_REALM}
+      - JBOSS_AUTH_CLIENTID=${AUTH_CLIENTID}
+      - JBOSS_AUTH_CLIENTID_WS=${AUTH_CLIENTID_WS}
+      - JBOSS_AUTH_CREDENTIAL_SECRET=${AUTH_AUTH_CREDENTIAL_SECRET}
+      - JBOSS_PROXY_HOST=${PROXY_HOST:-}
+      - JBOSS_PROXY_PORT=${PROXY_PORT:-}
+      - es.caib.concsv.performance=S
+      - es.caib.concsv.validation.url=http://localhost:8080/concsvfront
+      - es.caib.concsv.query.url=http://localhost:8080/concsvfront/view/
+      - es.caib.concsv.show.captcha=N
+      - es.caib.concsv.logo.path=/home/jboss/apps/concsv/goib_logo.png
+      - es.caib.concsv.optionalLabelMetadata.path=/home/jboss/apps/concsv/optional_metadata
+      - es.caib.concsv.ws.broker.security.user=concsv
+      - es.caib.concsv.ws.broker.security.password=concsv
+      - es.caib.concsv.consult.oldSafeKeeping=N
+      - es.caib.concsv.old.savekeeping.endpoint=${OLD_SAVEKEEPING_ENDPOINT}
+      - es.caib.concsv.consult.newDigitalArchive=S
+      - es.caib.concsv.new.digital.archive.endpoint=${NEW_DIGITAL_ARCHIVE_ENDPOINT}
+      - es.caib.concsv.new.digital.archive.app.client=${NEW_DIGITAL_ARCHIVE_APP_CLIENT}
+      - es.caib.concsv.new.digital.archive.username=${NEW_DIGITAL_ARCHIVE_USERNAME}
+      - es.caib.concsv.new.digital.archive.password=${NEW_DIGITAL_ARCHIVE_PASSWORD}
+      - es.caib.concsv.new.digital.archive.organization=${NEW_DIGITAL_ARCHIVE_ORG}
+      - es.caib.concsv.new.digital.archive.version=1.0
+      - es.caib.concsv.new.digital.archive.traces=false
+      - es.caib.concsv.do.tiny=N
+      - es.caib.concsv.tiny.rest.url=${TINY_REST_URL}
+      - es.caib.concsv.tiny.username=${TINY_USERNAME}
+      - es.caib.concsv.tiny.password=${TINY_PASSWORD}
+      - es.caib.concsv.plugin.validatesignature.class=org.fundaciobit.plugins.validatesignature.afirmacxf.AfirmaCxfValidateSignaturePlugin
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.endpoint=${VALIDATESIGN_AFIRMACXF_ENDPOINT}
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.applicationID=${VALIDATESIGN_AFIRMACXF_APPID}
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.authorization.method=${VALIDATESIGN_AFIRMACXF_AUTH_METHOD:-UsernameToken}
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.authorization.username=${VALIDATESIGN_AFIRMACXF_USERNAME}
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.authorization.password=${VALIDATESIGN_AFIRMACXF_PASSWORD}
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.TransformersTemplatesPath=${VALIDATESIGN_AFIRMACXF_TRANSTEMPLATES_PATH:-/home/jboss/apps/concsv/afirma/transformers}
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.debug=false
+      - es.caib.concsv.plugins.validatesignature.afirmacxf.printxml=false
+      - es.caib.concsv.plugins.documentconverter.openoffice.host=${OPENOFFICE_HOST}
+      - es.caib.concsv.plugins.documentconverter.openoffice.port=${OPENOFFICE_PORT:-8100}
+      - es.caib.concsv.front.api.url=${FRONT_API_URL:-http://localhost:8080/concsvfront/api}
+      - es.caib.concsv.front.preview.enabled=${PREVIEW_ENABLED:-true}
+      - es.caib.concsv.front.recaptcha.enabled=${RECAPTCHA_ENABLED:-false}
+      - es.caib.concsv.front.recaptcha.sitekey=${RECAPTCHA_SITEKEY:-}
+      - DEBUG=${DEBUG:-false}
+      - DEBUG_PORT=${DEBUG_HOST:-0.0.0.0:}${DEBUG_PORT:-8787}
+    extra_hosts:
+      - "dev.caib.es:10.215.29.106"
+      - "proves.caib.es:10.215.29.224"
+      - "esbse.caib.es:10.215.9.239"
+      - "afirmades2.caib.es:10.215.29.128"
+    restart: always

@@ -1,0 +1,4 @@
+window.__RUNTIME_CONFIG__ = {
+    /*VITE_API_URL: 'http://localhost:5173/concsvfront/api',
+    VITE_APP_VERSION: '2.1.0'*/
+}

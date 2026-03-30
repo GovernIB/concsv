@@ -1,0 +1,19 @@
+Aquest projecte (ConCSV) està llicenciat sota la GNU Affero General Public License v3.0 (AGPL-3.0).
+
+Components de tercers
+---------------------
+
+Aquest projecte utilitza els següents components de codi obert:
+
+1) iText 8
+   Copyright (c) Apryse Group NV (anteriorment iText Group NV)
+   Amb llicència sota la GNU Affero General Public License v3.0 (AGPL-3.0)
+   https://itextpdf.com/
+
+Es recorda als usuaris d’aquest programari que la llicència AGPL-3.0
+estableix l’obligació de posar a disposició el codi font complet corresponent
+de l’aplicació a aquells usuaris que hi interactuïn a través d’una xarxa.
+
+Per al text complet de les llicències, consulteu:
+- El fitxer LICENSE a l’arrel d’aquest repositori
+- https://www.gnu.org/licenses/agpl-3.0.html

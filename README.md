@@ -18,6 +18,7 @@ Contextos/entorns
 - Jboss 7.2
 - Springboot 2.7.18
 - React 18.3.1
+- [iText 8](https://itextpdf.com) sota llicència GNU Affero General Public License v3.0 (AGPL-3.0).
 
 
 # Estructura

@@ -3,8 +3,8 @@
 # CONCSV 
 Consulta de documents per Codi Segur de Verificació Aplicació de frontal per recuperar documents enmagatzemats a l'arxiu i a l'antic sistema de custòdia
 
-- Versió estable: 2.1.2 (branca 2.0)
-- Versió Desenvolupament: 2.1.3 (branca dev)
+- Versió estable: 2.1.3 (branca 2.0)
+- Versió Desenvolupament: 2.1.4 (branca dev)
 
 
 Contextos/entorns
@@ -28,7 +28,8 @@ CONCSV
 - concsv-commons - Mòdul amb classes comunes entre mòduls.
 - concsv-ejb - Mòdul de logica de negoci
 - concsv-front - Mòdul interficie d'aplicació
-- concsv-service - Mòdul amb classes i interfícies per la lògica de serveis.
+- concsv-service-intf - Mòdul amb classes i interfícies pels serveis.
+- concsv-service - Mòdul amb classes per la lògica de serveis.
 - concsv-presistence - Mòdul per persistir i consultar les dades des de la BD.
 
 # Rols

@@ -10,54 +10,67 @@
         <param-name>es.caib.concsv.commons.rest.supportedLocales</param-name>
         <param-value>ca,es</param-value>
     </context-param>
-    
-    <!--  Es treu la seguretat per problemes de rendiment en l'autenticació
+
+    <security-role>
+        <role-name>CSV_REST</role-name>
+    </security-role>
+    <security-role>
+        <role-name>CSV_COM</role-name>
+    </security-role>
+
+    <!-- Es treu la seguretat en l'API interna de CONCSV per problemes de rendiment en l'autenticació -->
+    <!--
     <security-constraint>
-        <display-name>Accés restringit</display-name>
+        <display-name>API interna de CONCSV</display-name>
         <web-resource-collection>
-            <web-resource-name>restringit</web-resource-name>
-            <description>Restringim l'accés a tots els recursos REST</description>
-            <url-pattern>/*</url-pattern>
+            <url-pattern>/printable/*</url-pattern>
+            <url-pattern>/original/*</url-pattern>
+            <url-pattern>/enidoc/*</url-pattern>
+            <url-pattern>/metadata/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>CSV_REST</role-name>
         </auth-constraint>
     </security-constraint>
+    -->
     <security-constraint>
-        <display-name>Unauthenticated areas</display-name>
+        <display-name>API integració COMANDA amb autenticació</display-name>
         <web-resource-collection>
-            <web-resource-name>Obert</web-resource-name>
-            <url-pattern>/appInfo</url-pattern>
-            <url-pattern>/salut</url-pattern>
-            <url-pattern>/salutPerformance</url-pattern>
-            <url-pattern>/openapi</url-pattern>
+            <url-pattern>/v1/salut/*</url-pattern>
+            <url-pattern>/v1/estadistiques</url-pattern>
+            <url-pattern>/v1/estadistiques/*</url-pattern>
+            <url-pattern>/v1/logs</url-pattern>
+            <url-pattern>/v1/logs/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>CSV_COM</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Sense autenticació</display-name>
+        <web-resource-collection>
+            <!-- -->
+            <url-pattern>/printable/*</url-pattern>
+            <url-pattern>/original/*</url-pattern>
+            <url-pattern>/enidoc/*</url-pattern>
+            <url-pattern>/metadata/*</url-pattern>
+            <!-- -->
+            <url-pattern>/v1/salut</url-pattern>
+			<url-pattern>/v1/salutPerformance</url-pattern>
             <url-pattern>/swagger/*</url-pattern>
         </web-resource-collection>
     </security-constraint>
-
-    <security-role>
-        <role-name>CSV_REST</role-name>
-    </security-role>
-
     <login-config>
         <auth-method>KEYCLOAK</auth-method>
         <realm-name>Govern de les Illes Balears</realm-name>
     </login-config>
-    -->
-	<security-constraint>
-		<display-name>Swagger Static</display-name>
-		<web-resource-collection>
-			<web-resource-name>Swagger</web-resource-name>
-			<url-pattern>/swagger/*</url-pattern>
-		</web-resource-collection>
-	</security-constraint>
-	<!--  Si se vuelve a activar la seguridad, debe borrarse el siguente bloque security-constraint -->
+	<!--  Si la seguridad esta activada, debe comentarse el siguente bloque security-constraint
 	<security-constraint>
 		<display-name>Unauthenticated</display-name>
 		<web-resource-collection>
 			<web-resource-name>Unauthenticated</web-resource-name>
 			<url-pattern>/*</url-pattern>
 		</web-resource-collection>
-	</security-constraint>
+	</security-constraint>-->
 
 </web-app>

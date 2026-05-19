@@ -6,7 +6,7 @@
 	<groupId>es.caib.concsv</groupId>
 	<artifactId>concsv</artifactId>
 	<packaging>pom</packaging>
-	<version>2.1.2</version>
+	<version>2.1.3</version>
 	<properties>
 		<openapi.version>1.8.0</openapi.version>
 		<implementation.vendor>Govern de les Illes Balears</implementation.vendor>
@@ -18,6 +18,7 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<version.date>2026.05.10 10:00h</version.date>
 	</properties>
 	<scm>
 		<connection>scm:git:https://git.caib.es/dgmad-sinformacio/concsv.git</connection>
@@ -30,7 +31,7 @@
 	</parent>
 	<dependencyManagement>
 		<dependencies>
-			<!-- Depend?ncies internes dins el projecte -->
+			<!-- Dependències internes dins el projecte -->
 			<dependency>
 				<groupId>es.caib.concsv</groupId>
 				<artifactId>concsv-ejb</artifactId>
@@ -105,25 +106,6 @@
 			<url>https://governib.github.io/maven/maven/</url>
 		</repository>
 	</repositories>
-	<dependencies>
-		<dependency>
-			<groupId>com.itextpdf</groupId>
-			<artifactId>itext-core</artifactId>
-			<version>8.0.5</version>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>com.itextpdf</groupId>
-			<artifactId>bouncy-castle-adapter</artifactId>
-			<version>8.0.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.22</version>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -174,5 +156,6 @@
 		<module>concsv-api-interna</module>
         <module>concsv-persistence</module>
 		<module>concsv-commons</module>
+		<module>concsv-service-intf</module>
 	</modules>
 </project>

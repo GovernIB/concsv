@@ -1,9 +1,8 @@
 package es.caib.concsv.persistence.entity;
 
-
+import es.caib.concsv.logic.intf.model.EnviamentOrigen;
+import es.caib.concsv.logic.intf.model.EnviamentTipus;
 import lombok.*;
-import es.caib.concsv.persistence.model.EnviamentOrigen;
-import es.caib.concsv.persistence.model.EnviamentTipus;
 
 import javax.persistence.*;
 import java.io.Serializable;

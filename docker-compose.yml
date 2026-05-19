@@ -2,16 +2,15 @@ version: "3"
 
 services:
   concsv:
-    image: concsv:2.1.2
+    image: concsv:2.1.3
     ports:
       - ${APP_PORT:-8080}:8080
       - ${DEBUG_PORT:-8787}:8787
       - ${MGM_PORT:-9990}:9990
     environment:
       - JBOSS_APP_NAME=${APP_NAME:-concsv}
-      - JBOSS_DB_ENABLED=${DB_ENABLED:-false}
-      - JAVA_OPTS=-Dhibernate.dialect=${HIBERNATE_DIALECT}
-      - JBOSS_DB_DRIVER=${DB_DRIVER}
+      - JBOSS_DB_ENABLED=${DB_ENABLED:-true}
+      - JBOSS_DB_DRIVER=${DB_DRIVER:-oracle}
       - JBOSS_DB_URL=${DB_URL}
       - JBOSS_DB_USERNAME=${DB_USERNAME}
       - JBOSS_DB_PASSWORD=${DB_PASSWORD}
@@ -30,7 +29,7 @@ services:
       - es.caib.concsv.optionalLabelMetadata.path=/home/jboss/apps/concsv/optional_metadata
       - es.caib.concsv.ws.broker.security.user=concsv
       - es.caib.concsv.ws.broker.security.password=concsv
-      - es.caib.concsv.consult.oldSafeKeeping=N
+      - es.caib.concsv.consult.oldSafeKeeping=S
       - es.caib.concsv.old.savekeeping.endpoint=${OLD_SAVEKEEPING_ENDPOINT}
       - es.caib.concsv.consult.newDigitalArchive=S
       - es.caib.concsv.new.digital.archive.endpoint=${NEW_DIGITAL_ARCHIVE_ENDPOINT}

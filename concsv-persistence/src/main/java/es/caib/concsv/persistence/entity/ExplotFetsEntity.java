@@ -1,6 +1,6 @@
 package es.caib.concsv.persistence.entity;
 
-import es.caib.concsv.persistence.model.ExplotFets;
+import es.caib.concsv.logic.intf.model.ExplotFets;
 import lombok.*;
 
 import javax.persistence.*;

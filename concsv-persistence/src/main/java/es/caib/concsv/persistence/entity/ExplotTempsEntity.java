@@ -1,14 +1,15 @@
 package es.caib.concsv.persistence.entity;
 
-
-import es.caib.concsv.persistence.model.DiaSetmanaEnum;
-import lombok.*;
+import es.caib.concsv.logic.intf.model.DiaSetmanaEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
-
 
 @Entity
 @Table(name = "csv_explot_temps")

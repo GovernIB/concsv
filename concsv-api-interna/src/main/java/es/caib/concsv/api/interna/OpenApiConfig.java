@@ -5,7 +5,10 @@ import io.swagger.v3.jaxrs2.integration.OpenApiServlet;
 import io.swagger.v3.oas.integration.OpenApiConfigurationException;
 import io.swagger.v3.oas.integration.SwaggerConfiguration;
 import io.swagger.v3.oas.integration.GenericOpenApiContextBuilder;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 
 import javax.servlet.ServletConfig;
@@ -23,10 +26,19 @@ public class OpenApiConfig extends OpenApiServlet {
 			.version("1.0")
 			.description("Documentación OpenAPI de la API interna");
 
+        SecurityScheme basicAuthScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("basic")
+                .name("Authorization")
+                .description("Autenticació bàsica: introdueix el teu usuari i contrasenya de domini");
+
+        OpenAPI openAPI = new OpenAPI()
+                .info(info)
+                .servers(List.of(new Server().url("/concsvapi/interna")))
+                .components(new Components().addSecuritySchemes("basic-auth", basicAuthScheme));
+
 		SwaggerConfiguration oasConfig = new SwaggerConfiguration()
-			.openAPI(new io.swagger.v3.oas.models.OpenAPI()
-				.info(info)
-				.servers(List.of(new Server().url("/concsvapi/interna"))))
+			.openAPI(openAPI)
 			.prettyPrint(true)
 			.resourcePackages(Set.of("es.caib.concsv.api.interna.services"));
 

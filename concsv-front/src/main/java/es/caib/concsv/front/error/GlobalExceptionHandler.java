@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package es.caib.concsv.front.error;
 
@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Objects;
 
+import es.caib.concsv.logic.intf.exception.DocumentNotExistException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,12 +18,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import es.caib.concsv.service.exception.DocumentNotExistException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Tractament global de les excepcions en els controladors.
- * 
+ *
  * @author Límit Tecnologies
  */
 @Slf4j
@@ -101,7 +101,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		th.printStackTrace(pw);
 		return sw.toString();
 	}
-	
+
 	private ResponseEntity<Object> toErrorResponseEntity(
 			HttpStatus httpStatus,
 			ErrorResponse errorResponse) {

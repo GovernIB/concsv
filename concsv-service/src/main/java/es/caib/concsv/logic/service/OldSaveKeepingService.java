@@ -5,6 +5,7 @@ import es.caib.comanda.ms.salut.helper.IntegracioApp;
 import es.caib.concsv.logic.annotation.ErrorInt;
 import es.caib.concsv.logic.annotation.PerformanceInt;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.exception.DuplicatedHashException;
 import es.caib.concsv.logic.intf.exception.GenericServiceException;
@@ -15,7 +16,6 @@ import es.caib.concsv.logic.intf.qualifier.LogicService;
 import es.caib.concsv.logic.intf.service.OldSaveKeepingServiceInterface;
 import es.caib.concsv.logic.util.PdfSignerUtils;
 import es.caib.concsv.logic.util.StrUtils;
-import es.caib.concsv.logic.util.TinyUrlUtils;
 import es.caib.concsv.logic.util.ValidacioFirmaUtils;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -41,13 +41,11 @@ import java.util.*;
 @ApplicationScoped
 public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
 
-    @Inject @ConfigProperty(name = "es.caib.concsv.old.savekeeping.endpoint")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_OLD_SAVEKEEPING_ENDPOINT)
     private String endpoint;
-    @Inject @ConfigProperty(name = "es.caib.concsv.query.url")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_QUERY_URL)
     private String queryUrl;
-    @Inject @ConfigProperty(name = "es.caib.concsv.do.tiny")
-    private String reduce;
-    @Inject @ConfigProperty(name = "es.caib.concsv.old.savekeeping.timeout", defaultValue = "")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_OLD_SAVEKEEPING_TIMEOUT, defaultValue = "")
     private String timeout;
 
     private Logger log = Logger.getLogger(this.getClass());
@@ -143,12 +141,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
             documentInfo.setExtensionFormato("pdf");
 
             String downloadUrl = queryUrl + documentInfo.getHash();
-            // Hacer la URL Tiny
-            Boolean doTiny = "S".equals(reduce);
-            if (doTiny)
-            	documentInfo.setDownloadUrl(TinyUrlUtils.doTinyUrl(downloadUrl, integracionsHelper));
-            else
-            	documentInfo.setDownloadUrl(downloadUrl);
+            documentInfo.setDownloadUrl(downloadUrl);
 
             byte[] pdfSource = getDocument(hash).getContent();
             try {

@@ -10,6 +10,7 @@ import es.caib.concsv.logic.estadistiques.FetEnum;
 import es.caib.concsv.logic.helper.EstadisticaHelper;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.ResultTypeEnum;
 import es.caib.concsv.logic.intf.exception.GenericServiceException;
 import es.caib.concsv.logic.intf.model.EnviamentOrigen;
@@ -46,7 +47,7 @@ public class ComandaService implements ComandaServiceInterface {
 	@Inject
 	private IntegracionsHelper integracionsHelper;
 	@Inject
-	@ConfigProperty(name = "es.caib.concsv.logs.location", defaultValue = "standalone/log/")
+	@ConfigProperty(name = PropertyConfig.PROP_LOGS_LOCATION, defaultValue = "standalone/log/")
 	private String LOGS_LOCATION;
 
 	private static final String CODE_APP = "CSV";

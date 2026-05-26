@@ -3,6 +3,7 @@ package es.caib.concsv.logic.util;
 import es.caib.comanda.ms.salut.helper.IntegracioApp;
 import es.caib.concsv.commons.config.PropertyFileConfigUtil;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.model.DocumentSigner;
 import es.caib.concsv.logic.plugin.ValidateSignaturePlugin;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class ValidacioFirmaUtils {
 
-	private final static String valideProp = "es.caib.concsv.forceValideCert";
+	private final static String valideProp = PropertyConfig.PROP_FORCE_VALIDE_CERT;
 
 	byte[] documentData = null;
 	byte[] signatureData = null;
@@ -43,7 +44,7 @@ public class ValidacioFirmaUtils {
 			Properties prop = PropertyFileConfigUtil.getProperties();
 			Boolean valideCert = (prop.get(valideProp) == null || "false".equalsIgnoreCase((String) prop.get(valideProp))) ? false : true;
 			IValidateSignaturePlugin plugin;
-			plugin = new ValidateSignaturePlugin("es.caib.concsv.", prop);
+			plugin = new ValidateSignaturePlugin(PropertyConfig.PROP_BASE_PREFIX_VALIDATE_SIGNATURE, prop);
 			ValidateSignatureRequest vsr = new ValidateSignatureRequest();
 			vsr.setLanguage("ca");
 			if (signatureData == null) {

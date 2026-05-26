@@ -1,5 +1,6 @@
 package es.caib.concsv.logic.helper;
 
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.ResultTypeEnum;
 import es.caib.concsv.logic.intf.model.EnviamentOrigen;
 import es.caib.concsv.logic.intf.model.EnviamentTipus;
@@ -33,7 +34,7 @@ public class EstadisticaHelperTest {
     @Before
     public void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        System.setProperty("es.caib.concsv.estadisticas.dias.conservar", "365");
+        System.setProperty(PropertyConfig.PROP_ESTADISTICAS_DIAS_CONSERVAR, "365");
     }
 
     @Test

@@ -1,8 +1,10 @@
 /**
- * 
+ *
  */
 package es.caib.concsv.persistence.config;
 
+import es.caib.concsv.logic.intf.config.BaseConfig;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +30,13 @@ import java.util.Map;
 
 /**
  * Configuració dels components de persistència.
- * 
+ *
  * @author Límit Tecnologies
  */
 @Slf4j
 @Configuration
 @EnableJpaRepositories(
-		basePackages = { "es.caib.concsv.persist.repository" },
+		basePackages = { BaseConfig.BASE_PACKAGE + ".persist.repository" },
 		entityManagerFactoryRef = "mainEntityManager",
 		transactionManagerRef = "mainTransactionManager"
 )
@@ -42,7 +44,7 @@ public class PersistenceConfig {
 
 	@Value("${spring.jpa.hibernate.ddl-auto:#{null}}")
 	private String hibernateDdlAuto;
-	@Value("${es.caib.concsv.persist.container-transactions-disabled:false}")
+	@Value("${" + PropertyConfig.PROP_PERSIST_CONTAINER_TRANSACTIONS_DISABLED + ":false}")
 	private boolean containerTransactionsDisabled;
 
 	@Bean
@@ -153,7 +155,7 @@ public class PersistenceConfig {
 	}
 
 	protected String getEntityPackages() {
-		return "es.caib.concsv.persist.entity";
+		return BaseConfig.BASE_PACKAGE + ".persist.entity";
 	}
 
 	@Getter

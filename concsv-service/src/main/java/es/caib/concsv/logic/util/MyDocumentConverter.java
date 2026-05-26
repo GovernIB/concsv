@@ -4,6 +4,7 @@ import com.sun.xml.messaging.saaj.util.ByteInputStream;
 import es.caib.comanda.ms.salut.helper.IntegracioApp;
 import es.caib.concsv.commons.config.PropertyFileConfigUtil;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import org.fundaciobit.plugins.documentconverter.openoffice.OpenOfficeDocumentConverterPlugin;
 import org.fundaciobit.pluginsib.documentconverter.ConversionDocumentException;
 import org.fundaciobit.pluginsib.documentconverter.IDocumentConverterPlugin;
@@ -44,7 +45,7 @@ public class MyDocumentConverter {
 		boolean hasError = true;
 		byte[] ret = null;
 		var prop = PropertyFileConfigUtil.getProperties();
-		IDocumentConverterPlugin oodcp = new OpenOfficeDocumentConverterPlugin("es.caib.concsv.", prop);
+		IDocumentConverterPlugin oodcp = new OpenOfficeDocumentConverterPlugin(PropertyConfig.PROP_BASE_PREFIX_DOCUMENT_CONVERTER, prop);
 		ByteArrayInputStream is = new ByteInputStream(content, content.length);
 		ByteArrayOutputStream os = null;
 		try {

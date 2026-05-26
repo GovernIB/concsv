@@ -2,6 +2,7 @@ package es.caib.concsv.logic.interceptor;
 
 import es.caib.concsv.logic.annotation.Performance;
 import es.caib.concsv.logic.annotation.PerformanceInt;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import org.apache.log4j.Logger;
 import org.eclipse.microprofile.config.ConfigProvider;
 
@@ -41,7 +42,7 @@ public class PerformanceInterceptor {
                 forcePerformance = sp.forcePerformance();
             }
 
-            String logPerformace = ConfigProvider.getConfig().getValue("es.caib.concsv.performance", String.class);
+            String logPerformace = ConfigProvider.getConfig().getValue(PropertyConfig.PROP_PERFORMANCE, String.class);
             if (forcePerformance || logPerformace.equals("S")) {
                 LOGGER.info("----------------------------------------------------------------------------------------");
                 LOGGER.info("- Ejecución de método: "+ic.getTarget().getClass().getName()+"."+ic.getMethod().getName());

@@ -1,5 +1,6 @@
 package es.caib.concsv.logic.helper;
 
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.ResultTypeEnum;
 import es.caib.concsv.logic.intf.model.EnviamentOrigen;
 import es.caib.concsv.logic.intf.model.EnviamentTipus;
@@ -34,7 +35,7 @@ public class EstadisticaHelper {
 
     @PersistenceContext(unitName = "concsvPU")
     private EntityManager entityManager;
-    @Inject @ConfigProperty(name = "es.caib.concsv.estadisticas.dias.conservar", defaultValue = "365")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_ESTADISTICAS_DIAS_CONSERVAR, defaultValue = "365")
     private int diasConservar;
 
     /** Comptadors d'esdeveniments per dimensió i tipus de resultat */

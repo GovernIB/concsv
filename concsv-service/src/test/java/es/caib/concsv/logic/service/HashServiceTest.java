@@ -2,6 +2,7 @@ package es.caib.concsv.logic.service;
 
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.enums.EniDocumentType;
 import es.caib.concsv.logic.intf.enums.EniElaborationStatus;
@@ -59,11 +60,11 @@ public class HashServiceTest {
 		String logoPath = "/opt/webapps/concsv/logoGOIBc.png";
 		String exclusionsPath = "/opt/webapps/concsv/documents-exclosos.txt";
 
-		System.setProperty("es.caib.concsv.consult.oldSafeKeeping", "N");
-		System.setProperty("es.caib.concsv.consult.newDigitalArchive", "S");
-		System.setProperty("es.caib.concsv.logo.path", logoPath);
-		System.setProperty("es.caib.concsv.convertpdf2img", "false");
-		//System.setProperty("es.caib.concsv.arxiu.documents.exclosos.path", exclusionsPath);
+		System.setProperty(PropertyConfig.PROP_CONSULT_OLD_SAFEKEEPING, "N");
+		System.setProperty(PropertyConfig.PROP_CONSULT_NEW_DIGITAL_ARCHIVE, "S");
+		System.setProperty(PropertyConfig.PROP_LOGO_PATH, logoPath);
+		System.setProperty(PropertyConfig.PROP_CONVERT_PDF_TO_IMG, "false");
+		// System.setProperty(PropertyConfig.PROP_ARXIU_DOCS_EXCLOSOS_PATH, exclusionsPath);
 
 		// Helpers
 		SubsistemesHelper subsistemesHelper = new SubsistemesHelper();

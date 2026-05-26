@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package es.caib.concsv.front.controller;
 
@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Servei principal de l'API de l'aplicació.
- * 
+ *
  * @author Limit Tecnologies
  */
 //@Hidden
@@ -33,16 +34,16 @@ public class SysenvController {
 	private Environment env;
 
 	private Map<String, String> additionalReactEnvVars = Map.of(
-			"es.caib.concsv.front.api.url", "REACT_APP_API_URL",
-			"es.caib.concsv.front.preview.enabled", "REACT_APP_PREVIEW_ENABLED",
-			"es.caib.concsv.front.recaptcha.enabled", "REACT_APP_RECAPTCHA_ENABLED",
-			"es.caib.concsv.front.recaptcha.sitekey", "REACT_APP_RECAPTCHA_SITE_KEY");
+		PropertyConfig.PROP_FRONT_API_URL, "REACT_APP_API_URL",
+		PropertyConfig.PROP_FRONT_PREVIEW_ENABLED, "REACT_APP_PREVIEW_ENABLED",
+		PropertyConfig.PROP_FRONT_RECAPTCHA_ENABLED, "REACT_APP_RECAPTCHA_ENABLED",
+		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY, "REACT_APP_RECAPTCHA_SITE_KEY");
 
 	private Map<String, String> additionalViteEnvVars = Map.of(
-			"es.caib.concsv.front.api.url", "VITE_API_URL",
-			"es.caib.concsv.front.preview.enabled", "VITE_PREVIEW_ENABLED",
-			"es.caib.concsv.front.recaptcha.enabled", "VITE_RECAPTCHA_ENABLED",
-			"es.caib.concsv.front.recaptcha.sitekey", "VITE_RECAPTCHA_SITE_KEY");
+		PropertyConfig.PROP_FRONT_API_URL, "VITE_API_URL",
+		PropertyConfig.PROP_FRONT_PREVIEW_ENABLED, "VITE_PREVIEW_ENABLED",
+		PropertyConfig.PROP_FRONT_RECAPTCHA_ENABLED, "VITE_RECAPTCHA_ENABLED",
+		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY, "VITE_RECAPTCHA_SITE_KEY");
 
 	@GetMapping
 	public ResponseEntity<String> systemEnvironment(

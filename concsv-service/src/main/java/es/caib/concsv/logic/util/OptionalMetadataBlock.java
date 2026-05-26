@@ -1,5 +1,6 @@
 package es.caib.concsv.logic.util;
 
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import org.apache.log4j.Logger;
 import org.eclipse.microprofile.config.ConfigProvider;
 
@@ -16,7 +17,7 @@ public class OptionalMetadataBlock {
 
 	private static Logger log = Logger.getLogger(OptionalMetadataBlock.class);
 	private static final String ext = "optionalMetadata_(ca|es).properties";
-	private static final String propertyOptionalMetadataPath = "es.caib.concsv.optionalLabelMetadata.path";
+	private static final String propertyOptionalMetadataPath = PropertyConfig.PROP_OPTIONAL_LABEL_METADATA_PATH;
 	private static HashMap<String, LinkedHashMap<String, String>> matadataLabels;
 	private static String propertiesPath = null;
 

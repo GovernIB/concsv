@@ -2,7 +2,7 @@ version: "3"
 
 services:
   concsv:
-    image: concsv:2.1.3
+    image: concsv:2.1.4
     ports:
       - ${APP_PORT:-8080}:8080
       - ${DEBUG_PORT:-8787}:8787
@@ -24,11 +24,8 @@ services:
       - es.caib.concsv.performance=S
       - es.caib.concsv.validation.url=http://localhost:8080/concsvfront
       - es.caib.concsv.query.url=http://localhost:8080/concsvfront/view/
-      - es.caib.concsv.show.captcha=N
       - es.caib.concsv.logo.path=/home/jboss/apps/concsv/goib_logo.png
       - es.caib.concsv.optionalLabelMetadata.path=/home/jboss/apps/concsv/optional_metadata
-      - es.caib.concsv.ws.broker.security.user=concsv
-      - es.caib.concsv.ws.broker.security.password=concsv
       - es.caib.concsv.consult.oldSafeKeeping=S
       - es.caib.concsv.old.savekeeping.endpoint=${OLD_SAVEKEEPING_ENDPOINT}
       - es.caib.concsv.consult.newDigitalArchive=S
@@ -39,10 +36,6 @@ services:
       - es.caib.concsv.new.digital.archive.organization=${NEW_DIGITAL_ARCHIVE_ORG}
       - es.caib.concsv.new.digital.archive.version=1.0
       - es.caib.concsv.new.digital.archive.traces=false
-      - es.caib.concsv.do.tiny=N
-      - es.caib.concsv.tiny.rest.url=${TINY_REST_URL}
-      - es.caib.concsv.tiny.username=${TINY_USERNAME}
-      - es.caib.concsv.tiny.password=${TINY_PASSWORD}
       - es.caib.concsv.plugin.validatesignature.class=org.fundaciobit.plugins.validatesignature.afirmacxf.AfirmaCxfValidateSignaturePlugin
       - es.caib.concsv.plugins.validatesignature.afirmacxf.endpoint=${VALIDATESIGN_AFIRMACXF_ENDPOINT}
       - es.caib.concsv.plugins.validatesignature.afirmacxf.applicationID=${VALIDATESIGN_AFIRMACXF_APPID}

@@ -28,6 +28,7 @@ import es.caib.concsv.logic.annotation.ErrorInt;
 import es.caib.concsv.logic.annotation.PerformanceInt;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.enums.EniDocumentType;
 import es.caib.concsv.logic.intf.enums.EniElaborationStatus;
@@ -79,20 +80,20 @@ public class HashService implements HashServiceInterface {
 	private static final int MARGIN_TOP = 20;
 	private static final int MARGIN_BOTTOM = 70;
 
-	@Inject @ConfigProperty(name = "es.caib.concsv.consult.oldSafeKeeping")
+	@Inject @ConfigProperty(name = PropertyConfig.PROP_CONSULT_OLD_SAFEKEEPING)
 	private String consultOldSafeKeeping;
-	@Inject @ConfigProperty(name = "es.caib.concsv.consult.newDigitalArchive")
+	@Inject @ConfigProperty(name = PropertyConfig.PROP_CONSULT_NEW_DIGITAL_ARCHIVE)
 	private String consultNewDigitalArchive;
-	@Inject @ConfigProperty(name = "es.caib.concsv.logo.path", defaultValue = "")
+	@Inject @ConfigProperty(name = PropertyConfig.PROP_LOGO_PATH, defaultValue = "")
 	private String logoPath;
 	/** Propietat amb el path cap al fitxer d'exclusions per CSV de documents. */
-	@Inject @ConfigProperty(name = "es.caib.concsv.arxiu.documents.exclosos.path", defaultValue = "")
+	@Inject @ConfigProperty(name = PropertyConfig.PROP_ARXIU_DOCS_EXCLOSOS_PATH, defaultValue = "")
 	private String exclusionsPath;
 	/** Llista de CSV exclosos per a la descàrrega de l'original. */
 	private List<String> csvExclosos = new ArrayList<String>();
 
 	/** Indica si amagar per defecte el botó de descàrrega del botó original per documents amb versió imprimible. Per amagar posar el valor "true" */
-	@Inject @ConfigProperty(name = "es.caib.concsv.amagar.boto.original", defaultValue = "false")
+	@Inject @ConfigProperty(name = PropertyConfig.PROP_AMAGAR_BOTO_ORIGINAL, defaultValue = "false")
 	private String amagarBotoOriginal;
 
 	private PrintableUtils printableUtils = new PrintableUtils();

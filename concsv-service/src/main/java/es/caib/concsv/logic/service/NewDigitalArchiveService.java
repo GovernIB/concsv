@@ -15,6 +15,7 @@ import es.caib.comanda.ms.salut.helper.IntegracioApp;
 import es.caib.concsv.logic.annotation.ErrorInt;
 import es.caib.concsv.logic.annotation.PerformanceInt;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.enums.EniDocumentType;
 import es.caib.concsv.logic.intf.enums.EniElaborationStatus;
@@ -48,23 +49,21 @@ import java.util.*;
 @ApplicationScoped
 public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterface {
 
-    @Inject @ConfigProperty(name = "es.caib.concsv.new.digital.archive.endpoint")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_NEW_DIGITAL_ARCHIVE_ENDPOINT)
     private String endpoint;
-    @Inject @ConfigProperty(name = "es.caib.concsv.query.url")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_QUERY_URL)
     private String queryUrl;
-    @Inject @ConfigProperty(name = "es.caib.concsv.do.tiny")
-    private String reduce;
-    @Inject @ConfigProperty(name = "es.caib.concsv.new.digital.archive.organization")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_NEW_DIGITAL_ARCHIVE_ORG)
     private String ORGANIZACION;
-    @Inject @ConfigProperty(name = "es.caib.concsv.new.digital.archive.app.client")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_NEW_DIGITAL_ARCHIVE_APP_CLIENT)
     private String APLICACION_CLIENTE;
-    @Inject @ConfigProperty(name = "es.caib.concsv.new.digital.archive.username")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_NEW_DIGITAL_ARCHIVE_USERNAME)
     private String USERNAME;
-    @Inject @ConfigProperty(name = "es.caib.concsv.new.digital.archive.password")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_NEW_DIGITAL_ARCHIVE_PASSWORD)
     private String PASSWORD;
-    @Inject @ConfigProperty(name = "es.caib.concsv.new.digital.archive.version")
+    @Inject @ConfigProperty(name = PropertyConfig.PROP_NEW_DIGITAL_ARCHIVE_VERSION)
     private String VERSION_SERVICIO;
-	@Inject @ConfigProperty(name = "es.caib.concsv.new.digital.archive.traces", defaultValue = "true")
+	@Inject @ConfigProperty(name = PropertyConfig.PROP_NEW_DIGITAL_ARCHIVE_TRACES, defaultValue = "true")
 	private boolean TRACES;
 
 	SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss 'GMT'Z");
@@ -194,12 +193,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             documentInfo.setExtensionFormato(getGenericMetadata(metaMap, "eni:extension_formato").replace(".", ""));
 
             String downloadUrl = queryUrl + documentInfo.getHash();
-            // Hacer la URL Tiny
-            Boolean doTiny = "S".equals(reduce);
-            if (doTiny)
-            	documentInfo.setDownloadUrl(TinyUrlUtils.doTinyUrl(downloadUrl, integracionsHelper));
-            else
-            	documentInfo.setDownloadUrl(downloadUrl);
+            documentInfo.setDownloadUrl(downloadUrl);
 
 	        byte[] pdfSource = Base64.getDecoder().decode(documentoDevuelto.getContent().getBytes());
 

@@ -91,6 +91,9 @@ public class HashService implements HashServiceInterface {
 	/** Propietat amb el path cap al fitxer d'exclusions per CSV de documents. */
 	@Inject @ConfigProperty(name = PropertyConfig.PROP_ARXIU_DOCS_EXCLOSOS_PATH, defaultValue = "")
 	private String exclusionsPath;
+	@Inject
+	@ConfigProperty(name = PropertyConfig.PROP_CACHE_ACTIVA, defaultValue = "false")
+	private boolean cacheActiva;
 	/** Llista de CSV exclosos per a la descàrrega de l'original. */
 	private List<String> csvExclosos = new ArrayList<String>();
 
@@ -290,7 +293,10 @@ public class HashService implements HashServiceInterface {
 			DocumentContent documentContent = null;
 			if (documentInfo.getDocumentLocation() == null)
 				return null;
-			Optional<DocumentContent> documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL);
+			Optional<DocumentContent> documentContentCache = Optional.empty();
+			if (cacheActiva) {
+				documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL);
+			}
 			if (documentContentCache.isPresent()) {
 				return documentContentCache.get();
 			}
@@ -304,7 +310,7 @@ public class HashService implements HashServiceInterface {
 				documentContent = this.newDigitalArchiveService.getDocument(documentInfo.getDocumentCode(), packedFile);
 			}
 			subsistemesHelper.addSuccessOperation(SubsistemesHelper.SubsistemesEnum.ORI, System.currentTimeMillis() - t0);
-			if (documentContent != null) {
+			if (cacheActiva && documentContent != null) {
 				cacheHelper.set(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL, documentContent);
 			}
 			return documentContent;
@@ -328,7 +334,10 @@ public class HashService implements HashServiceInterface {
 		boolean isError = false;
 		long t0 = System.currentTimeMillis();
 		try {
-			Optional<DocumentContent> documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE);
+			Optional<DocumentContent> documentContentCache = Optional.empty();
+			if (cacheActiva) {
+				documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE);
+			}
 			if (documentContentCache.isPresent()) {
 				return documentContentCache.get();
 			}
@@ -381,7 +390,9 @@ public class HashService implements HashServiceInterface {
 			// S'afegeix _imprimible com a "nom" + "_imprimible" + ".pdf"
 			fileName = fileName.substring(0, fileName.lastIndexOf(".")) + "_imprimible.pdf";
 			documentContent.setFileName(fileName);
-			cacheHelper.set(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, documentContent);
+			if (cacheActiva) {
+				cacheHelper.set(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, documentContent);
+			}
 			return documentContent;
 		} catch (BadPasswordException | InvalidPasswordException e) {
 			isError = true;
@@ -835,9 +846,11 @@ public class HashService implements HashServiceInterface {
 
 	@Override
 	public void cacheClearExpiredFiles() throws IOException {
-		log.debug("Netejant cache de documents de l'arxiu...");
-		int deletedCount = cacheHelper.cleanExpired();
-		log.debug("...neteja de cache de documents finalitzada. S'han eliminat {} documents.", deletedCount);
+		if (cacheActiva) {
+			log.debug("Netejant cache de documents de l'arxiu...");
+			int deletedCount = cacheHelper.cleanExpired();
+			log.debug("...neteja de cache de documents finalitzada. S'han eliminat {} documents.", deletedCount);
+		}
 	}
 
 	/** Mètodes per fer tests */

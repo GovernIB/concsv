@@ -26,6 +26,7 @@ services:
       - es.caib.concsv.query.url=http://localhost:8080/concsvfront/view/
       - es.caib.concsv.performance=S
       - es.caib.concsv.logs.location=${LOGS_LOCATION:-}
+      - es.caib.concsv.cache.activa=${CACHE_ACTIVA:-false}
       - es.caib.concsv.cache.ttl.hores=${CACHE_TTL_HOURS:-24}
       - es.caib.concsv.optionalLabelMetadata.path=/home/jboss/apps/concsv/optional_metadata
       - es.caib.concsv.consult.oldSafeKeeping=S

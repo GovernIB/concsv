@@ -14,6 +14,7 @@ public class PropertyConfig {
 	public static final String PROP_QUERY_URL = PROPERTY_PREFIX + "query.url";
 	public static final String PROP_PERFORMANCE = PROPERTY_PREFIX + "performance";
 	public static final String PROP_LOGS_LOCATION = PROPERTY_PREFIX + "logs.location";
+	public static final String PROP_CACHE_ACTIVA = PROPERTY_PREFIX + "cache.activa";
 	public static final String PROP_CACHE_TTL_HORES = PROPERTY_PREFIX + "cache.ttl.hores";
 	public static final String PROP_FORCE_VALIDE_CERT = PROPERTY_PREFIX + "forceValideCert";
 	public static final String PROP_CONVERT_PDF_TO_IMG = PROPERTY_PREFIX + "convertpdf2img";

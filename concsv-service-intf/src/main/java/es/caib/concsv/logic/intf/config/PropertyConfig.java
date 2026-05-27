@@ -9,10 +9,12 @@ public class PropertyConfig {
 
 	private static final String PROPERTY_PREFIX = BaseConfig.BASE_PACKAGE + ".";
 
+	public static final String PROP_FITXERS_PATH = PROPERTY_PREFIX + "fitxers";
 	public static final String PROP_LOGO_PATH = PROPERTY_PREFIX + "logo.path";
 	public static final String PROP_QUERY_URL = PROPERTY_PREFIX + "query.url";
 	public static final String PROP_PERFORMANCE = PROPERTY_PREFIX + "performance";
 	public static final String PROP_LOGS_LOCATION = PROPERTY_PREFIX + "logs.location";
+	public static final String PROP_CACHE_TTL_HORES = PROPERTY_PREFIX + "cache.ttl.hores";
 	public static final String PROP_FORCE_VALIDE_CERT = PROPERTY_PREFIX + "forceValideCert";
 	public static final String PROP_CONVERT_PDF_TO_IMG = PROPERTY_PREFIX + "convertpdf2img";
 	public static final String PROP_AMAGAR_BOTO_ORIGINAL = PROPERTY_PREFIX + "amagar.boto.original";

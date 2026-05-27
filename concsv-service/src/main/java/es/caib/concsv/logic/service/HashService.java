@@ -26,6 +26,7 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import es.caib.concsv.logic.annotation.ErrorInt;
 import es.caib.concsv.logic.annotation.PerformanceInt;
+import es.caib.concsv.logic.helper.CacheHelper;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
@@ -62,6 +63,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -106,6 +108,7 @@ public class HashService implements HashServiceInterface {
 	private NewDigitalArchiveServiceInterface newDigitalArchiveService;
 	@Inject private SubsistemesHelper subsistemesHelper;
 	@Inject private IntegracionsHelper integracionsHelper;
+	@Inject private CacheHelper cacheHelper;
 
 //	// Mètodes auxiliats per mostrar les traces de duració
 //	private static ThreadLocal<Long> startTimeMillis = new ThreadLocal<>();
@@ -283,133 +286,108 @@ public class HashService implements HashServiceInterface {
 	public DocumentContent getDocument(DocumentInfo documentInfo, Boolean packedFile) throws GenericServiceException {
 		boolean isError = false;
 		long t0 = System.currentTimeMillis();
-		String identificador = documentInfo != null ?
-				(DocumentLocation.NewDigitalArchive.equals(documentInfo.getDocumentLocation()) ?
-						documentInfo.getDocumentCode() :
-						documentInfo.getHash()) :
-				"<null>";
 		try {
-			DocumentContent dc = null;
-			if (documentInfo == null || documentInfo.getDocumentLocation() == null)
+			DocumentContent documentContent = null;
+			if (documentInfo.getDocumentLocation() == null)
 				return null;
-			if (documentInfo.getDocumentLocation().equals(DocumentLocation.OldSaveKeeping)) {
-				dc = this.oldSaveKeepingService.getDocument(documentInfo.getHash());
+			Optional<DocumentContent> documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL);
+			if (documentContentCache.isPresent()) {
+				return documentContentCache.get();
+			}
+			if (DocumentLocation.OldSaveKeeping.equals(documentInfo.getDocumentLocation())) {
+				documentContent = this.oldSaveKeepingService.getDocument(documentInfo.getHash());
 				if (!documentInfo.getDocumentName().toLowerCase().endsWith(".pdf"))
-					dc.setFileName(documentInfo.getDocumentName() + ".pdf");
+					documentContent.setFileName(documentInfo.getDocumentName() + ".pdf");
 				else
-					dc.setFileName(documentInfo.getDocumentName());
-			} else if (documentInfo.getDocumentLocation().equals(DocumentLocation.NewDigitalArchive)) {
-				dc = this.newDigitalArchiveService.getDocument(documentInfo.getDocumentCode(), packedFile);
+					documentContent.setFileName(documentInfo.getDocumentName());
+			} else if (DocumentLocation.NewDigitalArchive.equals(documentInfo.getDocumentLocation())) {
+				documentContent = this.newDigitalArchiveService.getDocument(documentInfo.getDocumentCode(), packedFile);
 			}
 			subsistemesHelper.addSuccessOperation(SubsistemesHelper.SubsistemesEnum.ORI, System.currentTimeMillis() - t0);
-			return dc;
-		} catch (Exception e) {
+			if (documentContent != null) {
+				cacheHelper.set(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL, documentContent);
+			}
+			return documentContent;
+		} catch (Exception ex) {
 			isError = true;
-			log.error("Error obtenint el document " + documentInfo.getHash() + ": " + e.getCause(), e);
+			log.error("Error obtenint el document " + documentInfo.getHash(), ex);
 			subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.ORI);
-			throw new GenericServiceException(e);
+			throw new GenericServiceException(ex);
 		} finally {
+			String identificador = documentInfo != null ?
+				(DocumentLocation.NewDigitalArchive.equals(documentInfo.getDocumentLocation()) ?
+					documentInfo.getDocumentCode() :
+					documentInfo.getHash()) :
+				"<null>";
 			log.debug("Consulta del document " + identificador + ": " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
 		}
 	}
 
-    @PermitAll
-	//@RolesAllowed({"CSV_REST"})
-	public DocumentContent getEniDocument(DocumentInfo documentInfo) throws GenericServiceException {
-		Boolean isError = false;
-		long t0 = System.currentTimeMillis();
-		String identificador = documentInfo != null ?
-				(DocumentLocation.NewDigitalArchive.equals(documentInfo.getDocumentLocation()) ? documentInfo.getDocumentCode() : "<???>") :
-				"<null>";
-		try {
-			DocumentContent dc = null;
-			if (documentInfo == null || documentInfo.getDocumentLocation() == null) {
-				isError = null;
-				return null;
-			}
-			if (documentInfo.getDocumentLocation().equals(DocumentLocation.OldSaveKeeping)) {
-				throw new GenericServiceException("No es un document ENI");
-			} else if (documentInfo.getDocumentLocation().equals(DocumentLocation.NewDigitalArchive)) {
-				dc = this.newDigitalArchiveService.getEniDocument(documentInfo.getDocumentCode());
-			}
-			return dc;
-		} catch (Exception ex) {
-			isError = true;
-			log.error("Error obtenint les dades ENI del document " + (documentInfo != null ? documentInfo.getHash() : "null") + ": " + ex.getMessage(), ex);
-			throw new GenericServiceException(ex);
-		} finally {
-			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.ENI, t0, isError);
-			log.debug("Consulta del document ENI " + identificador + ": " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
-		}
-	}
-
 	@PermitAll
-	public DocumentContent getPrintableDocument(DocumentInfo documentInfo, String lang) throws GenericServiceException {
+	public DocumentContent getPrintableDocument(DocumentInfo documentInfo, String lang) throws GenericServiceException, IOException {
 		boolean isError = false;
 		long t0 = System.currentTimeMillis();
-		String identificador = documentInfo != null ? documentInfo.getHash() : "<null>";
-		DocumentContent documentContent = null;
 		try {
-			if (documentInfo != null) {
-				String fileExtension = documentInfo.getExtensionFormato().replace(".", "");
-				documentContent = this.getDocument(documentInfo, false);
-				log.debug("Document: " + documentInfo.getHash() + " MimeType: " + documentContent.getMimeType());
-				if ("pdf".equalsIgnoreCase(fileExtension)) {
-                    if (Boolean.TRUE.equals(documentInfo.getMalformatted())) {
-                        throw new GenericServiceException("Aquest document PDF està mal format o conté errors i no es pot generar la còpia autèntica imprimible.", null);
-                    }
-					int numPages = printableUtils.getNumPages(documentContent.getContent());
+			Optional<DocumentContent> documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE);
+			if (documentContentCache.isPresent()) {
+				return documentContentCache.get();
+			}
+			String fileExtension = documentInfo.getExtensionFormato().replace(".", "");
+			DocumentContent documentContent = this.getDocument(documentInfo, false);
+			log.debug("Document: " + documentInfo.getHash() + " MimeType: " + documentContent.getMimeType());
+			if ("pdf".equalsIgnoreCase(fileExtension)) {
+				if (Boolean.TRUE.equals(documentInfo.getMalformatted())) {
+				    throw new GenericServiceException("Aquest document PDF està mal format o conté errors i no es pot generar la còpia autèntica imprimible.", null);
+				}
+				int numPages = printableUtils.getNumPages(documentContent.getContent());
+				byte[] printableContent = printableUtils.pdfToPrintablePdf(
+						documentContent.getContent(),
+						getMetadataPdf(documentInfo, numPages, lang),
+						documentInfo.getDownloadUrl(),
+						documentInfo.getHash(),
+						lang);
+				documentContent.setContent(printableContent);
+			} else if ("jpg".equalsIgnoreCase(fileExtension)) {
+				byte[] printableContent = printableUtils.imgToPrintablePdf(
+						documentContent.getContent(),
+						getMetadataPdf(documentInfo, 1, lang),
+						documentInfo.getDownloadUrl(),
+						documentInfo.getHash(),
+						lang);
+				documentContent.setContent(printableContent);
+			} else {
+				MyDocumentConverter dconverter = new MyDocumentConverter(integracionsHelper);
+				if (dconverter.isExtensionSupported(fileExtension)) {
+					log.debug("Conversió " + fileExtension);
+					byte[] pdfContent = dconverter.convertToPdf(documentContent.getContent(), fileExtension);
+					int numPages = printableUtils.getNumPages(pdfContent);
 					byte[] printableContent = printableUtils.pdfToPrintablePdf(
-							documentContent.getContent(),
-							getMetadataPdf(documentInfo, numPages, lang),
-							documentInfo.getDownloadUrl(),
-							documentInfo.getHash(),
-							lang);
-					documentContent.setContent(printableContent);
-				} else if ("jpg".equalsIgnoreCase(fileExtension)) {
-					byte[] printableContent = printableUtils.imgToPrintablePdf(
-							documentContent.getContent(),
-							getMetadataPdf(documentInfo, 1, lang),
-							documentInfo.getDownloadUrl(),
-							documentInfo.getHash(),
-							lang);
+						pdfContent,
+						getMetadataPdf(documentInfo, numPages, lang),
+						documentInfo.getDownloadUrl(),
+						documentInfo.getHash(),
+						lang);
 					documentContent.setContent(printableContent);
 				} else {
-					MyDocumentConverter dconverter = new MyDocumentConverter(integracionsHelper);
-					if (dconverter.isExtensionSupported(fileExtension)) {
-						log.debug("Conversió " + fileExtension);
-						byte[] pdfContent = dconverter.convertToPdf(documentContent.getContent(), fileExtension);
-						int numPages = printableUtils.getNumPages(pdfContent);
-						byte[] printableContent = printableUtils.pdfToPrintablePdf(
-                            pdfContent,
-							getMetadataPdf(documentInfo, numPages, lang),
-							documentInfo.getDownloadUrl(),
-							documentInfo.getHash(),
-							lang);
-						documentContent.setContent(printableContent);
-					} else {
-						throw new GenericServiceException(String.format("Conversio no soportada, csv:%s ext:%s ", documentInfo.getHash(), fileExtension));
-					}
+					throw new GenericServiceException(String.format("Conversio no soportada, csv:%s ext:%s ", documentInfo.getHash(), fileExtension));
 				}
-				// El doc de "versio imprimible" es sempre un pdf
-				documentContent.setMimeType("application/pdf");
-				String fileName = documentInfo.getDocumentName();
-				if (!fileName.toLowerCase().endsWith(".pdf")) {
-					fileName += ".pdf";
-				}
-				// S'afegeix _imprimible com a "nom" + "_imprimible" + ".pdf"
-				fileName = fileName.substring(0, fileName.lastIndexOf(".")) + "_imprimible.pdf";
-				documentContent.setFileName(fileName);
 			}
+			// El doc de "versio imprimible" es sempre un pdf
+			documentContent.setMimeType("application/pdf");
+			String fileName = documentInfo.getDocumentName();
+			if (!fileName.toLowerCase().endsWith(".pdf")) {
+				fileName += ".pdf";
+			}
+			// S'afegeix _imprimible com a "nom" + "_imprimible" + ".pdf"
+			fileName = fileName.substring(0, fileName.lastIndexOf(".")) + "_imprimible.pdf";
+			documentContent.setFileName(fileName);
+			cacheHelper.set(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, documentContent);
+			return documentContent;
 		} catch (BadPasswordException | InvalidPasswordException e) {
 			isError = true;
 			String errMsg = "El PDF está protegit amb contrasenya: " + documentInfo.getHash() + ": " + e.getMessage();
 			documentInfo.setHasPassword(true);
 			throw new GenericServiceException(errMsg, e, false);
-		} catch (StackOverflowError th) {
-			isError = true;
-			String errMsg = "Error obtenint la versió imprimible del document " + documentInfo.getHash() + ": " + th.getMessage();
-			throw new GenericServiceException(errMsg, th);
 		} catch (Throwable th) {
 			isError = true;
 			String errMsg = "Error obtenint la versió imprimible del document " + documentInfo.getHash() + ": " + th.getMessage();
@@ -417,10 +395,40 @@ public class HashService implements HashServiceInterface {
 			throw new GenericServiceException(errMsg, th);
 		} finally {
 			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.IMP, t0, isError);
+			String identificador = documentInfo != null ? documentInfo.getHash() : "<null>";
 			log.debug("Consulta del document imprimible " + identificador + ": " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
-        }
-        return documentContent;
-    }
+		}
+	}
+
+	@PermitAll
+	//@RolesAllowed({"CSV_REST"})
+	public DocumentContent getEniDocument(DocumentInfo documentInfo) throws GenericServiceException {
+		Boolean isError = false;
+		long t0 = System.currentTimeMillis();
+		DocumentContent documentContent = null;
+		try {
+			if (documentInfo == null || documentInfo.getDocumentLocation() == null) {
+				isError = null;
+				return null;
+			}
+			if (documentInfo.getDocumentLocation().equals(DocumentLocation.OldSaveKeeping)) {
+				throw new GenericServiceException("No es un document ENI");
+			} else if (documentInfo.getDocumentLocation().equals(DocumentLocation.NewDigitalArchive)) {
+				documentContent = this.newDigitalArchiveService.getEniDocument(documentInfo.getDocumentCode());
+			}
+		} catch (Exception ex) {
+			isError = true;
+			log.error("Error obtenint les dades ENI del document " + (documentInfo != null ? documentInfo.getHash() : "null") + ": " + ex.getMessage(), ex);
+			throw new GenericServiceException(ex);
+		} finally {
+			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.ENI, t0, isError);
+			String identificador = documentInfo != null ?
+				(DocumentLocation.NewDigitalArchive.equals(documentInfo.getDocumentLocation()) ? documentInfo.getDocumentCode() : "<???>") :
+				"<null>";
+			log.debug("Consulta del document ENI " + identificador + ": " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
+		}
+		return documentContent;
+	}
 
 	/** Crea un document en memòria i hi afegeix les pàgiens resum de metadades.
 	 * @param totalPages
@@ -823,6 +831,13 @@ public class HashService implements HashServiceInterface {
 	@Override
 	public List<String> getCsvExclosos() {
 		return csvExclosos;
+	}
+
+	@Override
+	public void cacheClearExpiredFiles() throws IOException {
+		log.debug("Netejant cache de documents de l'arxiu...");
+		int deletedCount = cacheHelper.cleanExpired();
+		log.debug("...neteja de cache de documents finalitzada. S'han eliminat {} documents.", deletedCount);
 	}
 
 	/** Mètodes per fer tests */

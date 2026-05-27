@@ -21,10 +21,12 @@ services:
       - JBOSS_AUTH_CREDENTIAL_SECRET=${AUTH_AUTH_CREDENTIAL_SECRET}
       - JBOSS_PROXY_HOST=${PROXY_HOST:-}
       - JBOSS_PROXY_PORT=${PROXY_PORT:-}
-      - es.caib.concsv.performance=S
-      - es.caib.concsv.validation.url=http://localhost:8080/concsvfront
-      - es.caib.concsv.query.url=http://localhost:8080/concsvfront/view/
+      - es.caib.concsv.fitxers=/home/jboss/apps/concsv/fitxers
       - es.caib.concsv.logo.path=/home/jboss/apps/concsv/goib_logo.png
+      - es.caib.concsv.query.url=http://localhost:8080/concsvfront/view/
+      - es.caib.concsv.performance=S
+      - es.caib.concsv.logs.location=${LOGS_LOCATION:-}
+      - es.caib.concsv.cache.ttl.hores=${CACHE_TTL_HOURS:-24}
       - es.caib.concsv.optionalLabelMetadata.path=/home/jboss/apps/concsv/optional_metadata
       - es.caib.concsv.consult.oldSafeKeeping=S
       - es.caib.concsv.old.savekeeping.endpoint=${OLD_SAVEKEEPING_ENDPOINT}

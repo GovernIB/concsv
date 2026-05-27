@@ -37,30 +37,23 @@ es.caib.concsv.consult.oldSafeKeeping=OLD_SAFEKEEPING_ACTIVE
 es.caib.concsv.consult.newDigitalArchive=DIGITAL_ARCHIVE_ACTIVE
 
 es.caib.concsv.performance=PERFORMANCE_ACTIVE
+es.caib.concsv.cache.ttl.hores=CACHE_TTL_HORES
 
 es.caib.concsv.query.url=http://APP_HOST/concsvfront/view.xhtml?hash=
-es.caib.concsv.validation.url=http://APP_HOST/concsvfront
 
 es.caib.concsv.front.preview.enabled=PREVIEW_ENABLED
 ```
 Exemple de contingut del fitxer jboss_system.properties:
 
 ```
+es.caib.concsv.files=FILES_PATH
 es.caib.concsv.logo.path=LOGO_PATH
-es.caib.concsv.show.captcha=SHOW_CAPTCHA_ACTIVE
 es.caib.concsv.optionalLabelMetadata.path=LABEL_METADATA_PATH
-es.caib.concsv.ws.broker.security.user=WS_SECURITY_USERNAME
-es.caib.concsv.ws.broker.security.password=WS_SECURITY_PASSWORD
 es.caib.concsv.old.savekeeping.endpoint=OLD_SAFEKEEPING_ENDPOINT
 es.caib.concsv.new.digital.archive.endpoint=DIGITAL_ARCHIVE_ENDPOINT
 es.caib.concsv.new.digital.archive.app.client=DIGITAL_ARCHIVE_APP
 es.caib.concsv.new.digital.archive.username=DIGITAL_ARCHIVE_USERNAME
 es.caib.concsv.new.digital.archive.password=DIGITAL_ARCHIVE_PASSWORD
-es.caib.concsv.do.tiny=TINY_ACTIVE
-es.caib.concsv.tiny.rest.url=TINY_ENDPOINT
-es.caib.concsv.tiny.username=TINY_USERNAME
-es.caib.concsv.tiny.password=TINY_PASSWORD
-es.caib.concsv.plugin.validatesignature.class=VALIDATESIGNATURE_CLASS
 es.caib.concsv.plugins.validatesignature.afirmacxf.endpoint=VALIDATESIGNATURE_AFIRMA_ENDPOINT
 es.caib.concsv.plugins.validatesignature.afirmacxf.applicationID=VALIDATESIGNATURE_AFIRMA_APP_ID
 es.caib.concsv.plugins.validatesignature.afirmacxf.authorization.method=VALIDATESIGNATURE_AFIRMA_AUTH_METHOD

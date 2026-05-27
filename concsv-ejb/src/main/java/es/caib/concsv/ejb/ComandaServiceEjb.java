@@ -21,7 +21,7 @@ public class ComandaServiceEjb implements ComandaServiceInterface {
 	@Delegate
 	private ComandaServiceInterface delegate;
 
-	@Schedule(hour = "*", minute = "*/5", second = "0", persistent = false)
+	@Schedule(hour = "*", minute = "*/5", persistent = false)
 	public void actualizarInformacionEstadistica() {
 		try {
 			delegate.flushEstadisticas(LocalDate.now());
@@ -30,7 +30,7 @@ public class ComandaServiceEjb implements ComandaServiceInterface {
 		}
 	}
 
-	@Schedule(hour = "2", minute = "30", second = "0", persistent = false)
+	@Schedule(hour = "2", minute = "30", persistent = false)
 	public void netejarInformacionEstadistica() {
 		try {
 			delegate.netejarEstadistiques(LocalDate.now());

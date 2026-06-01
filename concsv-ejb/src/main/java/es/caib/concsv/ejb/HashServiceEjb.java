@@ -19,7 +19,7 @@ public class HashServiceEjb implements HashServiceInterface {
 	@Delegate
 	private HashServiceInterface delegate;
 
-	@Schedule(minute = "*")
+	@Schedule(hour = "*", minute = "*")
 	public void triggerCacheClearExpiredFiles() throws IOException {
 		delegate.cacheClearExpiredFiles();
 	}

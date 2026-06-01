@@ -27,8 +27,6 @@ public class HashServiceEjb implements HashServiceInterface {
 	
 	@PostConstruct
 	public void postConstruct() {
-		for (int i = 0 ; i < 20; i++)
-			System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 	}
 
 }

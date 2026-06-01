@@ -49,8 +49,8 @@ public class CacheHelper {
 	@ConfigProperty(name = PropertyConfig.PROP_FITXERS_PATH)
 	private String fitxersPath;
 	@Inject
-	@ConfigProperty(name = PropertyConfig.PROP_CACHE_TTL_HORES, defaultValue = "24")
-	private long cacheTtlHores;
+	@ConfigProperty(name = PropertyConfig.PROP_CACHE_TTL_MINUTS, defaultValue = "30")
+	private long cacheTtlMinuts;
 
 	/**
 	 * Recupera un element de la cache.
@@ -108,7 +108,7 @@ public class CacheHelper {
 	 */
 	public int cleanExpired() throws IOException {
 		int removed = 0;
-		if (cacheTtlHores == 0) {
+		if (cacheTtlMinuts == 0) {
 			return removed;
 		}
 		Path root = resolveCacheRoot();
@@ -143,12 +143,12 @@ public class CacheHelper {
 	}
 
 	private boolean isExpired(long timestamp) {
-		if (cacheTtlHores == 0) return false;
+		if (cacheTtlMinuts == 0) return false;
 		return (System.currentTimeMillis() - timestamp) > ttlMillis();
 	}
 
 	private long ttlMillis() {
-		return Duration.ofHours(cacheTtlHores).toMillis();
+		return Duration.ofMinutes(cacheTtlMinuts).toMillis();
 	}
 
 	public enum CacheType {

@@ -37,7 +37,7 @@ es.caib.concsv.consult.oldSafeKeeping=OLD_SAFEKEEPING_ACTIVE
 es.caib.concsv.consult.newDigitalArchive=DIGITAL_ARCHIVE_ACTIVE
 
 es.caib.concsv.performance=PERFORMANCE_ACTIVE
-es.caib.concsv.cache.ttl.hores=CACHE_TTL_HORES
+es.caib.concsv.cache.ttl.minuts=CACHE_TTL_MINUTS
 
 es.caib.concsv.query.url=http://APP_HOST/concsvfront/view.xhtml?hash=
 

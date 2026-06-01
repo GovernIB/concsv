@@ -15,7 +15,7 @@ public class PropertyConfig {
 	public static final String PROP_PERFORMANCE = PROPERTY_PREFIX + "performance";
 	public static final String PROP_LOGS_LOCATION = PROPERTY_PREFIX + "logs.location";
 	public static final String PROP_CACHE_ACTIVA = PROPERTY_PREFIX + "cache.activa";
-	public static final String PROP_CACHE_TTL_HORES = PROPERTY_PREFIX + "cache.ttl.hores";
+	public static final String PROP_CACHE_TTL_MINUTS = PROPERTY_PREFIX + "cache.ttl.minuts";
 	public static final String PROP_FORCE_VALIDE_CERT = PROPERTY_PREFIX + "forceValideCert";
 	public static final String PROP_CONVERT_PDF_TO_IMG = PROPERTY_PREFIX + "convertpdf2img";
 	public static final String PROP_AMAGAR_BOTO_ORIGINAL = PROPERTY_PREFIX + "amagar.boto.original";

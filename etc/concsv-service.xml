@@ -16,10 +16,6 @@
 		es.caib.concsv.consult.oldSafeKeeping=S
 		es.caib.concsv.consult.newDigitalArchive=S		
 		<!-- Configuración general -->
-		es.caib.concsv.do.tiny=S
-		es.caib.concsv.tiny.username=u91310
-		es.caib.concsv.tiny.password=u91310
-		es.caib.concsv.tiny.rest.url=http://epreinf23.caib.es:8080/tinycaib/ws/rest
 		es.caib.concsv.show.captcha=S
     </attribute>
   </mbean>

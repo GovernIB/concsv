@@ -34,7 +34,6 @@ public class IntegracionsHelper {
 	private final List<IntegracioApp> integracions = List.of(
 		IntegracioApp.ARX,
 		IntegracioApp.SIG,
-		IntegracioApp.TIN,
 		IntegracioApp.VFI
 	);
 

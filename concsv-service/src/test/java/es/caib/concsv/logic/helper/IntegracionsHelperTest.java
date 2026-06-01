@@ -66,20 +66,20 @@ public class IntegracionsHelperTest {
 	@Test
 	public void testEstatDegradadoYWARN() {
 		// Añadimos 2 errores y 1 éxito → error % = 66% → ERROR
-		helper.addOperation(IntegracioApp.TIN, System.currentTimeMillis(), true);
-		helper.addOperation(IntegracioApp.TIN, System.currentTimeMillis(), true);
-		helper.addOperation(IntegracioApp.TIN, System.currentTimeMillis(), false);
+		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), true);
+		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), true);
+		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), false);
 
 		List<IntegracioSalut> integracions = helper.checkIntegracions();
 
-		IntegracioSalut tin = integracions.stream()
-			.filter(i -> i.getCodi().startsWith("TIN"))
+		IntegracioSalut arx = integracions.stream()
+			.filter(i -> i.getCodi().startsWith("ARX"))
 			.findFirst()
 			.orElse(null);
 
-		assertNotNull(tin);
-		assertEquals(1, tin.getPeticions().getTotalOk().longValue());
-		assertEquals(2, tin.getPeticions().getTotalError().longValue());
-		assertEquals(EstatSalutEnum.ERROR, tin.getEstat());
+		assertNotNull(arx);
+		assertEquals(1, arx.getPeticions().getTotalOk().longValue());
+		assertEquals(2, arx.getPeticions().getTotalError().longValue());
+		assertEquals(EstatSalutEnum.ERROR, arx.getEstat());
 	}
 }

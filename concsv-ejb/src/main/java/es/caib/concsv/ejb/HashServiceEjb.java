@@ -4,6 +4,7 @@ import es.caib.concsv.logic.intf.service.HashServiceInterface;
 import es.caib.concsv.logic.intf.qualifier.LogicService;
 import lombok.experimental.Delegate;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.Local;
 import javax.ejb.Schedule;
 import javax.ejb.Stateless;
@@ -22,6 +23,12 @@ public class HashServiceEjb implements HashServiceInterface {
 	@Schedule(hour = "*", minute = "*")
 	public void triggerCacheClearExpiredFiles() throws IOException {
 		delegate.cacheClearExpiredFiles();
+	}
+	
+	@PostConstruct
+	public void postConstruct() {
+		for (int i = 0 ; i < 20; i++)
+			System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 	}
 
 }

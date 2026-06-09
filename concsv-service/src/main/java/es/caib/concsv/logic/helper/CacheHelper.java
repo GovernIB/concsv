@@ -1,7 +1,13 @@
 package es.caib.concsv.logic.helper;
 
 import es.caib.concsv.logic.intf.config.PropertyConfig;
+import es.caib.concsv.logic.intf.exception.DocumentNotExistException;
+import es.caib.concsv.logic.intf.exception.DuplicatedHashException;
+import es.caib.concsv.logic.intf.exception.GenericServiceException;
 import es.caib.concsv.logic.intf.model.DocumentContent;
+import es.caib.concsv.logic.intf.model.DocumentInfo;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -10,6 +16,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,8 +59,28 @@ public class CacheHelper {
 	@ConfigProperty(name = PropertyConfig.PROP_CACHE_TTL_MINUTS, defaultValue = "30")
 	private long cacheTtlMinuts;
 
+	public Optional<DocumentInfo> getInfo(String id) throws IOException, ClassNotFoundException, DocumentNotExistException, GenericServiceException, DuplicatedHashException {
+		Optional<ExceptionInfo> exceptionInfo = get(resolveInfoPath(id, true));
+		if (exceptionInfo.isEmpty()) {
+			return get(resolveInfoPath(id, false));
+		} else {
+			ExceptionInfo exInfo = exceptionInfo.get();
+			if (DuplicatedHashException.class.isAssignableFrom(exInfo.getExceptionType())) {
+				throw new DuplicatedHashException(exInfo.getExceptionMessage(), exInfo.getCause());
+			} else if (DocumentNotExistException.class.isAssignableFrom(exInfo.getExceptionType())) {
+				throw new DocumentNotExistException(exInfo.getExceptionMessage(), exInfo.getCause());
+			} else {
+				throw new GenericServiceException(exInfo.getExceptionMessage(), exInfo.getCause());
+			}
+		}
+	}
+
+	public void setInfoOk(String id, DocumentInfo documentInfo) throws IOException {
+		set(resolveInfoPath(id, false), documentInfo);
+	}
+
 	/**
-	 * Recupera un element de la cache.
+	 * Recupera el contingut d'un document de la cache.
 	 * <p>Comportament:
 	 * <ul>
 	 *   <li>Retorna {@link Optional#empty()} si el fitxer no existeix</li>
@@ -61,38 +88,26 @@ public class CacheHelper {
 	 *   <li>Si és vàlid, renova el TTL (sliding expiration)</li>
 	 * </ul>
 	 * @param id identificador lògic del recurs cachejat
-	 * @param type tipus de cache (separació per domini)
-	 * @return les dades del document o empty si no existeix / ha expirat
+	 * @param type tipus de cache
+	 * @param lang idioma del document
+	 * @return el contingut del document o empty si no existeix / ha expirat
 	 * @throws IOException si hi ha errors d'accés al sistema de fitxers
 	 */
-	public Optional<DocumentContent> get(String id, CacheType type) throws IOException, ClassNotFoundException {
-		Path file = resolvePath(id, type);
-		if (!Files.exists(file)) {
-			return Optional.empty();
-		}
-		if (isExpired(Files.getLastModifiedTime(file).toMillis())) {
-			Files.deleteIfExists(file);
-			return Optional.empty();
-		}
-		Files.setLastModifiedTime(
-			file,
-			FileTime.from(Instant.now()));
-		try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
-			DocumentContent documentContent = (DocumentContent)ois.readObject();
-			return Optional.of(documentContent);
-		}
+	public Optional<DocumentContent> getContent(String id, CacheType type, String lang) throws IOException, ClassNotFoundException {
+		return get(resolveContentPath(id, type, lang));
 	}
 
 	/**
-	 * Desa o sobrescriu un element a la cache.
+	 * Desa o sobrescriu el contingut d'un document a la cache.
 	 * <p>Si el fitxer ja existeix, es substitueix completament.
 	 * @param id identificador lògic del recurs
 	 * @param type tipus de cache
+	 * @param lang idioma del document
 	 * @param documentContent dades del document a emmagatzemar
 	 * @throws IOException si hi ha errors escrivint al sistema de fitxers
 	 */
-	public void set(String id, CacheType type, DocumentContent documentContent) throws IOException {
-		Path file = resolvePath(id, type);
+	public void setContent(String id, CacheType type, String lang, DocumentContent documentContent) throws IOException {
+		Path file = resolveContentPath(id, type, lang);
 		Files.createDirectories(file.getParent());
 		try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file))) {
 			oos.writeObject(documentContent);
@@ -131,11 +146,43 @@ public class CacheHelper {
 		return removed;
 	}
 
-	private Path resolvePath(String id, CacheType type) {
+	private <T extends Serializable> Optional<T> get(Path file) throws IOException, ClassNotFoundException {
+		if (!Files.exists(file)) {
+			return Optional.empty();
+		}
+		if (isExpired(Files.getLastModifiedTime(file).toMillis())) {
+			Files.deleteIfExists(file);
+			return Optional.empty();
+		}
+		Files.setLastModifiedTime(
+			file,
+			FileTime.from(Instant.now()));
+		try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
+			T object = (T)ois.readObject();
+			return Optional.of(object);
+		}
+	}
+
+	private <T extends Serializable> void set(Path file, T object) throws IOException {
+		Files.createDirectories(file.getParent());
+		try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file))) {
+			oos.writeObject(object);
+		}
+	}
+
+	private Path resolveInfoPath(String id, boolean exception) {
 		String safeId = id.replaceAll("[^a-zA-Z0-9._-]", "_");
 		return resolveCacheRoot().
+			resolve("INFO").
+			resolve(safeId + (exception ? "_ex" : ""));
+	}
+
+	private Path resolveContentPath(String id, CacheType type, String lang) {
+		String safeId = id.replaceAll("[^a-zA-Z0-9._-]", "_");
+		String safeIdWithLang = lang != null ? safeId + "_" + lang : safeId;
+		return resolveCacheRoot().
 			resolve(type.name()).
-			resolve(safeId);
+			resolve(safeIdWithLang);
 	}
 
 	private Path resolveCacheRoot() {
@@ -154,6 +201,14 @@ public class CacheHelper {
 	public enum CacheType {
 		ORIGINAL,
 		IMPRIMIBLE
+	}
+
+	@Getter
+	@AllArgsConstructor
+	private static class ExceptionInfo implements Serializable {
+		private Class<? extends Throwable> exceptionType;
+		private String exceptionMessage;
+		private Throwable cause;
 	}
 
 }

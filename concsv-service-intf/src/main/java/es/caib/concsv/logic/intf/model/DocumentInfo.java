@@ -8,11 +8,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 @Getter @Setter
-public class DocumentInfo {
+public class DocumentInfo implements Serializable {
 
     private DocumentLocation documentLocation;
     @Setter(AccessLevel.NONE)
@@ -44,7 +45,6 @@ public class DocumentInfo {
     private String datacaptura;
     private String darrerSegell;
     private Map<String, Object> metadata;
-
 
     public void setDocumentLocation(DocumentLocation documentLocation) {
         this.documentLocation = documentLocation;

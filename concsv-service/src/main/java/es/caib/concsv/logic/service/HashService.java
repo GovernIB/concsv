@@ -113,18 +113,6 @@ public class HashService implements HashServiceInterface {
 	@Inject private IntegracionsHelper integracionsHelper;
 	@Inject private CacheHelper cacheHelper;
 
-//	// Mètodes auxiliats per mostrar les traces de duració
-//	private static ThreadLocal<Long> startTimeMillis = new ThreadLocal<>();
-//	private void initDurationCalc() {
-//		startTimeMillis.set(System.currentTimeMillis());
-//		log.info("[CONSULTA HASH] Inici procés");
-//	}
-//	private void logDurationCalc(String desc) {
-//		Long currentTimeMillis = System.currentTimeMillis();
-//		log.info("[CONSULTA HASH] " + desc + " (" + (currentTimeMillis - startTimeMillis.get()) + "ms)");
-//		startTimeMillis.set(currentTimeMillis);
-//	}
-
 	/** Si s'informa el document d'exclusions es llegeix i carrega.
 	 *
 	 */
@@ -147,14 +135,19 @@ public class HashService implements HashServiceInterface {
 	}
 
 	@PermitAll
-	public DocumentInfo checkHash(final String hash)
-			throws GenericServiceException, DuplicatedHashException, DocumentNotExistException {
-		long t0 = System.currentTimeMillis();
+	public DocumentInfo checkHash(final String hash) throws GenericServiceException, DuplicatedHashException, DocumentNotExistException {
 		boolean hasError = true;
+		long t0 = System.currentTimeMillis();
 		try {
+			Optional<DocumentInfo> documentInfoCache = Optional.empty();
+			if (cacheActiva) {
+				documentInfoCache = cacheHelper.getInfo(hash);
+			}
+			if (documentInfoCache.isPresent()) {
+				return documentInfoCache.get();
+			}
 			DocumentInfo documentInfoNewDigitalArchive = null;
 			DocumentInfo documentInfoOldSaveKeeping = null;
-
 			// Consulta a l'Arxiu Digital CAIB
 			documentInfoNewDigitalArchive = null;
 			Throwable newDigitalArchiveException = null;
@@ -174,27 +167,28 @@ public class HashService implements HashServiceInterface {
 					log.trace("\tConsulta del hash " + hash + " a l'arxiu digital: " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t00) + " ms)");
 				}
 			}
-
 			// Consulta a la custòdia antiga si no l'ha trobat a l'Arxiu
 			Throwable oldSafeKeepingException = null;
 			if (documentInfoNewDigitalArchive == null
-					&& consultOldSafeKeeping != null
-					&& "S".equals(consultOldSafeKeeping))
+				&& consultOldSafeKeeping != null
+				&& "S".equals(consultOldSafeKeeping))
 			{
 				boolean isError = false;
 				long t00 = System.currentTimeMillis();
 				try {
 					documentInfoOldSaveKeeping = oldSaveKeepingService.checkHash(hash);
 					if (documentInfoOldSaveKeeping != null
-							&& !documentInfoOldSaveKeeping.getCorrectSafeKeeping())
-						throw new DocumentNotExistException();
+						&& !documentInfoOldSaveKeeping.getCorrectSafeKeeping())
+					throw new DocumentNotExistException();
 				} catch (Exception ex) {
 					isError = true;
 					oldSafeKeepingException = ex;
 					if (ex.getCause() instanceof DuplicatedHashException) {
-						throw new DuplicatedHashException("Document duplicat a l'antiga custòdia!!!");
+						String message = "Document duplicat a l'antiga custòdia!!!";
+						throw new DuplicatedHashException(message);
 					} else if (ex instanceof DocumentNotExistException) {
-						throw new DocumentNotExistException("El document no s'ha custodiat correctament.");
+						String message = "El document no s'ha custodiat correctament.";
+						throw new DocumentNotExistException(message);
 					}
 				} finally {
 					log.trace("\tConsulta del hash " + hash + " a l'antiga custòdia: " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t00) + " ms)");
@@ -233,7 +227,14 @@ public class HashService implements HashServiceInterface {
 				}
 			}
 			hasError = false;
+			if (cacheActiva) {
+				cacheHelper.setInfoOk(hash, docInfo);
+			}
 			return docInfo;
+		} catch (Exception ex) {
+			log.error("Error al consultar el document amb hash {}", hash, ex);
+			subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.CHE);
+			throw new GenericServiceException(ex);
 		} finally {
 			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.CHE, t0, hasError);
 			log.debug("Consulta del hash " + hash + ": (" + (System.currentTimeMillis() - t0) + " ms)");
@@ -295,7 +296,7 @@ public class HashService implements HashServiceInterface {
 				return null;
 			Optional<DocumentContent> documentContentCache = Optional.empty();
 			if (cacheActiva) {
-				documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL);
+				documentContentCache = cacheHelper.getContent(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL, null);
 			}
 			if (documentContentCache.isPresent()) {
 				return documentContentCache.get();
@@ -311,7 +312,7 @@ public class HashService implements HashServiceInterface {
 			}
 			subsistemesHelper.addSuccessOperation(SubsistemesHelper.SubsistemesEnum.ORI, System.currentTimeMillis() - t0);
 			if (cacheActiva && documentContent != null) {
-				cacheHelper.set(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL, documentContent);
+				cacheHelper.setContent(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL, null, documentContent);
 			}
 			return documentContent;
 		} catch (Exception ex) {
@@ -336,7 +337,7 @@ public class HashService implements HashServiceInterface {
 		try {
 			Optional<DocumentContent> documentContentCache = Optional.empty();
 			if (cacheActiva) {
-				documentContentCache = cacheHelper.get(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE);
+				documentContentCache = cacheHelper.getContent(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, lang);
 			}
 			if (documentContentCache.isPresent()) {
 				return documentContentCache.get();
@@ -391,7 +392,7 @@ public class HashService implements HashServiceInterface {
 			fileName = fileName.substring(0, fileName.lastIndexOf(".")) + "_imprimible.pdf";
 			documentContent.setFileName(fileName);
 			if (cacheActiva) {
-				cacheHelper.set(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, documentContent);
+				cacheHelper.setContent(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, lang, documentContent);
 			}
 			return documentContent;
 		} catch (BadPasswordException | InvalidPasswordException e) {
@@ -833,7 +834,8 @@ public class HashService implements HashServiceInterface {
 			throw (GenericServiceException)ex;
 		} else {
 			log.error("Error al consultar document", ex);
-			throw new GenericServiceException("Excepció en el servei del nou arxiu digital", ex);
+			String message = "Excepció en el servei del nou arxiu digital";
+			throw new GenericServiceException(message, ex);
 		}
 	}
 

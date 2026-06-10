@@ -59,24 +59,12 @@ public class CacheHelper {
 	@ConfigProperty(name = PropertyConfig.PROP_CACHE_TTL_MINUTS, defaultValue = "30")
 	private long cacheTtlMinuts;
 
-	public Optional<DocumentInfo> getInfo(String id) throws IOException, ClassNotFoundException, DocumentNotExistException, GenericServiceException, DuplicatedHashException {
-		Optional<ExceptionInfo> exceptionInfo = get(resolveInfoPath(id, true));
-		if (exceptionInfo.isEmpty()) {
-			return get(resolveInfoPath(id, false));
-		} else {
-			ExceptionInfo exInfo = exceptionInfo.get();
-			if (DuplicatedHashException.class.isAssignableFrom(exInfo.getExceptionType())) {
-				throw new DuplicatedHashException(exInfo.getExceptionMessage(), exInfo.getCause());
-			} else if (DocumentNotExistException.class.isAssignableFrom(exInfo.getExceptionType())) {
-				throw new DocumentNotExistException(exInfo.getExceptionMessage(), exInfo.getCause());
-			} else {
-				throw new GenericServiceException(exInfo.getExceptionMessage(), exInfo.getCause());
-			}
-		}
+	public Optional<DocumentInfo> getInfo(String id, boolean isUuid) throws IOException, ClassNotFoundException, DocumentNotExistException, GenericServiceException, DuplicatedHashException {
+		return get(resolveInfoPath(id, isUuid));
 	}
 
-	public void setInfoOk(String id, DocumentInfo documentInfo) throws IOException {
-		set(resolveInfoPath(id, false), documentInfo);
+	public void setInfo(String id, boolean isUuid, DocumentInfo documentInfo) throws IOException {
+		set(resolveInfoPath(id, isUuid), documentInfo);
 	}
 
 	/**
@@ -170,11 +158,11 @@ public class CacheHelper {
 		}
 	}
 
-	private Path resolveInfoPath(String id, boolean exception) {
+	private Path resolveInfoPath(String id, boolean isUuid) {
 		String safeId = id.replaceAll("[^a-zA-Z0-9._-]", "_");
 		return resolveCacheRoot().
 			resolve("INFO").
-			resolve(safeId + (exception ? "_ex" : ""));
+			resolve((isUuid ? "UUID_" : "CSV_") + safeId);
 	}
 
 	private Path resolveContentPath(String id, CacheType type, String lang) {

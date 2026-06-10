@@ -141,7 +141,7 @@ public class HashService implements HashServiceInterface {
 		try {
 			Optional<DocumentInfo> documentInfoCache = Optional.empty();
 			if (cacheActiva) {
-				documentInfoCache = cacheHelper.getInfo(hash);
+				documentInfoCache = cacheHelper.getInfo(hash, false);
 			}
 			if (documentInfoCache.isPresent()) {
 				return documentInfoCache.get();
@@ -228,7 +228,7 @@ public class HashService implements HashServiceInterface {
 			}
 			hasError = false;
 			if (cacheActiva) {
-				cacheHelper.setInfoOk(hash, docInfo);
+				cacheHelper.setInfo(hash, false, docInfo);
 			}
 			return docInfo;
 		} catch (Exception ex) {
@@ -241,45 +241,30 @@ public class HashService implements HashServiceInterface {
 		}
 	}
 
-	/** Converteix el valor string a boolean. És true si el text del valor de la propietat és "true".
-	 *
-	 * @return
-	 */
-	private boolean isAmagarBotoOriginal() {
-		return this.amagarBotoOriginal != null
-				&& this.amagarBotoOriginal.trim().toLowerCase().equals("true");
-	}
-
-	@PermitAll
-	public ArrayList<Entry<String, String>> getOptionalMetadata(String lang, DocumentInfo documentInfo){
-		OptionalMetadataBlock optMetaBlk;
-		boolean isError = false;
-		long t0 = System.currentTimeMillis();
-		try {
-			optMetaBlk = new OptionalMetadataBlock();
-			return optMetaBlk.getMetadataLabels(lang, documentInfo.getMetadata());
-		} catch (Exception e) {
-			isError = true;
-			log.error("Error obtenint les metadades del document " + (documentInfo != null ? documentInfo.getHash() : "null") + ": " + e.getMessage(), e);
-			return new ArrayList<Entry<String, String>>();
-		} finally {
-			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.MET, t0, isError);
-		}
-	}
-
     @PermitAll
 	//@RolesAllowed({"CSV_REST"})
 	public DocumentInfo checkHashFromUUID(final String uuid) throws DocumentNotExistException, GenericServiceException {
 		boolean isError = true;
 		long t0 = System.currentTimeMillis();
 		try {
+			Optional<DocumentInfo> documentInfoCache = Optional.empty();
+			if (cacheActiva) {
+				documentInfoCache = cacheHelper.getInfo(uuid, true);
+			}
+			if (documentInfoCache.isPresent()) {
+				return documentInfoCache.get();
+			}
 			DocumentInfo documentInfo = this.newDigitalArchiveService.checkHashFromUUID(uuid, null);
 			documentInfo.setCsvExclos(this.getCsvExclosos().contains(documentInfo.getHash()));
 			isError = false;
+			if (cacheActiva) {
+				cacheHelper.setInfo(uuid, true, documentInfo);
+			}
 			return documentInfo;
-		} catch (GenericServiceException ex) {
-			log.error("Error al consultar document amb UUID: " + uuid, ex.getCause());
-			throw ex;
+		} catch (Exception ex) {
+			log.error("Error al consultar document amb UUID {}", uuid, ex);
+			subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.CHE);
+			throw new GenericServiceException(ex);
 		} finally {
 			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.CHE, t0, isError);
 			log.debug("Consulta del uuid " + uuid + ": " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
@@ -440,6 +425,23 @@ public class HashService implements HashServiceInterface {
 			log.debug("Consulta del document ENI " + identificador + ": " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
 		}
 		return documentContent;
+	}
+
+	@PermitAll
+	public ArrayList<Entry<String, String>> getOptionalMetadata(String lang, DocumentInfo documentInfo){
+		OptionalMetadataBlock optMetaBlk;
+		boolean isError = false;
+		long t0 = System.currentTimeMillis();
+		try {
+			optMetaBlk = new OptionalMetadataBlock();
+			return optMetaBlk.getMetadataLabels(lang, documentInfo.getMetadata());
+		} catch (Exception e) {
+			isError = true;
+			log.error("Error obtenint les metadades del document " + (documentInfo != null ? documentInfo.getHash() : "null") + ": " + e.getMessage(), e);
+			return new ArrayList<Entry<String, String>>();
+		} finally {
+			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.MET, t0, isError);
+		}
 	}
 
 	/** Crea un document en memòria i hi afegeix les pàgiens resum de metadades.
@@ -837,6 +839,15 @@ public class HashService implements HashServiceInterface {
 			String message = "Excepció en el servei del nou arxiu digital";
 			throw new GenericServiceException(message, ex);
 		}
+	}
+
+	/** Converteix el valor string a boolean. És true si el text del valor de la propietat és "true".
+	 *
+	 * @return
+	 */
+	private boolean isAmagarBotoOriginal() {
+		return this.amagarBotoOriginal != null
+			&& this.amagarBotoOriginal.trim().toLowerCase().equals("true");
 	}
 
 	/** Consulta la llista de CSV's exclosos. */

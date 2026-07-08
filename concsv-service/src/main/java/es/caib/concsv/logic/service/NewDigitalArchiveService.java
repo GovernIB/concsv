@@ -127,7 +127,10 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             documentNode = resParam.getDocuments().get(0);
             return checkHashFromUUID(documentNode.getId(), hash); // UUID alfresco
 
-        } catch (DuplicatedHashException | GenericServiceException | DocumentNotExistException ex) {
+        } catch (DocumentNotExistException ex) {
+			hasError = null;
+            throw ex;
+        } catch (DuplicatedHashException | GenericServiceException ex) {
 			hasError = true;
             throw ex;
         } catch (Exception ex) {
@@ -143,7 +146,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
     public DocumentInfo checkHashFromUUID(String uuid, String hash) throws DocumentNotExistException, GenericServiceException {
     	//uuid = "4c66b473-347a-45d1-bc22-e13625d55cf1";2adeae575ee78ae3e1f8cf20f4eb7fe8b2a65834cbfa194395a65dc23a417aa5
 		long t0 = System.currentTimeMillis();
-		boolean hasError = false;
+		Boolean hasError = false;
         try {
 	        ApiArchivoDigital apiArxiu = getApiArxiu();
             Resultado<Documento> results = apiArxiu.obtenerDocumento(uuid, true);
@@ -303,7 +306,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	        });
             return documentInfo;
         } catch (DocumentNotExistException ex) {
-			hasError = true;
+			hasError = null;
 			throw ex;
         } catch (Exception ex) {
 			hasError = true;
@@ -363,6 +366,10 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 
 	        ApiArchivoDigital apiArxiu = getApiArxiu();
             Resultado<Documento> result = apiArxiu.obtenerDocumento(uuid, true);
+			if (result == null || result.getElementoDevuelto() == null) {
+				hasError = null;
+				return null;
+			}
             String fileExtension = getGenericMetadata(result.getElementoDevuelto().getMetadataCollection(), "eni:extension_formato");
 
             if (result.getElementoDevuelto() != null && result.getElementoDevuelto().getContent() != null) {
@@ -400,7 +407,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
                     Object hash = result.getElementoDevuelto().getMetadataCollection().get("gdib:hash");
                     if (hash instanceof Integer) {
                         dc.setCsv(String.valueOf(hash));
-                    } else if (hash instanceof Integer) {
+                    } else if (hash instanceof String) {
                         dc.setCsv((String) hash);
                     }
                 } else {
@@ -429,6 +436,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             if (uuid == null) return null;
             ApiArchivoDigital apiArxiu = getApiArxiu();
             Resultado<String> result = apiArxiu.obtenerDocumentoENI(uuid);
+			if (result == null)  return null;
             if (result.getElementoDevuelto() != null) {
                 DocumentContent dc = new DocumentContent();
                 dc.setContent(result.getElementoDevuelto().getBytes());

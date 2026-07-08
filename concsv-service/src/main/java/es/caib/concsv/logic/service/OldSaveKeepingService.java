@@ -56,7 +56,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
     @PermitAll
     public DocumentInfo checkHash(String hash) throws GenericServiceException, DuplicatedHashException {
 		long t0 = System.currentTimeMillis();
-		boolean hasError = true;
+		Boolean hasError = true;
         try {
         	hash = hash.trim();
             // TODO: Es poden subtituir les crides amb Axis 1.4?
@@ -223,6 +223,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
             	log.error("Error consultant el servei antic: " + message, ex);
                 throw new GenericServiceException(ex);
             }
+			hasError = null;
         } finally {
 			integracionsHelper.addOperation(IntegracioApp.SIG, t0, hasError);
 		}
@@ -248,7 +249,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
 	@PermitAll
     public DocumentContent getDocument(String hash) throws GenericServiceException {
 		long t0 = System.currentTimeMillis();
-		boolean hasError = true;
+		Boolean hasError = true;
         try {
             Service service = new Service();
             Call call = (Call) service.createCall();
@@ -265,6 +266,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
 				hasError = false;
                 return dc;
             }
+            hasError = null;
         } catch (Exception e) {
             log.error(e);
         } finally {

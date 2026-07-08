@@ -136,7 +136,7 @@ public class HashService implements HashServiceInterface {
 
 	@PermitAll
 	public DocumentInfo checkHash(final String hash) throws GenericServiceException, DuplicatedHashException, DocumentNotExistException {
-		boolean hasError = true;
+		Boolean hasError = true;
 		long t0 = System.currentTimeMillis();
 		try {
 			Optional<DocumentInfo> documentInfoCache = Optional.empty();
@@ -177,8 +177,8 @@ public class HashService implements HashServiceInterface {
 				long t00 = System.currentTimeMillis();
 				try {
 					documentInfoOldSaveKeeping = oldSaveKeepingService.checkHash(hash);
-					if (documentInfoOldSaveKeeping != null
-						&& !documentInfoOldSaveKeeping.getCorrectSafeKeeping())
+					if (documentInfoOldSaveKeeping == null
+						|| !documentInfoOldSaveKeeping.getCorrectSafeKeeping())
 					throw new DocumentNotExistException();
 				} catch (Exception ex) {
 					isError = true;
@@ -231,9 +231,11 @@ public class HashService implements HashServiceInterface {
 				cacheHelper.setInfo(hash, false, docInfo);
 			}
 			return docInfo;
+		} catch (DocumentNotExistException ex) {
+			hasError = null;
+			throw new GenericServiceException(ex);
 		} catch (Exception ex) {
 			log.error("Error al consultar el document amb hash {}", hash, ex);
-			subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.CHE);
 			throw new GenericServiceException(ex);
 		} finally {
 			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.CHE, t0, hasError);
@@ -244,7 +246,7 @@ public class HashService implements HashServiceInterface {
     @PermitAll
 	//@RolesAllowed({"CSV_REST"})
 	public DocumentInfo checkHashFromUUID(final String uuid) throws DocumentNotExistException, GenericServiceException {
-		boolean isError = true;
+		Boolean isError = true;
 		long t0 = System.currentTimeMillis();
 		try {
 			Optional<DocumentInfo> documentInfoCache = Optional.empty();
@@ -261,13 +263,15 @@ public class HashService implements HashServiceInterface {
 				cacheHelper.setInfo(uuid, true, documentInfo);
 			}
 			return documentInfo;
+		}  catch (DocumentNotExistException ex) {
+			isError = null;
+			throw new GenericServiceException(ex);
 		} catch (Exception ex) {
 			log.error("Error al consultar document amb UUID {}", uuid, ex);
-			subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.CHE);
 			throw new GenericServiceException(ex);
 		} finally {
 			subsistemesHelper.addOperation(SubsistemesHelper.SubsistemesEnum.CHE, t0, isError);
-			log.debug("Consulta del uuid " + uuid + ": " + (isError ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
+			log.debug("Consulta del uuid " + uuid + ": " + (Boolean.TRUE.equals(isError) ? "ERROR" : "OK") + " (" + (System.currentTimeMillis() - t0) + " ms)");
 		}
 	}
 

@@ -179,7 +179,7 @@ public class DocumentController {
 		boolean includeDownloadHeaders) throws IOException {
 		BodyBuilder bodyBuilder = ResponseEntity.ok();
 		InputStreamResource resource;
-		if (content.getContent() != null) {
+		if (content != null && content.getContent() != null) {
 			resource = new InputStreamResource(new ByteArrayInputStream(content.getContent()));
 			if (includeDownloadHeaders) {
 				HttpHeaders headers = new HttpHeaders();

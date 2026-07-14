@@ -1,7 +1,9 @@
 package es.caib.concsv.logic.helper;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -32,11 +34,11 @@ public class SubsistemesHelper {
 	private void initializeMetrics() {
 		// Core per estadístiques i fallback
 		this.monitor = new MonitorComponentsMemoria(20);
+		List<String> subsistemes = Arrays.asList(Stream.of(SubsistemesEnum.values()).map(subSistemaEnum -> subSistemaEnum.name()).toArray(String[]::new));
 		// Determina quins components són crítics
 		Function<String, Boolean> esCritic = componentId -> 
 												SubsistemesEnum.valueOf(componentId).isSistemaCritic();
-		// Servei que genera l'informe complet
-		this.subsistemes = new SalutComponentsHelper(monitor, esCritic);
+		this.subsistemes = new SalutComponentsHelper(monitor, esCritic, subsistemes);
 	}
 
 	@Getter

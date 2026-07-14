@@ -1,5 +1,6 @@
 package es.caib.concsv.logic.helper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,10 +41,15 @@ public class IntegracionsHelper {
 	private void initializeMetrics() {
 		// Core per estadístiques i fallback
 		this.monitor = new MonitorComponentsMemoria(20);
+		// Llistat de codis d'integració.
+		List<String> codisIntegracions = new ArrayList<String>();
+		for (IntegracioApp integracio : integracions ) {
+			codisIntegracions.add(integracio.getCodi());
+		}
 		// Totes les integracions són crítiques
 		Function<String, Boolean> esCritic = componentId -> true;
 		// Servei que genera l'informe complet
-		this.subsistemes = new SalutComponentsHelper(monitor, esCritic);
+		this.subsistemes = new SalutComponentsHelper(monitor, esCritic, codisIntegracions);
 	}
 
 	/**

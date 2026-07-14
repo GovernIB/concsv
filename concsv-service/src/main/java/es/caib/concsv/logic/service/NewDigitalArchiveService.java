@@ -128,7 +128,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             return checkHashFromUUID(documentNode.getId(), hash); // UUID alfresco
 
         } catch (DocumentNotExistException ex) {
-			hasError = null;
+			hasError = false;
             throw ex;
         } catch (DuplicatedHashException | GenericServiceException ex) {
 			hasError = true;
@@ -306,7 +306,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	        });
             return documentInfo;
         } catch (DocumentNotExistException ex) {
-			hasError = null;
+			hasError = false;
 			throw ex;
         } catch (Exception ex) {
 			hasError = true;

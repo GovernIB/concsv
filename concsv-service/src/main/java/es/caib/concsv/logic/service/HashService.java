@@ -187,7 +187,7 @@ public class HashService implements HashServiceInterface {
 						String message = "Document duplicat a l'antiga custòdia!!!";
 						throw new DuplicatedHashException(message);
 					} else if (ex instanceof DocumentNotExistException) {
-						String message = "El document no s'ha custodiat correctament.";
+						String message = "El document amb hash " + hash + " no s'ha trobat a Custòdia Antiga.";
 						throw new DocumentNotExistException(message);
 					}
 				} finally {

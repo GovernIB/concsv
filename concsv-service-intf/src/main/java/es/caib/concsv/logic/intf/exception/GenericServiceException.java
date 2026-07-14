@@ -28,5 +28,9 @@ public class GenericServiceException extends Exception {
 		super(cause);
 	}
 
+	public GenericServiceException(Throwable cause, boolean loggable) {
+		super(cause);
+        this.loggable = loggable;
+	}
 
 }

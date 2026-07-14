@@ -232,8 +232,8 @@ public class HashService implements HashServiceInterface {
 			}
 			return docInfo;
 		} catch (DocumentNotExistException ex) {
-			hasError = null;
-			throw new GenericServiceException(ex);
+			hasError = false;
+			throw new GenericServiceException(ex, false);
 		} catch (Exception ex) {
 			log.error("Error al consultar el document amb hash {}", hash, ex);
 			throw new GenericServiceException(ex);
@@ -264,8 +264,8 @@ public class HashService implements HashServiceInterface {
 			}
 			return documentInfo;
 		}  catch (DocumentNotExistException ex) {
-			isError = null;
-			throw new GenericServiceException(ex);
+			isError = false;
+			throw new GenericServiceException(ex, false);
 		} catch (Exception ex) {
 			log.error("Error al consultar document amb UUID {}", uuid, ex);
 			throw new GenericServiceException(ex);

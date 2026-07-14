@@ -223,7 +223,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
             	log.error("Error consultant el servei antic: " + message, ex);
                 throw new GenericServiceException(ex);
             }
-			hasError = null;
+			hasError = false;
         } finally {
 			integracionsHelper.addOperation(IntegracioApp.SIG, t0, hasError);
 		}
@@ -266,7 +266,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
 				hasError = false;
                 return dc;
             }
-            hasError = null;
+            hasError = false;
         } catch (Exception e) {
             log.error(e);
         } finally {

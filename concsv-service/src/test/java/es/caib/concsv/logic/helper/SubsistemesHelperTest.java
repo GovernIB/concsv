@@ -1,14 +1,14 @@
 package es.caib.concsv.logic.helper;
 
-import es.caib.comanda.model.server.monitoring.EstatSalutEnum;
-import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
+import es.caib.comanda.model.server.monitoring.EstatSalutEnum;
+import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
 
 public class SubsistemesHelperTest {
 
@@ -17,7 +17,6 @@ public class SubsistemesHelperTest {
 	@Before
 	public void setUp() {
 		helper = new SubsistemesHelper();
-		helper.setRegistry(new SimpleMeterRegistry());
 		helper.init();
 	}
 
@@ -65,6 +64,6 @@ public class SubsistemesHelperTest {
 		}
 
 		SubsistemesHelper.SubsistemesInfo info = helper.getSubsistemesInfo();
-		assertEquals(EstatSalutEnum.DOWN, info.getEstatGlobal());
+		assertEquals(EstatSalutEnum.ERROR, info.getEstatGlobal());
 	}
 }

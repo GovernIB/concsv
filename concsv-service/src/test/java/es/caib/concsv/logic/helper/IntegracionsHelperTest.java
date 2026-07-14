@@ -1,17 +1,17 @@
 package es.caib.concsv.logic.helper;
 
-import es.caib.comanda.model.server.monitoring.EstatSalutEnum;
-import es.caib.comanda.model.server.monitoring.IntegracioSalut;
-import es.caib.comanda.ms.salut.helper.IntegracioApp;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
+
+import es.caib.comanda.model.server.monitoring.EstatSalutEnum;
+import es.caib.comanda.model.server.monitoring.IntegracioSalut;
+import es.caib.comanda.ms.salut.helper.IntegracioApp;
 
 public class IntegracionsHelperTest {
 
@@ -20,7 +20,6 @@ public class IntegracionsHelperTest {
 	@Before
 	public void setUp() {
 		helper = new IntegracionsHelper();
-		helper.setRegistry(new SimpleMeterRegistry());
 		helper.init();
 	}
 

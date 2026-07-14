@@ -1,34 +1,29 @@
 package es.caib.concsv.logic.helper;
 
-import es.caib.comanda.model.server.monitoring.*;
-import es.caib.comanda.ms.salut.helper.IntegracioApp;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+
+import es.caib.comanda.model.server.monitoring.IntegracioInfo;
+import es.caib.comanda.model.server.monitoring.IntegracioSalut;
+import es.caib.comanda.ms.salut.helper.IntegracioApp;
+import es.caib.comanda.ms.salut.helper.SalutComponentsHelper;
+import es.caib.comanda.ms.salut.helper.SalutComponentsHelper.InformeSalutComponents;
+import es.caib.comanda.ms.salut.helper.components.MonitorComponentsMemoria;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
 public class IntegracionsHelper {
 
-	@Inject
-	@Setter
-	private MeterRegistry registry; // Global
-	private MeterRegistry localRegistry; // Local
-	private final Map<IntegracioApp, Metrics> metrics = new ConcurrentHashMap<>();
+	/** Instància del helper per obtenir els informes de les integracions. */
+	private SalutComponentsHelper subsistemes = null;
+	/** Instància pel monitor d'integracions. */
+	private MonitorComponentsMemoria monitor = null;
 
 	@Getter
 	private final List<IntegracioApp> integracions = List.of(
@@ -37,56 +32,18 @@ public class IntegracionsHelper {
 		IntegracioApp.VFI
 	);
 
-	private static class Metrics {
-		Timer timerOkGlobal;
-		Counter counterErrorGlobal;
-		Timer timerOkLocal;
-		Counter counterErrorLocal;
-	}
-
 	@PostConstruct
 	public void init() {
-		if (registry == null) {
-			log.warn("MeterRegistry no inicialitzat. No es registraran mètriques d’integració.");
-			return;
-		}
 		initializeMetrics();
 	}
 
 	private void initializeMetrics() {
-		// Reset local registry
-		if (localRegistry != null) {
-			try {
-				localRegistry.close();
-			} catch (Exception ignore) {
-			}
-		}
-		localRegistry = new SimpleMeterRegistry();
-		for (IntegracioApp app : IntegracioApp.values()) {
-			Metrics m = metrics.computeIfAbsent(app, k -> new Metrics());
-			// Global timers/counters
-			if (registry != null && m.timerOkGlobal == null) {
-				m.timerOkGlobal = Timer.builder("integracio." + app.name().toLowerCase())
-					.tags("result", "success")
-					.publishPercentiles(0.5, 0.75, 0.95, 0.99)
-					.publishPercentileHistogram()
-					.register(registry);
-				m.counterErrorGlobal = Counter.builder("integracio." + app.name().toLowerCase() + ".errors")
-					.register(registry);
-			}
-			// Local timers/counters
-			m.timerOkLocal = Timer.builder("integracio." + app.name().toLowerCase() + ".local")
-				.tags("result", "success")
-				.publishPercentiles(0.5, 0.75, 0.95, 0.99)
-				.publishPercentileHistogram()
-				.register(localRegistry);
-			m.counterErrorLocal = Counter.builder("integracio." + app.name().toLowerCase() + ".local.errors")
-				.register(localRegistry);
-		}
-	}
-
-	private void resetLocalMetrics() {
-		initializeMetrics();
+		// Core per estadístiques i fallback
+		this.monitor = new MonitorComponentsMemoria(20);
+		// Totes les integracions són crítiques
+		Function<String, Boolean> esCritic = componentId -> true;
+		// Servei que genera l'informe complet
+		this.subsistemes = new SalutComponentsHelper(monitor, esCritic);
 	}
 
 	/**
@@ -106,55 +63,14 @@ public class IntegracionsHelper {
 	 * Registra una operació correcta amb durada en ms (global + local)
 	 **/
 	public void addSuccessOperation(IntegracioApp app, long duradaMs) {
-		Metrics m = metrics.computeIfAbsent(app, k -> new Metrics());
-		if (m.timerOkGlobal != null) {
-			m.timerOkGlobal.record(duradaMs, TimeUnit.MILLISECONDS);
-		}
-		if (m.timerOkLocal != null) {
-			m.timerOkLocal.record(duradaMs, TimeUnit.MILLISECONDS);
-		}
+		this.monitor.registraExit(app.getCodi(), duradaMs);
 	}
 
 	/**
 	 * Registra una operació errònia (global + local)
 	 **/
 	public void addErrorOperation(IntegracioApp app) {
-		Metrics m = metrics.computeIfAbsent(app, k -> new Metrics());
-		if (m.counterErrorGlobal != null) {
-			m.counterErrorGlobal.increment();
-		}
-		if (m.counterErrorLocal != null) {
-			m.counterErrorLocal.increment();
-		}
-	}
-
-	/**
-	 * Retorna informació de salut bàsica d'una integració
-	 **/
-	private EstatSalut getEstat(IntegracioApp app) {
-		Metrics m = metrics.computeIfAbsent(app, k -> new Metrics());
-		Integer latenciaMitja = (m.timerOkLocal != null && m.timerOkLocal.count() > 0)
-			? (int) m.timerOkLocal.mean(TimeUnit.MILLISECONDS)
-			: null;
-		Long totalOk = (m.timerOkLocal != null) ? m.timerOkLocal.count() : 0L;
-		Long totalError = (m.counterErrorLocal != null) ? (long) m.counterErrorLocal.count() : 0L;
-		EstatSalutEnum estat = calculaEstat(totalOk, totalError);
-		return new EstatSalut().
-			latencia(latenciaMitja).
-			estat(estat);
-	}
-
-	private EstatSalutEnum calculaEstat(Long totalOk, Long totalError) {
-		long ok = totalOk != null ? totalOk : 0L;
-		long err = totalError != null ? totalError : 0L;
-		long total = ok + err;
-		if (total == 0) return EstatSalutEnum.UNKNOWN;
-		int errorPct = (int) Math.round(err * 100.0 / total);
-		if (errorPct >= 100) return EstatSalutEnum.DOWN;
-		if (errorPct > 30) return EstatSalutEnum.ERROR;
-		if (errorPct > 10) return EstatSalutEnum.DEGRADED;
-		if (errorPct < 5) return EstatSalutEnum.UP;
-		return EstatSalutEnum.WARN;
+		this.monitor.registraError(app.getCodi());
 	}
 
 	/**
@@ -170,45 +86,7 @@ public class IntegracionsHelper {
 	 * Retorna l'estat de peticions d'integracions (basat en l'última finestra local)
 	 **/
 	public List<IntegracioSalut> checkIntegracions() {
-		List<IntegracioSalut> result = new ArrayList<>();
-		for (IntegracioApp app : integracions) {
-			EstatSalut estat = getEstat(app);
-			IntegracioSalut integracioSalut = new IntegracioSalut().
-				codi(formatIntegracioCodi(app)).
-				estat(estat.getEstat()).
-				latencia(estat.getLatencia()).
-				peticions(getPeticions(app));
-			result.add(integracioSalut);
-		}
-		resetLocalMetrics();
-		return result;
+		InformeSalutComponents informeSubsistemes = this.subsistemes.obtenInforme();
+		return informeSubsistemes.toIntegracionsSalut();
 	}
-
-	private IntegracioPeticions getPeticions(IntegracioApp app) {
-		Metrics m = metrics.computeIfAbsent(app, k -> new Metrics());
-		Long totalOk = m.timerOkGlobal != null ? m.timerOkGlobal.count() : 0L;
-		Long totalError = m.counterErrorGlobal != null ? (long) m.counterErrorGlobal.count() : 0L;
-		int totalTempsMig = (m.timerOkGlobal != null && m.timerOkGlobal.count() > 0) ?
-			(int) m.timerOkGlobal.mean(TimeUnit.MILLISECONDS) : 0;
-		Long peticionsOkUltimPeriode = m.timerOkLocal != null ? m.timerOkLocal.count() : 0L;
-		Long peticionsErrorUltimPeriode = m.counterErrorLocal != null ? (long) m.counterErrorLocal.count() : 0L;
-		int tempsMigUltimPeriode = (m.timerOkLocal != null && m.timerOkLocal.count() > 0) ?
-			(int) m.timerOkLocal.mean(TimeUnit.MILLISECONDS) : 0;
-		return new IntegracioPeticions().
-			totalOk(totalOk).
-			totalError(totalError).
-			totalTempsMig(totalTempsMig).
-			peticionsOkUltimPeriode(peticionsOkUltimPeriode).
-			peticionsErrorUltimPeriode(peticionsErrorUltimPeriode).
-			tempsMigUltimPeriode(tempsMigUltimPeriode);
-	}
-
-	private String formatIntegracioCodi(IntegracioApp app) {
-		return setFormatIntegracio(app.name());
-	}
-
-	private String setFormatIntegracio(String codiIntegracio) {
-		return (codiIntegracio.length() > 16) ? codiIntegracio.substring(0, 16) : codiIntegracio;
-	}
-
 }

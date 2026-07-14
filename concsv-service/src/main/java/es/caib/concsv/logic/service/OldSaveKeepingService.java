@@ -268,7 +268,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
             }
             hasError = false;
         } catch (Exception e) {
-            log.error(e);
+        	throw new GenericServiceException(e);
         } finally {
 			integracionsHelper.addOperation(IntegracioApp.SIG, t0, hasError);
 		}

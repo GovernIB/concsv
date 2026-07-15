@@ -144,6 +144,7 @@ public class HashService implements HashServiceInterface {
 				documentInfoCache = cacheHelper.getInfo(hash, false);
 			}
 			if (documentInfoCache.isPresent()) {
+				hasError = false;
 				return documentInfoCache.get();
 			}
 			DocumentInfo documentInfoNewDigitalArchive = null;
@@ -178,8 +179,10 @@ public class HashService implements HashServiceInterface {
 				try {
 					documentInfoOldSaveKeeping = oldSaveKeepingService.checkHash(hash);
 					if (documentInfoOldSaveKeeping == null
-						|| !documentInfoOldSaveKeeping.getCorrectSafeKeeping())
-					throw new DocumentNotExistException();
+						|| !documentInfoOldSaveKeeping.getCorrectSafeKeeping()) 
+					{
+						throw new DocumentNotExistException();						
+					}
 				} catch (Exception ex) {
 					isError = true;
 					oldSafeKeepingException = ex;
@@ -188,6 +191,7 @@ public class HashService implements HashServiceInterface {
 						throw new DuplicatedHashException(message);
 					} else if (ex instanceof DocumentNotExistException) {
 						String message = "El document amb hash " + hash + " no s'ha trobat a Custòdia Antiga.";
+						hasError = false;
 						throw new DocumentNotExistException(message);
 					}
 				} finally {
@@ -254,6 +258,7 @@ public class HashService implements HashServiceInterface {
 				documentInfoCache = cacheHelper.getInfo(uuid, true);
 			}
 			if (documentInfoCache.isPresent()) {
+				isError = false;
 				return documentInfoCache.get();
 			}
 			DocumentInfo documentInfo = this.newDigitalArchiveService.checkHashFromUUID(uuid, null);

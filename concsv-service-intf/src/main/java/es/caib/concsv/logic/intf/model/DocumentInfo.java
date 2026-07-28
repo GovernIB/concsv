@@ -21,6 +21,7 @@ public class DocumentInfo implements Serializable {
     private Boolean correctSafeKeeping;
     private Boolean validHierarchy;
     private Boolean verifiedHierarchy;
+	/** Correspon amb uuid */
     private String documentCode;
     private String documentName;
     private String documentType;
@@ -50,6 +51,10 @@ public class DocumentInfo implements Serializable {
         this.documentLocation = documentLocation;
         this.eniDoc = (documentLocation.equals(DocumentLocation.NewDigitalArchive))?"1":"0";
     }
+
+	public String getCodi() {
+		return this.hash != null ? this.hash : this.documentCode;
+	}
 
 	@Override
 	public String toString() {

@@ -179,9 +179,9 @@ public class HashService implements HashServiceInterface {
 				try {
 					documentInfoOldSaveKeeping = oldSaveKeepingService.checkHash(hash);
 					if (documentInfoOldSaveKeeping == null
-						|| !documentInfoOldSaveKeeping.getCorrectSafeKeeping()) 
+						|| !documentInfoOldSaveKeeping.getCorrectSafeKeeping())
 					{
-						throw new DocumentNotExistException();						
+						throw new DocumentNotExistException();
 					}
 				} catch (Exception ex) {
 					isError = true;
@@ -290,7 +290,7 @@ public class HashService implements HashServiceInterface {
 				return null;
 			Optional<DocumentContent> documentContentCache = Optional.empty();
 			if (cacheActiva) {
-				documentContentCache = cacheHelper.getContent(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL, null);
+				documentContentCache = cacheHelper.getContent(documentInfo.getCodi(), CacheHelper.CacheType.ORIGINAL, null);
 			}
 			if (documentContentCache.isPresent()) {
 				return documentContentCache.get();
@@ -306,12 +306,12 @@ public class HashService implements HashServiceInterface {
 			}
 			subsistemesHelper.addSuccessOperation(SubsistemesHelper.SubsistemesEnum.ORI, System.currentTimeMillis() - t0);
 			if (cacheActiva && documentContent != null) {
-				cacheHelper.setContent(documentInfo.getHash(), CacheHelper.CacheType.ORIGINAL, null, documentContent);
+				cacheHelper.setContent(documentInfo.getCodi(), CacheHelper.CacheType.ORIGINAL, null, documentContent);
 			}
 			return documentContent;
 		} catch (Exception ex) {
 			isError = true;
-			log.error("Error obtenint el document " + documentInfo.getHash(), ex);
+			log.error("Error obtenint el document " + documentInfo.getCodi(), ex);
 			subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.ORI);
 			throw new GenericServiceException(ex);
 		} finally {
@@ -331,7 +331,7 @@ public class HashService implements HashServiceInterface {
 		try {
 			Optional<DocumentContent> documentContentCache = Optional.empty();
 			if (cacheActiva) {
-				documentContentCache = cacheHelper.getContent(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, lang);
+				documentContentCache = cacheHelper.getContent(documentInfo.getCodi(), CacheHelper.CacheType.IMPRIMIBLE, lang);
 			}
 			if (documentContentCache.isPresent()) {
 				return documentContentCache.get();
@@ -386,17 +386,17 @@ public class HashService implements HashServiceInterface {
 			fileName = fileName.substring(0, fileName.lastIndexOf(".")) + "_imprimible.pdf";
 			documentContent.setFileName(fileName);
 			if (cacheActiva) {
-				cacheHelper.setContent(documentInfo.getHash(), CacheHelper.CacheType.IMPRIMIBLE, lang, documentContent);
+				cacheHelper.setContent(documentInfo.getCodi(), CacheHelper.CacheType.IMPRIMIBLE, lang, documentContent);
 			}
 			return documentContent;
 		} catch (BadPasswordException | InvalidPasswordException e) {
 			isError = true;
-			String errMsg = "El PDF está protegit amb contrasenya: " + documentInfo.getHash() + ": " + e.getMessage();
+			String errMsg = "El PDF está protegit amb contrasenya: " + documentInfo.getCodi() + ": " + e.getMessage();
 			documentInfo.setHasPassword(true);
 			throw new GenericServiceException(errMsg, e, false);
 		} catch (Throwable th) {
 			isError = true;
-			String errMsg = "Error obtenint la versió imprimible del document " + documentInfo.getHash() + ": " + th.getMessage();
+			String errMsg = "Error obtenint la versió imprimible del document " + documentInfo.getCodi() + ": " + th.getMessage();
 			log.error(errMsg, th);
 			throw new GenericServiceException(errMsg, th);
 		} finally {

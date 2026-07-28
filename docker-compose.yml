@@ -2,7 +2,7 @@ version: "3"
 
 services:
   concsv:
-    image: concsv:2.1.5
+    image: concsv:2.1.6
     ports:
       - ${APP_PORT:-8080}:8080
       - ${DEBUG_PORT:-8787}:8787

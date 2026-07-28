@@ -7,7 +7,7 @@ Consulta de documents de l'arxiu de la CAIB donat el seu CSV
 Executar la següent comanda:
 
 ```
-$ mvn -P front clean install
+$ mvn clean install -DskipTests
 ```
 La compilació del projecte crea els següents fitxers per a desplegar l'aplicació:
 - concsv-ear/target/concsv.ear: fitxer per a executar l'aplicació sobre un servidor JBoss EAP 7.2.

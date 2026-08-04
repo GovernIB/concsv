@@ -3,7 +3,7 @@
 # CONCSV 
 Consulta de documents per Codi Segur de Verificació Aplicació de frontal per recuperar documents enmagatzemats a l'arxiu i a l'antic sistema de custòdia
 
-- Versió estable: 2.1.5 (branca 2.0)
+- Versió estable: 2.1.6 (branca 2.0)
 - Versió Desenvolupament: 2.2.1 (branca dev)
 
 

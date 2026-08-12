@@ -153,8 +153,12 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             //DocumentMetadades
             Documento documentoDevuelto = results.getElementoDevuelto();
             if (documentoDevuelto == null) {
-	            throw new DocumentNotExistException("uuid:" + uuid);
+            	throw new DocumentNotExistException("uuid:" + uuid);
             }
+            if (documentoDevuelto.getContent() == null || documentoDevuelto.getContent().isEmpty()) { 
+            	throw new DocumentNotExistException("El contingut del fitxer amb uuid:" + uuid + " és buid.");
+            }
+            
             DocumentInfo documentInfo = new DocumentInfo();
             documentInfo.setDocumentLocation(DocumentLocation.NewDigitalArchive);
 
@@ -195,6 +199,14 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 
             documentInfo.setExtensionFormato(getGenericMetadata(metaMap, "eni:extension_formato").replace(".", ""));
 
+            documentInfo.setDestinoTraslado(getGenericMetadata(metaMap, " gdib:destino_traslado"));
+            documentInfo.setNuevaLocalizacion(getGenericMetadata(metaMap, "gdib:id_nodo_nueva_loc"));
+            String dataTrasllat = getGenericMetadata(metaMap, "gdib:fecha_traslado");
+            if (dataTrasllat != null) {
+            	SimpleDateFormat sdfParseArxiu = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+            	documentInfo.setDatacaptura(sdf.format(sdfParseArxiu.parse(dataTrasllat)));
+            }
+            
             String downloadUrl = queryUrl + documentInfo.getHash();
             documentInfo.setDownloadUrl(downloadUrl);
 

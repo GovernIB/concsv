@@ -4,6 +4,7 @@
 .classpath
 .settings/
 bin/
+concsv-ejb/src/main/resources/META-INF/MANIFEST.MF
 
 # IntelliJ
 .idea
@@ -37,3 +38,4 @@ release.properties
 printable.pdf
 /.env
 /.codex
+/CLAUDE.md

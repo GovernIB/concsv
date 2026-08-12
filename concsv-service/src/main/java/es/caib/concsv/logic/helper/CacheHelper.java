@@ -1,9 +1,6 @@
 package es.caib.concsv.logic.helper;
 
 import es.caib.concsv.logic.intf.config.PropertyConfig;
-import es.caib.concsv.logic.intf.exception.DocumentNotExistException;
-import es.caib.concsv.logic.intf.exception.DuplicatedHashException;
-import es.caib.concsv.logic.intf.exception.GenericServiceException;
 import es.caib.concsv.logic.intf.model.DocumentContent;
 import es.caib.concsv.logic.intf.model.DocumentInfo;
 import lombok.AllArgsConstructor;
@@ -59,8 +56,18 @@ public class CacheHelper {
 	@ConfigProperty(name = PropertyConfig.PROP_CACHE_TTL_MINUTS, defaultValue = "30")
 	private long cacheTtlMinuts;
 
-	public Optional<DocumentInfo> getInfo(String id, boolean isUuid) throws IOException, ClassNotFoundException, DocumentNotExistException, GenericServiceException, DuplicatedHashException {
-		return get(resolveInfoPath(id, isUuid));
+	/**
+	 * Recupera la informació d'un document de la cache.
+	 * <p>Mai propaga errors: si l'entrada no es pot llegir (fitxer corrupte, o
+	 * {@link java.io.InvalidClassException} perquè la classe {@link DocumentInfo} ha canviat des que
+	 * es va desar) s'elimina el fitxer i es retorna {@link Optional#empty()}, de manera que el
+	 * consultor torni a obtenir el document de l'origen i el pugui tornar a desar a la cache.
+	 * @param id identificador lògic del recurs cachejat (CSV o UUID)
+	 * @param isUuid indica si l'identificador és un UUID
+	 * @return la informació del document o empty si no existeix / ha expirat / no s'ha pogut llegir
+	 */
+	public Optional<DocumentInfo> getInfo(String id, boolean isUuid) {
+		return get(resolveInfoPath(id, isUuid), DocumentInfo.class);
 	}
 
 	public void setInfo(String id, boolean isUuid, DocumentInfo documentInfo) throws IOException {
@@ -73,16 +80,16 @@ public class CacheHelper {
 	 * <ul>
 	 *   <li>Retorna {@link Optional#empty()} si el fitxer no existeix</li>
 	 *   <li>Elimina i retorna empty si el contingut ha expirat</li>
+	 *   <li>Elimina i retorna empty si el contingut no es pot llegir o deserialitzar</li>
 	 *   <li>Si és vàlid, renova el TTL (sliding expiration)</li>
 	 * </ul>
 	 * @param id identificador lògic del recurs cachejat
 	 * @param type tipus de cache
 	 * @param lang idioma del document
-	 * @return el contingut del document o empty si no existeix / ha expirat
-	 * @throws IOException si hi ha errors d'accés al sistema de fitxers
+	 * @return el contingut del document o empty si no existeix / ha expirat / no s'ha pogut llegir
 	 */
-	public Optional<DocumentContent> getContent(String id, CacheType type, String lang) throws IOException, ClassNotFoundException {
-		return get(resolveContentPath(id, type, lang));
+	public Optional<DocumentContent> getContent(String id, CacheType type, String lang) {
+		return get(resolveContentPath(id, type, lang), DocumentContent.class);
 	}
 
 	/**
@@ -134,20 +141,51 @@ public class CacheHelper {
 		return removed;
 	}
 
-	private <T extends Serializable> Optional<T> get(Path file) throws IOException, ClassNotFoundException {
-		if (!Files.exists(file)) {
+	/**
+	 * Llegeix una entrada de la cache.
+	 * <p>La cache és només una optimització, així que cap error de lectura no s'ha de propagar
+	 * al consultor: si l'entrada no es pot recuperar (fitxer corrupte o truncat, error d'accés al
+	 * sistema de fitxers, o {@link java.io.InvalidClassException} perquè la classe desada ja no és
+	 * compatible amb la classe local després d'un desplegament) s'elimina el fitxer i es retorna
+	 * {@link Optional#empty()}, de manera que el document es torni a obtenir de l'origen i es
+	 * pugui tornar a desar a la cache en el seu lloc.
+	 * @param file fitxer de la cache a llegir
+	 * @param type classe esperada de l'objecte cachejat
+	 * @return l'objecte cachejat o empty si no existeix / ha expirat / no s'ha pogut llegir
+	 */
+	private <T extends Serializable> Optional<T> get(Path file, Class<T> type) {
+		try {
+			if (!Files.exists(file)) {
+				return Optional.empty();
+			}
+			if (isExpired(Files.getLastModifiedTime(file).toMillis())) {
+				Files.deleteIfExists(file);
+				return Optional.empty();
+			}
+			Files.setLastModifiedTime(
+				file,
+				FileTime.from(Instant.now()));
+			try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
+				// ofNullable perquè a la cache s'hi poden haver desat entrades nul·les
+				// (consultes que no han trobat el document)
+				return Optional.ofNullable(type.cast(ois.readObject()));
+			}
+		} catch (Exception ex) {
+			log.warn(
+				"No s'ha pogut recuperar l'entrada de cache \"{}\": {}. S'elimina el fitxer i es tornarà a consultar a l'origen.",
+				file,
+				ex.toString());
+			deleteQuietly(file);
 			return Optional.empty();
 		}
-		if (isExpired(Files.getLastModifiedTime(file).toMillis())) {
+	}
+
+	/** Elimina un fitxer de la cache sense propagar els errors. */
+	private void deleteQuietly(Path file) {
+		try {
 			Files.deleteIfExists(file);
-			return Optional.empty();
-		}
-		Files.setLastModifiedTime(
-			file,
-			FileTime.from(Instant.now()));
-		try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
-			T object = (T)ois.readObject();
-			return Optional.of(object);
+		} catch (Exception ex) {
+			log.warn("No s'ha pogut eliminar el fitxer de cache \"{}\": {}", file, ex.toString());
 		}
 	}
 
@@ -189,6 +227,16 @@ public class CacheHelper {
 	public enum CacheType {
 		ORIGINAL,
 		IMPRIMIBLE
+	}
+
+	/** Mètodes per fer tests */
+
+	public void setFitxersPath(String fitxersPath) {
+		this.fitxersPath = fitxersPath;
+	}
+
+	public void setCacheTtlMinuts(long cacheTtlMinuts) {
+		this.cacheTtlMinuts = cacheTtlMinuts;
 	}
 
 	@Getter

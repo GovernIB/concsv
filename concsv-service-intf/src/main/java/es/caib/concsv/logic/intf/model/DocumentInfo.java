@@ -41,12 +41,18 @@ public class DocumentInfo implements Serializable {
     private EniSignatureType eniSignType;
     private EniElaborationStatus eniElaborationStatus;
     private String downloadUrl;
+    
     // Signants
     private List<DocumentSigner> signers;
     private String datacaptura;
     private String darrerSegell;
     private Map<String, Object> metadata;
 
+    //Trasllat (document mogut)
+    private String destinoTraslado;
+    private String nuevaLocalizacion;
+    private String fechaTraslado;
+    
     public void setDocumentLocation(DocumentLocation documentLocation) {
         this.documentLocation = documentLocation;
         this.eniDoc = (documentLocation.equals(DocumentLocation.NewDigitalArchive))?"1":"0";

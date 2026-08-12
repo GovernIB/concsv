@@ -47,11 +47,11 @@
 			</resource>
 		</resources>
 		<plugins>
-			<!-- Defineix la propietat ${buildNumber} que s'empra al filtrat -->
+			<!-- Defineix la propietat ${buildNumber} que s'empra al filtrat.
+			     La versió s'hereta del pom pare per no arrossegar dependències antigues. -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.4</version>
 				<executions>
 					<execution>
 						<phase>validate</phase>

@@ -31,6 +31,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,6 +96,9 @@ public class FrontResource {
 			if (documentInfo == null) {
 				return Response.status(Response.Status.NO_CONTENT).build();
 			}
+			while (StringUtils.isBlank(documentInfo.getHash()) && !StringUtils.isBlank(documentInfo.getNuevaLocalizacion())) {
+				documentInfo = hashService.checkHashFromUUID(documentInfo.getNuevaLocalizacion());
+			}
 			final String idioma = (lang != null) ? lang : "ca";
 			DocumentContent doc = hashService.getPrintableDocument(documentInfo, idioma);
 			return Response.ok(new ByteArrayInputStream(doc.getContent()), MediaType.APPLICATION_OCTET_STREAM)
@@ -115,6 +121,9 @@ public class FrontResource {
 			if (documentInfo == null) {
 				return Response.status(Response.Status.NO_CONTENT).build();
 			}
+			while (StringUtils.isBlank(documentInfo.getHash()) && !StringUtils.isBlank(documentInfo.getNuevaLocalizacion())) {
+				documentInfo = hashService.checkHashFromUUID(documentInfo.getNuevaLocalizacion());
+			}			
 			if (documentInfo.getHash() == null) {
 				return Response.status(Response.Status.BAD_REQUEST)
 					.entity("El document no té CSV.")

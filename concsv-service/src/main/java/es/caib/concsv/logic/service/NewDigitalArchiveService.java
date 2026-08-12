@@ -199,7 +199,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 
             documentInfo.setExtensionFormato(getGenericMetadata(metaMap, "eni:extension_formato").replace(".", ""));
 
-            documentInfo.setDestinoTraslado(getGenericMetadata(metaMap, " gdib:destino_traslado"));
+            documentInfo.setDestinoTraslado(getGenericMetadata(metaMap, "gdib:destino_traslado"));
             documentInfo.setNuevaLocalizacion(getGenericMetadata(metaMap, "gdib:id_nodo_nueva_loc"));
             String dataTrasllat = getGenericMetadata(metaMap, "gdib:fecha_traslado");
             if (dataTrasllat != null) {

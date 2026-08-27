@@ -3,7 +3,7 @@
 # CONCSV 
 Consulta de documents per Codi Segur de Verificació Aplicació de frontal per recuperar documents enmagatzemats a l'arxiu i a l'antic sistema de custòdia
 
-- Versió estable: 2.1.6 (branca 2.0)
+- Versió estable: 2.1.7 (branca 2.0)
 - Versió Desenvolupament: 2.2.1 (branca dev)
 
 
@@ -13,7 +13,7 @@ Contextos/entorns
 - PRE concsv         https://proves.caib.es/concsvfront/
 - DEV concsv         https://dev.caib.es/concsvfront/
 
-# Entorn de desenvolupament
+# Entorn d'execució
 - Java 11
 - Jboss 7.2
 - Springboot 2.7.18

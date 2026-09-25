@@ -1,12 +1,12 @@
 {
-    "name": "distribucio-back",
+    "name": "concsv-back",
     "private": true,
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "dev": "vite --base=/distribucioback/reactapp",
+        "dev": "vite --base=/concsvback/reactapp",
         "build": "tsc -b && vite build",
-        "build-jboss": "tsc -b && vite build --base=/distribucioback/reactapp",
+        "build-jboss": "tsc -b && vite build --base=/concsvback/reactapp",
         "lint": "eslint .",
         "preview": "vite preview",
         "postinstall": "patch-package"

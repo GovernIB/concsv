@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.TransientSecurityContext;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -28,8 +29,8 @@ import java.util.stream.Collectors;
  * <p/>
  * Sense això, les restriccions per rol dels recursos ({@code @ResourceAccessConstraint} de tipus
  * ROLE, que es resolen amb les autoritats de la sessió de seguretat) responen "l'usuari té aquest
- * rol" en lloc de "l'usuari està operant amb aquest rol": qui té {@code DIS_ADMIN} i
- * {@code DIS_ADMIN_LECTURA} continuaria podent escriure encara que hagués triat el rol de lectura.
+ * rol" en lloc de "l'usuari està operant amb aquest rol": un superusuari que hagués triat el rol
+ * {@code tothom} continuaria tenint accés als manteniments.
  * <p/>
  * {@link WebSecurityConfig#getAllowedRoles()} ja fa aquesta restricció, però només arriba a
  * aplicar-se al camí de token bearer ({@code BaseWebSecurityConfig.jwtAuthConverter}, que es
@@ -39,8 +40,7 @@ import java.util.stream.Collectors;
  * <p/>
  * Només pot restringir: la llista resultant és la intersecció amb les autoritats que l'usuari ja
  * tenia, així que una capçalera manipulada no pot concedir cap rol (com a molt deixa la petició
- * sense cap rol i, per tant, sense accés). Les peticions sense capçalera -- la interfície JSP
- * clàssica -- no es toquen.
+ * sense cap rol i, per tant, sense accés). Les peticions sense capçalera no es toquen.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -61,11 +61,15 @@ public class RolSeleccionatFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 			return;
 		}
-		// El context es restaura sempre: si no, el filtre de persistència del context (que
-		// s'executa abans i acaba després) desaria a la sessió les autoritats ja restringides i
-		// l'usuari perdria la resta de rols fins a tornar a iniciar sessió.
-		SecurityContext contextRestringit = SecurityContextHolder.createEmptyContext();
-		contextRestringit.setAuthentication(authRestringida);
+		// El context restringit no s'ha de desar mai a la sessió HTTP, perquè l'usuari perdria la
+		// resta de rols. No n'hi ha prou amb restaurar el context original en acabar: Spring
+		// Security també desa a la sessió el context actiu en el moment de fer commit de la
+		// resposta (SaveContextOnUpdateOrErrorResponseWrapper.onResponseCommitted), que passa dins
+		// d'aquesta cadena de filtres. Fins que la petició acabava, la sessió quedava restringida
+		// a aquest rol, i les peticions concurrents amb un altre rol (una altra pestanya) rebien
+		// un 403. TransientSecurityContext porta l'anotació @Transient, i
+		// HttpSessionSecurityContextRepository no desa mai els contextos transitoris.
+		SecurityContext contextRestringit = new TransientSecurityContext(authRestringida);
 		SecurityContextHolder.setContext(contextRestringit);
 		try {
 			filterChain.doFilter(request, response);

@@ -1,0 +1,57 @@
+-- ConCSV 2.2.1: taules del backoffice (entitats, usuaris i avisos).
+-- La seqüència CSV_HIBERNATE_SEQ ja existeix des de la 2.0.
+
+CREATE TABLE CSV_ENTITAT
+(
+  ID                    NUMBER(19)          NOT NULL,
+  CODI                  VARCHAR2(64 CHAR)   NOT NULL,
+  NOM                   VARCHAR2(256 CHAR)  NOT NULL,
+  DESCRIPCIO            VARCHAR2(1024 CHAR),
+  CIF                   VARCHAR2(9 CHAR)    NOT NULL,
+  CODI_DIR3             VARCHAR2(9 CHAR)    NOT NULL,
+  COLOR_FONS            VARCHAR2(32 CHAR),
+  COLOR_LLETRA          VARCHAR2(32 CHAR),
+  LOGO_CAP              BLOB,
+  COLOR_FONS_DARK       VARCHAR2(32 CHAR),
+  COLOR_LLETRA_DARK     VARCHAR2(32 CHAR),
+  LOGO_CAP_DARK         BLOB,
+  ACTIVA                NUMBER(1)           DEFAULT 1 NOT NULL,
+  FECHA_ACTUALIZACION   TIMESTAMP(6),
+  FECHA_SINCRONIZACION  TIMESTAMP(6),
+  VERSION               NUMBER(19)          NOT NULL,
+  CREATEDBY_CODI        VARCHAR2(64 CHAR)   NOT NULL,
+  CREATEDDATE           TIMESTAMP(6)        NOT NULL,
+  LASTMODIFIEDBY_CODI   VARCHAR2(64 CHAR),
+  LASTMODIFIEDDATE      TIMESTAMP(6)
+);
+
+CREATE TABLE CSV_USUARI
+(
+  CODI                  VARCHAR2(64 CHAR)   NOT NULL,
+  NOM                   VARCHAR2(200 CHAR),
+  NIF                   VARCHAR2(9 CHAR),
+  EMAIL                 VARCHAR2(200 CHAR),
+  IDIOMA                VARCHAR2(2 CHAR)    DEFAULT 'CA' NOT NULL,
+  ENTITAT_ACTUAL_ID     NUMBER(19),
+  NUM_ELEMENTS_PAGINA   NUMBER(19),
+  ROL_ACTUAL            VARCHAR2(64 CHAR),
+  TEMA_APLICACIO        VARCHAR2(16 CHAR),
+  ESTIL_MENU            VARCHAR2(16 CHAR)   DEFAULT 'TEMA' NOT NULL,
+  VERSION               NUMBER(19)          NOT NULL
+);
+
+CREATE TABLE CSV_AVIS
+(
+  ID                    NUMBER(19)          NOT NULL,
+  ASSUMPTE              VARCHAR2(256 CHAR)  NOT NULL,
+  MISSATGE              VARCHAR2(2048 CHAR) NOT NULL,
+  DATA_INICI            DATE                NOT NULL,
+  DATA_FINAL            DATE,
+  ACTIU                 NUMBER(1)           NOT NULL,
+  AVIS_NIVELL           VARCHAR2(10 CHAR)   NOT NULL,
+  ENTITAT_ID            NUMBER(19),
+  CREATEDBY_CODI        VARCHAR2(64 CHAR)   NOT NULL,
+  CREATEDDATE           TIMESTAMP(6)        NOT NULL,
+  LASTMODIFIEDBY_CODI   VARCHAR2(64 CHAR),
+  LASTMODIFIEDDATE      TIMESTAMP(6)
+);

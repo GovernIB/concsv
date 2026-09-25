@@ -13,7 +13,9 @@ import java.util.Map;
 public class PropertyConfig {
 
 	public static final String PROPERTY_PREFIX = BaseConfig.BASE_PACKAGE + ".";
-	public static final String PROPERTY_PREFIX_FRONT = PROPERTY_PREFIX + "front.";
+	// Propietats que es publiquen a l'SPA del backoffice (/sysenv). No poden ser les "front." perquè
+	// aquestes són les del front públic (concsv-front) i els dos llegeixen els mateixos fitxers.
+	public static final String PROPERTY_PREFIX_FRONT = PROPERTY_PREFIX + "back.";
 
 	public static final String PROP_BACKEND_HTTP_HEADER_ANSWERS = PROPERTY_PREFIX + "http.header.answers";
 	public static final String PROP_PERSIST_DEFAULT_AUDITOR = PROPERTY_PREFIX + "persist.default.auditor";
@@ -39,7 +41,5 @@ public class PropertyConfig {
 		new AbstractMap.SimpleEntry<>(PROP_FRONT_AUTH_URL, "VITE_AUTH_URL"),
 		new AbstractMap.SimpleEntry<>(PROP_FRONT_AUTH_REALM, "VITE_AUTH_REALM"),
 		new AbstractMap.SimpleEntry<>(PROP_FRONT_AUTH_CLIENTID, "VITE_AUTH_CLIENTID"));
-
-	public static final String PROP_COMUNICACIONS_SIR_INTERNES = PROPERTY_PREFIX + "comunicacions.sir.internes";
 
 }

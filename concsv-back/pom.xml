@@ -10,13 +10,29 @@
 	</parent>
 	<artifactId>concsv-back</artifactId>
 	<packaging>war</packaging>
-	<description>Backend per gestionar el ConCSV</description>
+	<description>Backoffice de ConCSV (Spring Boot + SPA REACT)</description>
 	<properties>
 		<node.version>v22.13.1</node.version>
 		<frontend.app.path>src/main/reactapp/concsv-back</frontend.app.path>
 		<frontend.skip>false</frontend.skip>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-core</artifactId>
@@ -27,26 +43,6 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-logging</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>es.caib.concsv</groupId>
@@ -60,6 +56,10 @@
 		</dependency>
 	</dependencies>
 	<profiles>
+		<!-- Construcció de l'SPA REACT (Vite) amb el Node que descarrega el frontend-maven-plugin
+		     a target/. El resultat es copia a src/main/webapp/reactapp (al .gitignore): així el
+		     WAR l'empaqueta i, en arrencar ConcsvBackBootApp des del codi font (document root
+		     src/main/webapp), ReactController també el troba. -->
 		<profile>
 			<id>front</id>
 			<activation>
@@ -67,32 +67,139 @@
 			</activation>
 			<build>
 				<plugins>
-					<!--
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.15.4</version>
+						<configuration>
+							<nodeVersion>${node.version}</nodeVersion>
+							<installDirectory>target</installDirectory>
+							<workingDirectory>${frontend.app.path}</workingDirectory>
+							<skip>${frontend.skip}</skip>
+							<environmentVariables>
+								<VITE_APP_VERSION>${project.version}</VITE_APP_VERSION>
+							</environmentVariables>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install-npm</id>
+								<phase>initialize</phase>
+								<goals>
+									<goal>install-node-and-npm</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>npm-install</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>npm-build</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<arguments>run build-jboss</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-war-plugin</artifactId>
+						<artifactId>maven-resources-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copia-reactapp-a-webapp</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/src/main/webapp/reactapp</outputDirectory>
+									<overwrite>true</overwrite>
+									<resources>
+										<resource>
+											<directory>${frontend.app.path}/dist</directory>
+											<filtering>false</filtering>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!-- Execució amb Spring Boot, sense JBoss (ConcsvBackBootApp): afegeix els serveis i el
+		     driver JDBC al classpath. S'activa sol dins Eclipse (m2e) o amb -Pboot:
+		     mvn -pl concsv-back -Pboot spring-boot:run -->
+		<profile>
+			<id>boot</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>es.caib.concsv</groupId>
+					<artifactId>concsv-service</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>com.oracle.database.jdbc</groupId>
+					<artifactId>ojdbc10</artifactId>
+					<version>19.20.0.0</version>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
 						<configuration>
-							<webResources>
-								<resource>
-									<directory>
-										../concsv-backend/src/main/jsapp/concsv-backend/dist</directory>
-									<targetPath>WEB-INF/classes/static</targetPath>
-								</resource>
-							</webResources>
+							<mainClass>es.caib.concsv.ConcsvBackBootApp</mainClass>
+							<workingDirectory>${project.basedir}</workingDirectory>
 						</configuration>
 					</plugin>
-					-->
 				</plugins>
 			</build>
 		</profile>
 	</profiles>
 	<build>
+		<finalName>${project.artifactId}</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>banner.txt</exclude>
+					<exclude>build-info.properties</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>banner.txt</include>
+					<include>build-info.properties</include>
+				</includes>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>3.3.2</version>
 				<configuration>
+					<!-- Skinny WAR: les llibreries van a l'EAR/lib (veure concsv-ear), així el WAR i
+					     els EJBs comparteixen les mateixes classes de Spring Security (i el mateix
+					     SecurityContextHolder). -->
+					<packagingExcludes>**/ConcsvBackBootApp.class,WEB-INF/lib/*.jar</packagingExcludes>
+					<!-- Artefacte "classes": l'EAR en depèn per a portar les llibreries del WAR a EAR/lib. -->
+					<attachClasses>true</attachClasses>
 					<archive>
 						<manifestEntries>
 							<Build-Timestamp>${maven.build.timestamp}</Build-Timestamp>

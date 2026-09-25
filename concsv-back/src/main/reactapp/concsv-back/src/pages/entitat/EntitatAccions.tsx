@@ -8,14 +8,13 @@ const ACCIO_DESACTIVAR = 'DESACTIVAR';
 type AccionsFila = NonNullable<MuiDataGridProps['rowAdditionalActions']>;
 
 /**
- * Accions del menú de cada fila del llistat d'entitats: les mateixes, i en el mateix ordre, que
- * el desplegable "Accions" de la interfície JSP (entitatList.jsp).
+ * Accions del menú de cada fila del llistat d'entitats.
  *
  * Cada acció declara com es fa visible, i la comprovació sempre és del servidor:
  * - `rowLink` ("update", "delete") només mostra l'acció si la fila duu l'enllaç HAL corresponent,
  *   és a dir si l'usuari té el permís necessari sobre el recurs.
  * - `action` només la mostra si el recurs publica aquest artefacte per a l'usuari actual (les
- *   accions sense accessConstraints pròpies demanen el permís WRITE, o sia DIS_SUPER).
+ *   accions sense accessConstraints pròpies demanen el permís WRITE, és a dir CSV_SUPER).
  *
  * Modificar i esborrar els resol la pròpia graella (diàleg de modificació i diàleg de confirmació
  * + esborrat, tots dos amb refresc inclòs); activar i desactivar criden l'acció del recurs i
@@ -50,12 +49,6 @@ export const useEntitatAccions = (refresh: () => void): AccionsFila => {
             showInMenu: true,
             rowLink: 'update',
             clickShowUpdateDialog: true,
-        },
-        {
-            label: t('page.config.title'),
-            icon: 'settings',
-            showInMenu: true,
-            linkTo: (row) => `/config/propietatsEntitat/${row.id}`,
         },
         {
             label: t('page.entitats.accio.activar'),

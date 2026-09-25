@@ -106,8 +106,8 @@ const defaultProps: Partial<StyledMuiGridProps> = {
 
 const StyledMuiGrid = (props: StyledMuiGridProps) => {
     const { t } = useTranslation();
-    // Mida de pàgina desada al perfil (dis_usuari.num_elements_pagina). Hi és sempre al primer
-    // render: DistribucioProvider no pinta cap pantalla fins a tenir el perfil carregat.
+    // Mida de pàgina desada al perfil (csv_usuari.num_elements_pagina). Hi és sempre al primer
+    // render: ConcsvProvider no pinta cap pantalla fins a tenir el perfil carregat.
     const { numElementsPagina } = useUserPreferences();
     const defApiRef = useMuiDataGridApiRef();
     const dataApiRef = useMuiDatagridApiRef();

@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 // Vite prepon `base` a qualsevol src/href arrel-relatiu que trobi a l'index.html. Els
-// endpoints del backend que hi referenciem (sysenv, manifest, authToken, authRoles) viuen
+// endpoints del backend que hi referenciem (sysenv, manifest) viuen
 // sota el context path de l'aplicació, no sota el base path del SPA -- desfem aquest prefix
 // només per a ells, un cop Vite ja ha aplicat la seva pròpia transformació de l'HTML.
 const fixBackendEndpointsBase = (): Plugin => {
@@ -20,7 +20,7 @@ const fixBackendEndpointsBase = (): Plugin => {
             order: 'post',
             handler(html) {
                 if (base === '/' || base === '') return html;
-                return html.replaceAll(`${base}distribucioback/`, '/distribucioback/');
+                return html.replaceAll(`${base}concsvback/`, '/concsvback/');
             },
         },
     };
@@ -56,13 +56,13 @@ const devManifest = (): Plugin => ({
     configureServer(server) {
         const moduleRoot = resolve(process.cwd(), '../../../..');
         const manifest = {
-            'Implementation-Title': 'distribucio-back',
+            'Implementation-Title': 'concsv-back',
             'Implementation-Version': pomVersion(resolve(moduleRoot, 'pom.xml')) ?? '0.0.0',
             'Implementation-SCM-Branch': gitOutput(['rev-parse', '--abbrev-ref', 'HEAD'], moduleRoot) ?? '',
             'Implementation-SCM-Revision': gitOutput(['rev-parse', 'HEAD'], moduleRoot) ?? '',
             'Build-Timestamp': new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
         };
-        server.middlewares.use('/distribucioback/manifest', (_req, res) => {
+        server.middlewares.use('/concsvback/manifest', (_req, res) => {
             res.setHeader('Content-Type', 'text/javascript');
             res.end(`window.__MANIFEST__ = ${JSON.stringify(manifest)}`);
         });
@@ -95,17 +95,15 @@ export default defineConfig(({ mode }) => {
             hmr: {
                 clientPort: 5173,
             },
-            // Permet obrir http://localhost:5173/distribucioback/reactapp directament (sense passar
+            // Permet obrir http://localhost:5173/concsvback/reactapp directament (sense passar
             // per DevProxyController/backend a :8080): Vite reenvia server-side (sense CORS, ja
-            // que el navegador només parla amb :5173) els endpoints de configuració/auth i l'API
+            // que el navegador només parla amb :5173) els endpoints de configuració i l'API
             // cap al backend real. La cookie de sessió (domini "localhost", sense "port") s'envia
             // igual si ja t'havies autenticat prèviament contra el backend en el mateix navegador.
-            // `/distribucioback/manifest` NO es reenvia: el serveix el plugin devManifest.
+            // `/concsvback/manifest` NO es reenvia: el serveix el plugin devManifest.
             proxy: {
-                '/distribucioback/sysenv': { target: backendUrl, changeOrigin: true },
-                '/distribucioback/authToken': { target: backendUrl, changeOrigin: true },
-                '/distribucioback/authRoles': { target: backendUrl, changeOrigin: true },
-                '/distribucioback/api': { target: backendUrl, changeOrigin: true },
+                '/concsvback/sysenv': { target: backendUrl, changeOrigin: true },
+                '/concsvback/api': { target: backendUrl, changeOrigin: true },
             },
         },
         plugins: [react(), tsconfigPaths(), fixBackendEndpointsBase(), devManifest()],

@@ -5,11 +5,11 @@ import * as builder from '../../util/springFilterUtils';
 
 /**
  * Camps del filtre del llistat d'entitats. Els labels i els tipus els aporta el backend
- * (artefacte FILTER d'EntitatResource, formClass EntitatResource.FormFilter), per això
- * només cal indicar-hi el `name`.
+ * (artefacte FILTER d'EntitatResource, formClass EntitatResource.FormFilter), per això només cal
+ * indicar-hi el `name`.
  *
- * Les mides `md` sumen 9.6 perquè el bloc de botons de StyledMuiFilter (md 2.4) càpiga
- * a la mateixa fila; si se'n canvia alguna cal mantenir la suma.
+ * Les mides `md` sumen 9.6 perquè el bloc de botons de StyledMuiFilter (md 2.4) càpiga a la
+ * mateixa fila; si se'n canvia alguna cal mantenir la suma.
  */
 const EntitatFilterForm: React.FC = () => {
     return (
@@ -23,9 +23,9 @@ const EntitatFilterForm: React.FC = () => {
     );
 };
 
-// "activa" és un Boolean, que el motor de recursos representa amb un desplegable de tres
-// valors (buit / Sí / No). Cal comparar-lo explícitament amb null i amb la cadena buida:
-// amb una comprovació de veritat, triar "No" (false) es confondria amb "sense filtrar".
+// "activa" és un Boolean, que el motor de recursos representa amb un desplegable de tres valors
+// (buit / Sí / No). Cal comparar-lo explícitament amb null i amb la cadena buida: amb una
+// comprovació de veritat, triar "No" (false) es confondria amb "sense filtrar".
 const springFilterBuilder = (data: any) => {
     const activa = data?.activa;
     return builder.and(

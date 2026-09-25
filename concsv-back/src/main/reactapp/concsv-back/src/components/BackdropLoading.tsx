@@ -24,8 +24,8 @@ const BackdropLoading: React.FC<BackdropLoadingProps> = ({
 
     // const handleCancelClick = () => {
     //     messageDialogShow(
-    //         t('page.serveis.accio.actualitzarTots.cancel.check'),
-    //         t('page.serveis.accio.actualitzarTots.cancel.description'),
+    //         t('component.BackdropLoading.cancel.check'),
+    //         t('component.BackdropLoading.cancel.description'),
     //         confirmDialogButtons,
     //         {
     //             maxWidth: 'sm',
@@ -41,8 +41,8 @@ const BackdropLoading: React.FC<BackdropLoadingProps> = ({
 
     const handleCloseClick = () => {
         messageDialogShow(
-            t('page.serveis.accio.actualitzarTots.close.check'),
-            t('page.serveis.accio.actualitzarTots.close.description'),
+            t('component.BackdropLoading.close.check'),
+            t('component.BackdropLoading.close.description'),
             confirmDialogButtons,
             {
                 maxWidth: 'sm',

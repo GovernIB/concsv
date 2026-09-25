@@ -22,9 +22,10 @@ import {
     useFormContext,
 } from 'reactlib';
 import { TemaAplicacio, MenuEstil } from '../theme';
-import { useDistribucioContext } from './DistribucioContext';
+import { useConcsvContext } from './ConcsvContext';
 import { desarTemaCache, useSetTemaAplicacio } from './TemaProvider';
 import GridFormField from './GridFormField';
+import { normalitzaIdioma } from '../util/idioma';
 
 const selectorLabelSx = {
     display: 'block',
@@ -51,7 +52,7 @@ const endIcon = (name: string) => ({
 // ============================================================================
 // Preferències de l'usuari, aplicades a tota l'aplicació.
 //
-// La font de veritat és el perfil desat a la base de dades: DistribucioProvider carrega el
+// La font de veritat és el perfil desat a la base de dades: ConcsvProvider carrega el
 // recurs de l'usuari en arrencar (useCurrentUser) i no deixa pintar res fins a tenir-lo, de
 // manera que aquí ja hi són disponibles al primer render. Damunt d'aquests valors s'hi pot
 // posar una previsualització transitòria mentre el diàleg de perfil és obert (el tema i
@@ -69,15 +70,6 @@ export type UserPreferences = {
     numElementsPagina?: number;
 };
 
-/**
- * El perfil desa l'idioma com el nom de la constant d'IdiomaEnumDto ("CA"/"ES") i pot arribar
- * en minúscules de l'alta automàtica d'usuaris, mentre que i18next i la capçalera
- * Accept-Language volen el codi de dues lletres en minúscules. Sense normalitzar, "ES" i "es"
- * (o "es-ES") es considerarien idiomes diferents i es rellançarien consultes sense necessitat.
- */
-const normalitzaIdioma = (idioma?: string): string | undefined =>
-    idioma != null && idioma.length > 0 ? idioma.substring(0, 2).toLowerCase() : undefined;
-
 const preferenciesDesades = (usuari: any): UserPreferences => ({
     idioma: normalitzaIdioma(usuari?.idioma),
     temaAplicacio: usuari?.temaAplicacio,
@@ -90,11 +82,11 @@ const UserPreferencesContext = React.createContext<
 >(undefined);
 
 export const UserPreferencesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-    const { currentUser } = useDistribucioContext();
+    const { currentUser } = useConcsvContext();
     const setTemaAplicacio = useSetTemaAplicacio();
     const [preview, setPreview] = React.useState<UserPreferences>({});
     const desades = React.useMemo(() => preferenciesDesades(currentUser), [currentUser]);
-    // En desar el perfil, DistribucioProvider actualitza currentUser: la previsualització ha de
+    // En desar el perfil, ConcsvProvider actualitza currentUser: la previsualització ha de
     // desaparèixer perquè no tapi els valors que acaben d'arribar del servidor.
     React.useEffect(() => setPreview({}), [desades]);
     // Només es recorda el tema desat, no la previsualització: així la propera arrencada ja pinta
@@ -116,7 +108,7 @@ export const UserPreferencesProvider: React.FC<React.PropsWithChildren> = ({ chi
     }, [desades, preview]);
     // El tema efectiu (inclosa la previsualització del diàleg de perfil, que s'ha de veure a
     // l'instant) puja al TemaProvider, que és qui munta el ThemeProvider de tota l'aplicació.
-    // Sense perfil no s'hi puja res: amb l'API caiguda DistribucioProvider pinta igualment els
+    // Sense perfil no s'hi puja res: amb l'API caiguda ConcsvProvider pinta igualment els
     // fills (mode offline) i s'esborraria el tema que TemaProvider ha recuperat de la memòria cau.
     React.useEffect(() => {
         if (currentUser != null) {
@@ -152,7 +144,7 @@ export const UserProfileMenu: React.FC<{
     const { formDialogApiRef } = props;
     const { t } = useTranslation();
     const { getUserId: authGetUserId } = useAuthContext();
-    const { setCurrentUser } = useDistribucioContext();
+    const { setCurrentUser } = useConcsvContext();
     // La promesa de show() es resol amb el recurs desat (i no es resol si es cancel·la). En
     // desar-lo s'actualitza l'usuari de la sessió, que és d'on pengen totes les preferències:
     // així el canvi d'idioma s'aplica en desar i no mentre s'edita el formulari.
@@ -253,7 +245,7 @@ const MenuStyleSelector: React.FC = () => {
  * L'idioma NO es previsualitza a posta: canviar-lo obliga a tornar a demanar les etiquetes i els
  * enumerats al servidor (base-react refà l'índex de l'API quan canvia Accept-Language), i fer-ho
  * a cada tecla del formulari recarregava la pantalla de darrere. S'aplica en desar, quan
- * DistribucioProvider actualitza currentUser (veure UserProfileMenu).
+ * ConcsvProvider actualitza currentUser (veure UserProfileMenu).
  */
 const PreferencesSync: React.FC = () => {
     const { data } = useFormContext();
@@ -274,7 +266,7 @@ const PreferencesSync: React.FC = () => {
 const RolesField: React.FC = () => {
     const { t } = useTranslation();
     const { data } = useFormContext();
-    const { rolesAvailable } = useDistribucioContext();
+    const { rolesAvailable } = useConcsvContext();
     return (
         <TextField
             fullWidth
@@ -299,11 +291,10 @@ const RolesField: React.FC = () => {
 type OptionItem = { id: number; nom: string };
 
 /**
- * Opcions d'un desplegable del perfil. No es publiquen com a camp d'opcions del recurs
- * (`@ResourceField(enumType = true)`, com `idioma`) sinó com a endpoints propis de
- * `usuariPreferencies`: els llistats d'entitats i bústies depenen de l'usuari autenticat -- no del
- * recurs administratiu `entitatResource`, restringit a DIS_SUPER -- i les mides de pàgina són
- * numèriques, mentre que el motor genèric només sap publicar opcions de text.
+ * Opcions d'un desplegable del perfil que no es publiquen com a camp d'opcions del recurs
+ * (`@ResourceField(enumType = true)`, com `idioma`) sinó com a endpoint propi de
+ * `usuariPreferencies`: les mides de pàgina són numèriques, mentre que el motor genèric només sap
+ * publicar opcions de text.
  */
 const useOpcions = (href?: string, hrefParams?: any): OptionItem[] => {
     const { apiUrl, requestHref } = useResourceApiContext();
@@ -317,7 +308,17 @@ const useOpcions = (href?: string, hrefParams?: any): OptionItem[] => {
             return;
         }
         requestHref(apiUrl + href, hrefParams)
-            .then((state) => setOptions((state.data as OptionItem[]) ?? []))
+            .then((state) => {
+                // Ketting tria com interpretar la resposta pel content-type: si no arriba JSON
+                // (p. ex. una pàgina HTML després d'una redirecció) `data` és un text, i passar-lo
+                // al desplegable faria caure tota l'aplicació en fer-ne el `map`.
+                if (Array.isArray(state.data)) {
+                    setOptions(state.data as OptionItem[]);
+                } else {
+                    console.warn(`Resposta inesperada a les opcions de '${href}'`, state.data);
+                    setOptions([]);
+                }
+            })
             .catch(() => setOptions([]));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [apiUrl, href, hrefParamsKey]);
@@ -368,51 +369,8 @@ const PreferenciaSelect: React.FC<{
     );
 };
 
-// Selector de l'entitat per defecte.
-const EntitatPerDefecteSelect: React.FC = () => {
-    const { t } = useTranslation();
-    const { data, apiRef } = useFormContext();
-    const options = useOpcions('usuariPreferencies/entitats');
-    return (
-        <PreferenciaSelect
-            name="entitatPerDefecte"
-            label={t('component.UserProfile.entitatPerDefecte')}
-            value={data?.entitatPerDefecteId}
-            options={options}
-            emptyOption
-            onChange={(value) => {
-                apiRef?.current?.setFieldValue('entitatPerDefecteId', value);
-                apiRef?.current?.setFieldValue('bustiaPerDefecte', null);
-            }}
-        />
-    );
-};
-
-// Selector de la bústia per defecte -- depèn de l'entitat per defecte seleccionada (es guarda per
-// parella entitat+usuari, veure UsuariResourceServiceImpl).
-const BustiaPerDefecteSelect: React.FC = () => {
-    const { t } = useTranslation();
-    const { data, apiRef } = useFormContext();
-    const entitatPerDefecteId = data?.entitatPerDefecteId;
-    const options = useOpcions(
-        entitatPerDefecteId != null ? 'usuariPreferencies/busties?entitatId={entitatId}' : undefined,
-        entitatPerDefecteId != null ? { entitatId: entitatPerDefecteId } : undefined
-    );
-    return (
-        <PreferenciaSelect
-            name="bustiaPerDefecte"
-            label={t('component.UserProfile.bustiaPerDefecte')}
-            value={data?.bustiaPerDefecte}
-            options={options}
-            emptyOption
-            disabled={entitatPerDefecteId == null}
-            onChange={(value) => apiRef?.current?.setFieldValue('bustiaPerDefecte', value)}
-        />
-    );
-};
-
-// Mida de pàgina per defecte dels llistats. Com a la interfície JSP (usuariForm.jsp) és un
-// desplegable amb els valors d'OpcionsPaginacio i sense opció buida, no un camp numèric lliure.
+// Mida de pàgina per defecte dels llistats: un desplegable sense opció buida, no un camp numèric
+// lliure.
 // L'etiqueta surt del `_prompt` del recurs, la mateixa que faria servir un GridFormField.
 const NumElementsPaginaSelect: React.FC = () => {
     const { data, apiRef, fields } = useFormContext();
@@ -425,24 +383,6 @@ const NumElementsPaginaSelect: React.FC = () => {
             value={data?.numElementsPagina}
             options={options}
             onChange={(value) => apiRef?.current?.setFieldValue('numElementsPagina', value)}
-        />
-    );
-};
-
-/**
- * Interfície amb la que l'usuari entra a l'aplicació. `UsuariResource.interficieUsuari` és un
- * enumerat del recurs, de manera que el motor genèric ja en publica les opcions i el camp es
- * dibuixa com a desplegable (les etiquetes surten de distribucio-service-messages). No és
- * obligatori: sense valor mana la propietat es.caib.concsv.interface.defecte, i per això
- * s'etiqueta l'opció buida en lloc de deixar-la en blanc.
- */
-const InterficieUsuariField: React.FC = () => {
-    const { t } = useTranslation();
-    return (
-        <GridFormField
-            size={{ xs: 12, sm: 6, md: 3 }}
-            name="interficieUsuari"
-            emptyValueDescription={t('component.UserProfile.interficieUsuari.perDefecte')}
         />
     );
 };
@@ -478,13 +418,6 @@ export const UserProfileFormDialog: React.FC<{
                 <Grid size={12}>
                     <RolesField />
                 </Grid>
-                <GridFormField
-                    size={{ xs: 12, sm: 6, md: 4 }}
-                    name="emailAlternatiu"
-                    componentProps={endIcon('alternate_email')}
-                />
-                <GridFormField size={{ xs: 12, sm: 6, md: 4 }} name="rebreEmailsBustia" />
-                <GridFormField size={{ xs: 12, sm: 6, md: 4 }} name="rebreEmailsAgrupats" />
                 <Grid size={12}>
                     <Divider>{t('component.UserProfile.seccioConfig')}</Divider>
                 </Grid>
@@ -492,18 +425,10 @@ export const UserProfileFormDialog: React.FC<{
                     @ResourceField(enumType = true)) i es dibuixa com a desplegable, que ja té la
                     seva fletxa. A més, FormFieldEnum fixa els seus propis slotProps després
                     d'escampar componentProps, de manera que l'adornament no s'hi aplicaria. */}
-                <GridFormField size={{ xs: 12, sm: 6, md: 3 }} name="idioma" />
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <GridFormField size={{ xs: 12, sm: 6 }} name="idioma" />
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <NumElementsPaginaSelect />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <EntitatPerDefecteSelect />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <BustiaPerDefecteSelect />
-                </Grid>
-                <GridFormField size={{ xs: 12, sm: 6, md: 4 }} name="emailErrorAnotacio" />
-                <InterficieUsuariField />
                 <Grid size={12}>
                     <ThemeSelector />
                 </Grid>

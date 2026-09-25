@@ -10,7 +10,7 @@ import es.caib.concsv.logic.intf.config.BaseConfig;
 /**
  * Configuració del MessageResolver per a spring-hateoas: resol els "_prompt"/"_placeholder" de
  * les propietats HAL-FORMS (el motor genèric de recursos) contra
- * {@code distribucio-back-rest-messages[_ca|_es].properties}.
+ * {@code concsv-back-rest-messages[_ca|_es].properties}.
  * <p>
  * Sense cap subclasse concreta d'aquesta classe base registrada com a bean, els labels dels
  * camps de formulari no es resolien mai (la classe abstracta mai s'instancia).
@@ -22,7 +22,7 @@ public class HateoasMessageResolverConfig extends BaseHateoasMessageResolverConf
 
 	@Override
 	protected String getBasename() {
-		return "distribucio-back-rest-messages";
+		return "concsv-back-rest-messages";
 	}
 
 	@Override

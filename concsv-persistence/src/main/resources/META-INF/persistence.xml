@@ -4,9 +4,21 @@
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
                                  http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
              version="2.2">
+    <!-- Unitat gestionada per JBoss per als serveis CDI (estadístiques de Comanda). Les entitats
+         es llisten explícitament perquè no hi entrin les del backoffice (paquet persist.entity),
+         que gestiona el context de Spring (veure es.caib.concsv.persist.config.PersistenceConfig). -->
     <persistence-unit name="concsvPU" transaction-type="JTA">
         <jta-data-source>java:jboss/datasources/concsvDS</jta-data-source>
+        <class>es.caib.concsv.persistence.entity.ExplotDimensioEntity</class>
+        <class>es.caib.concsv.persistence.entity.ExplotFetsEntity</class>
+        <class>es.caib.concsv.persistence.entity.ExplotTempsEntity</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
+            <!-- Hibernate de l'aplicació (5.6, el que necessita el context Spring del backoffice)
+                 en lloc del mòdul de JBoss (5.3): si JBoss hi afegís el seu mòdul, el del servidor
+                 tapàs el de l'EAR/lib per a tot el desplegament. -->
+            <property name="jboss.as.jpa.providerModule" value="application"/>
+            <property name="hibernate.transaction.jta.platform" value="org.hibernate.engine.transaction.jta.platform.internal.JBossAppServerJtaPlatform"/>
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect"/>

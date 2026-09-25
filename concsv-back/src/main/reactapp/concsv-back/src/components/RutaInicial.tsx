@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { rutaInicialPerRol } from '../util/pantalles';
-import { useDistribucioContext } from './DistribucioContext';
+import { useConcsvContext } from './ConcsvContext';
 
 /**
  * Pantalla d'entrada de la SPA: redirigeix a la pantalla d'inici del rol actual (equivalent al
@@ -9,7 +9,7 @@ import { useDistribucioContext } from './DistribucioContext';
  * qui obre l'arrel de l'aplicació com qui hi torna després de canviar de rol.
  */
 export const RutaInicial: React.FC = () => {
-    const { currentRole } = useDistribucioContext();
+    const { currentRole } = useConcsvContext();
     return <Navigate to={rutaInicialPerRol(currentRole)} replace />;
 };
 

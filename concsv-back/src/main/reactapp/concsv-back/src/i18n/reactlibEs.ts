@@ -20,7 +20,7 @@ const reactlibEs = {
             label: 'Modifica',
         },
         delete: {
-            label: 'Borra',
+            label: 'Elimina',
         },
         export: {
             label: 'Exporta',
@@ -49,16 +49,16 @@ const reactlibEs = {
             title: 'Modifica',
         },
         delete: {
-            title: 'Borra',
+            title: 'Elimina',
         },
         field: {
             enum: {
-                clear: 'Borra',
+                clear: 'Elimina',
             },
             reference: {
                 open: 'Abre',
                 close: 'Cierra',
-                clear: 'Borra',
+                clear: 'Elimina',
             },
         },
     },

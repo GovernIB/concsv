@@ -10,26 +10,38 @@ import Select from '@mui/material/Select';
 import Typography from '@mui/material/Typography';
 import { useNavigate } from 'react-router-dom';
 import { useResourceApiService } from 'reactlib';
-import { useDistribucioContext, ROLE_SUPER, ROLE_ADMIN } from './DistribucioContext';
+import { useConcsvContext, ROLE_SUPER } from './ConcsvContext';
 import { rutaInicialPerRol } from '../util/pantalles';
 
-// Icona de distintiu sobre l'avatar de l'usuari segons el rol actual (cap distintiu per a la
-// resta de rols). S'usa a headerAuthBadgeIcon de MuiBaseApp.
-export const getRolBadgeIcon = (rolActual?: string): string | undefined => {
-    if (rolActual === ROLE_SUPER) {
-        return 'shield';
-    }
-    if (rolActual === ROLE_ADMIN) {
-        return 'admin_panel_settings';
-    }
-    return undefined;
+// Icona de distintiu sobre l'avatar de l'usuari segons el rol actual (cap distintiu per al rol
+// base). S'usa a headerAuthBadgeIcon de MuiBaseApp.
+export const getRolBadgeIcon = (rolActual?: string): string | undefined =>
+    rolActual === ROLE_SUPER ? 'shield' : undefined;
+
+/**
+ * Desa una preferència al perfil de l'usuari (csv_usuari) perquè el proper inici de sessió hi
+ * torni. Només es crida des dels selectors, que són l'acció explícita de l'usuari: les altres
+ * pestanyes reben el canvi pel BroadcastChannel i no l'han de reescriure (dues escriptures
+ * simultànies xocarien amb el control de versió).
+ */
+const useDesarPreferencia = () => {
+    const { currentUser, setCurrentUser } = useConcsvContext();
+    const { isReady: usuariApiIsReady, patch: usuariApiPatch } = useResourceApiService('usuariResource');
+    return (camp: string, valor: any) => {
+        if (!usuariApiIsReady || currentUser?.id == null) {
+            return;
+        }
+        usuariApiPatch(currentUser.id, { data: { [camp]: valor } })
+            .then(() => setCurrentUser({ ...currentUser, [camp]: valor }))
+            .catch((error: any) => console.error("No s'ha pogut desar la preferència " + camp, error));
+    };
 };
 
-// Mostra el selector d'entitat només si el rol actual no és DIS_SUPER (els superusuaris
-// administren totes les entitats, no "actuen dins" de cap en concret). Amb una única entitat
-// accessible, mostra només l'etiqueta (sense desplegable).
+// Selector de l'entitat de treball. El superusuari no en té (veu les dades de totes les
+// entitats). Amb una única entitat accessible només es mostra l'etiqueta, sense desplegable.
 export const EntitatSelector: React.FC = () => {
-    const { entitatsAvailable, currentEntitatId, currentRole, setCurrentEntitatId } = useDistribucioContext();
+    const { entitatsAvailable, currentEntitatId, currentRole, setCurrentEntitatId } = useConcsvContext();
+    const desarPreferencia = useDesarPreferencia();
     const entitats = entitatsAvailable ?? [];
     if (entitats.length === 0 || currentRole === ROLE_SUPER) {
         return null;
@@ -46,7 +58,11 @@ export const EntitatSelector: React.FC = () => {
         <Select
             size="small"
             value={currentEntitatId ?? ''}
-            onChange={(event) => setCurrentEntitatId(Number(event.target.value))}
+            onChange={(event) => {
+                const entitatId = Number(event.target.value);
+                setCurrentEntitatId(entitatId);
+                desarPreferencia('entitatActualId', entitatId);
+            }}
             renderValue={(value) => (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <Icon fontSize="small">domain</Icon>
@@ -64,28 +80,14 @@ export const EntitatSelector: React.FC = () => {
     );
 };
 
-// Pensat per viure dins el menú desplegable de l'usuari (headerAdditionalAuthComponents), no com
-// un camp de formulari: amb un únic rol disponible només mostra l'etiqueta; amb més d'un, un ítem
-// de menú plegable que en desplegar-se mostra la resta d'opcions (la actual remarcada amb
-// `selected`).
+// Pensat per viure dins el menú desplegable de l'usuari (headerAdditionalAuthComponents): amb un
+// únic rol disponible només mostra l'etiqueta; amb més d'un, un ítem plegable que en desplegar-se
+// mostra la resta d'opcions (l'actual remarcada amb `selected`).
 export const RolSelector: React.FC = () => {
     const { t } = useTranslation();
-    const { rolesAvailable, currentRole, setCurrentRole, currentUser, setCurrentUser } =
-        useDistribucioContext();
-    const { isReady: usuariApiIsReady, patch: usuariApiPatch } = useResourceApiService('usuariResource');
+    const { rolesAvailable, currentRole, setCurrentRole } = useConcsvContext();
+    const desarPreferencia = useDesarPreferencia();
     const navigate = useNavigate();
-    // Desa el rol triat a dis_usuari.rol_actual perquè el proper inici de sessió hi torni (veure
-    // la resolució del rol inicial a DistribucioProvider). Només es desa des d'aquí, que és
-    // l'acció explícita de l'usuari: les altres pestanyes reben el canvi pel BroadcastChannel i
-    // no l'han de reescriure (dues escriptures simultànies xocarien amb el control de versió).
-    const desarRolActual = (rol: string) => {
-        if (!usuariApiIsReady || currentUser?.id == null) {
-            return;
-        }
-        usuariApiPatch(currentUser.id, { data: { rolActual: rol } })
-            .then(() => setCurrentUser({ ...currentUser, rolActual: rol }))
-            .catch((error: any) => console.error("No s'ha pogut desar el rol actual", error));
-    };
     const [expanded, setExpanded] = React.useState(false);
     const rolsDisponibles = rolesAvailable ?? [];
     const label = (rol: string) => t(`component.EntitatRolSelector.rol.${rol}`, rol);
@@ -123,10 +125,9 @@ export const RolSelector: React.FC = () => {
                         onClick={() => {
                             setCurrentRole(rol);
                             setExpanded(false);
-                            desarRolActual(rol);
-                            // Amb el rol nou la pantalla actual pot quedar prohibida (p.ex.
-                            // sortir de DIS_SUPER estant a /entitat): s'hi va a la d'inici del
-                            // rol, com fa RIPEA amb el navigate('/') posterior al canvi de rol.
+                            desarPreferencia('rolActual', rol);
+                            // Amb el rol nou la pantalla actual pot quedar prohibida (p. ex. passar
+                            // a "tothom" des d'un manteniment): s'hi va a la d'inici del rol.
                             navigate(rutaInicialPerRol(rol));
                         }}
                     >

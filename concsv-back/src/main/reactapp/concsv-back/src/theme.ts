@@ -194,7 +194,11 @@ const baseComponentStyles = {
     },
 };
 
-const LIGHT_PRIMARY_MAIN = '#439798';
+// Color corporatiu de ConCSV (el lila del logo): capçaleres de pantalla, diàlegs i botons d'acció.
+const CONCSV_PRIMARY_MAIN = '#904e95';
+const CONCSV_PRIMARY_LIGHT = '#b57dba';
+
+const LIGHT_PRIMARY_MAIN = CONCSV_PRIMARY_MAIN;
 const LIGHT_PRIMARY_CONTRAST_TEXT = '#ffffff';
 const LIGHT_SECONDARY_MAIN = '#2E2E2E';
 const LIGHT_CUSTOM_BACKGROUND = '#f5f5f5';
@@ -265,8 +269,8 @@ export const lightTheme = createTheme({
     },
 });
 
-const DARK_PRIMARY_MAIN = '#439798';
-const DARK_PRIMARY_LIGHT = '#52b9bb';
+const DARK_PRIMARY_MAIN = CONCSV_PRIMARY_MAIN;
+const DARK_PRIMARY_LIGHT = CONCSV_PRIMARY_LIGHT;
 const DARK_PRIMARY_CONTRAST_TEXT = '#ffffff';
 const DARK_CUSTOM_BACKGROUND = '#121212';
 const DARK_GREY_BACKGROUND = '#222222';
@@ -366,8 +370,8 @@ export const darkTheme = createTheme({
     },
 });
 
-const DRACULA_PRIMARY_LIGHT = '#52b9bb';
-const DRACULA_PRIMARY_MAIN = '#439798';
+const DRACULA_PRIMARY_LIGHT = CONCSV_PRIMARY_LIGHT;
+const DRACULA_PRIMARY_MAIN = CONCSV_PRIMARY_MAIN;
 const DRACULA_PRIMARY_CONTRAST_TEXT = '#ffffff';
 // const DRACULA_CUSTOM_BACKGROUND = '#121212';
 // const DRACULA_GREY_BACKGROUND = '#222222';

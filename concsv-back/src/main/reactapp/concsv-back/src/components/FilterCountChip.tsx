@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
  * Xip amb el nombre de filtres aplicats, per a la barra d'eines dels llistats.
  *
  * Port de la part corresponent de `src/components/StyledMuiGrid.tsx` de RIPEA (countTopLevel /
- * resolveFilterCount / FilterCountChip). A DISTRIBUCIO encara no hi ha `StyledMuiGrid`, així que
+ * resolveFilterCount / FilterCountChip). A CONCSV encara no hi ha `StyledMuiGrid`, així que
  * viu en un fitxer propi i les pantalles l'injecten a la graella per `toolbarElementsWithPositions`.
  */
 

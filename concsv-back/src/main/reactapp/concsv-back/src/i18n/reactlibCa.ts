@@ -4,7 +4,7 @@
  * La llibreria viu a `lib/` i no s'hi pot tocar (els canvis es perdrien a la propera
  * sincronització), però registra les seves traduccions a la mateixa instància d'i18next de
  * l'aplicació. Aquest paquet s'hi fusiona a sobre (veure `components/BaseApp.tsx`) per aplicar
- * el criteri de DISTRIBUCIO: **tota etiqueta d'acció -- botons, entrades de menú i tooltips --
+ * el criteri de CONCSV: **tota etiqueta d'acció -- botons, entrades de menú i tooltips --
  * va en imperatiu de segona persona del singular** ("Crea", "Desa", "Cancel·la"), no en
  * infinitiu ("Crear", "Desar", "Cancel·lar").
  *

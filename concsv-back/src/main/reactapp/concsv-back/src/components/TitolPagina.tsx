@@ -3,17 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useMatches } from 'react-router-dom';
 
 /**
- * Nom de l'aplicació que encapçala sempre el títol de la pestanya del navegador. La interfície JSP
- * fa el mateix des del decorador de SiteMesh (webapp/WEB-INF/jsp/decorators/default.jsp:63, que
- * pinta "Distribucio - " + el títol de la pàgina); aquí es manté la grafia en majúscules que fa
- * servir la resta de la interfície REACT (index.html, "Iniciant DISTRIBUCIO"...).
+ * Nom de l'aplicació que encapçala sempre el títol de la pestanya del navegador.
  */
-export const APP_TITOL = 'DISTRIBUCIO';
+export const APP_TITOL = 'CONCSV';
 
 /**
  * Títol que una ruta declara al seu handle: la clau de traducció del text que ha de sortir a la
  * pestanya. Veure router.tsx, on cada ruta duu el mateix títol que la seva pantalla mostra a la
- * barra d'eines -- igual que a la UI JSP, on el <title> de la JSP és també el títol de la pàgina.
+ * barra d'eines.
  */
 export type TitolRouteHandle = { titol?: string };
 

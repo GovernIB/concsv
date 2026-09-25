@@ -46,6 +46,20 @@
 			<artifactId>concsv-service-intf</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- Llibreries del backoffice (el WAR concsv-back no en du cap a WEB-INF/lib): van a EAR/lib
+		     perquè el WAR i els EJBs comparteixin les mateixes classes de Spring. El jar "classes"
+		     en si s'exclou de l'EAR (veure packagingExcludes). -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>concsv-back</artifactId>
+			<version>${project.version}</version>
+			<classifier>classes</classifier>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>concsv-backend</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!-- Per a solucionar "NoClassDefFoundError: org/springframework/http/server/reactive/ServletServerHttpResponse$ResponseBodyProcessor"
 			(https://developer.jboss.org/thread/276373?start=15&tstart=0) -->
 		<dependency>
@@ -138,7 +152,7 @@
 					<generateApplicationXml>true</generateApplicationXml>
 					<defaultLibBundleDir>lib</defaultLibBundleDir>
 					<includeLibInApplicationXml>false</includeLibInApplicationXml>
-					<packagingExcludes>lib/org.apache.tomcat.embed-tomcat*.jar</packagingExcludes>
+					<packagingExcludes>lib/org.apache.tomcat.embed-tomcat*.jar,lib/org.springframework.boot-spring-boot-starter-tomcat-*.jar,lib/javax.ejb-javax.ejb-api-*.jar,lib/es.caib.concsv-concsv-back-*.jar</packagingExcludes>
 					<version>8</version>
 					<initializeInOrder>true</initializeInOrder>
 					<skinnyWars>true</skinnyWars>

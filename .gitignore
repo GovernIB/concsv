@@ -38,4 +38,6 @@ release.properties
 printable.pdf
 /.env
 /.codex
+/.claude
+/.playwright-mcp
 /CLAUDE.md

@@ -45,6 +45,14 @@ import lombok.extern.slf4j.Slf4j;
 		LiquibaseAutoConfiguration.class,
 		FreeMarkerAutoConfiguration.class,
 		WebSocketServletAutoConfiguration.class
+}, excludeName = {
+		// El front és públic. Spring Security hi és al classpath (EAR/lib) pel backoffice i, sense
+		// excloure'n l'autoconfiguració, Spring Boot protegiria totes les URLs amb autenticació.
+		"org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration",
+		"org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration",
+		"org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration",
+		"org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration",
+		"org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration"
 })
 public class ConcsvFrontApp extends SpringBootServletInitializer {
 

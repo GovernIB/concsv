@@ -1,35 +1,21 @@
 import type { MenuEntry } from 'reactlib';
-import {
-    ROLE_ADMIN,
-    ROLE_ADMIN_LECTURA,
-    ROLE_SUPER,
-    ROLE_USER,
-} from '../components/DistribucioContext';
+import { ROLE_SUPER, ROLE_USER } from '../components/ConcsvContext';
 
 /**
  * Rols amb els quals es pot operar a la interfície REACT: els mateixos que ofereix el selector de
- * rol (veure ALLOWED_ROLES a DistribucioProvider).
+ * rol (veure ALLOWED_ROLES a ConcsvProvider).
  */
-export const ROLS_APLICACIO = [ROLE_SUPER, ROLE_ADMIN, ROLE_ADMIN_LECTURA, ROLE_USER];
+export const ROLS_APLICACIO = [ROLE_SUPER, ROLE_USER];
 
 /** Identificador de cada pantalla amb control d'accés. Una pantalla nova s'ha d'afegir aquí. */
-export type Pantalla = 'home'
+export type Pantalla =
+    | 'home'
     | 'entitat'
     | 'avis'
-    | 'servei'
-    | 'unitatOrganitzativa'
-    | 'bustiaAdmin'
-    | 'bustiaAdminOrganigrama'
-    | 'limitCanviEstat'
-    | 'procediment'
-    | 'permis'
-    | 'contingut'
-    | 'config'
-    | 'backoffice'
-    | 'massiva'
+    | 'documentExclos'
+    | 'propietat'
     | 'integracio'
-    | 'annex'
-    | 'registre';
+    | 'cacheDocument';
 
 /**
  * Rols autoritzats per pantalla. És l'única font de veritat del control d'accés de la interfície:
@@ -37,34 +23,18 @@ export type Pantalla = 'home'
  * manera que amagar una entrada de menú i barrar-ne la ruta no poden divergir. El tipus Pantalla
  * obliga a declarar-hi tota pantalla nova.
  *
- * El mapatge reprodueix el de la interfície JSP, que aplica interceptors per prefix d'URL (veure
- * WebMvcConfig): SUPER_PATHS -- entre els quals "/entitat**" -- només per al rol actual DIS_SUPER
- * (AccesSuperInterceptor), ADMIN_PATHS per a DIS_ADMIN i DIS_ADMIN_LECTURA (AccesAdminInterceptor)
- * i USER_PATHS per a "tothom".
- *
  * Compte: això és usabilitat, no seguretat. Qui protegeix de veritat és el backend amb els
- * @ResourceAccessConstraint de cada classe *Resource (a EntitatResource, per exemple, l'escriptura
- * és només de DIS_SUPER i la lectura de tots els rols, perquè el selector d'entitat la necessita).
- * Tota pantalla nova ha de declarar les seves restriccions al recurs encara que aquí ja s'amagui.
+ * @ResourceAccessConstraint de cada classe *Resource. Tota pantalla nova ha de declarar les seves
+ * restriccions al recurs encara que aquí ja s'amagui.
  */
 export const PANTALLA_ROLS: Record<Pantalla, string[]> = {
     home: ROLS_APLICACIO,
     entitat: [ROLE_SUPER],
     avis: [ROLE_SUPER],
-    servei: [ROLE_ADMIN],
-    unitatOrganitzativa: [ROLE_ADMIN],
-    limitCanviEstat: [ROLE_SUPER],
-    bustiaAdmin: [ROLE_ADMIN],
-    bustiaAdminOrganigrama: [ROLE_ADMIN],
-    permis: [ROLE_ADMIN],
-    procediment: [ROLE_ADMIN],
-    contingut: [ROLE_ADMIN, ROLE_ADMIN_LECTURA],
-    config: [ROLE_SUPER],
-    backoffice: [ROLE_ADMIN],
-    massiva: [ROLE_ADMIN, ROLE_USER],
+    documentExclos: [ROLE_SUPER],
+    propietat: [ROLE_SUPER],
     integracio: [ROLE_SUPER],
-    annex: [ROLE_ADMIN, ROLE_ADMIN_LECTURA],
-    registre: [ROLE_ADMIN, ROLE_ADMIN_LECTURA, ROLE_USER],
+    cacheDocument: [ROLE_SUPER],
 };
 
 export const isPantallaPermesa = (pantalla: Pantalla, rol?: string): boolean =>
@@ -72,8 +42,8 @@ export const isPantallaPermesa = (pantalla: Pantalla, rol?: string): boolean =>
 
 /**
  * Pantalla d'inici per rol. Avui cap rol no en té una de pròpia (tots poden entrar a /home), però
- * és el punt on afegir-la quan n'hi hagi -- l'equivalent del HomeRedirect de RIPEA. La ruta que
- * s'hi indiqui ha d'estar autoritzada per al rol a PANTALLA_ROLS.
+ * és el punt on afegir-la quan n'hi hagi. La ruta que s'hi indiqui ha d'estar autoritzada per al
+ * rol a PANTALLA_ROLS.
  */
 const RUTA_INICIAL_PER_ROL: Partial<Record<string, string>> = {};
 

@@ -18,13 +18,12 @@ import { MuiBaseApp, type MenuEntry, useBaseAppContext, useMuiFormDialogApiRef }
 import i18n from '../i18n/i18n';
 import reactlibCa from '../i18n/reactlibCa';
 import reactlibEs from '../i18n/reactlibEs';
-import AvisosBanner from './AvisosBanner';
 import Offline from './Offline';
 import { UserProfileMenu, UserProfileFormDialog, useUserPreferences } from './UserProfile';
 import { EntitatSelector, RolSelector, getRolBadgeIcon } from './EntitatRolSelector';
-import { InterficieClassicaButton } from './InterficieClassica';
-import { useDistribucioContext } from './DistribucioContext';
+import { useConcsvContext } from './ConcsvContext';
 import { MenuEstil } from '../theme';
+import { idiomaAplicacio } from '../util/idioma';
 
 export type BaseAppProps = React.PropsWithChildren & {
     code: string;
@@ -116,6 +115,30 @@ const CustomLocalizationProvider = ({ children }: React.PropsWithChildren) => {
     );
 };
 
+// Columna (centre horitzontal, en px) de les icones del menú lateral obert, on App.tsx també hi
+// alinea el botó de menú de la capçalera (APPBAR_PADDING_LEFT).
+const MENU_ICON_COLUMN = 42;
+
+// Manté les icones del menú lateral a la mateixa columna quan està plegat. La llibreria el plega
+// a 57px i hi centra les icones (a x=28), que queden desalineades del botó de la capçalera: amb
+// una amplada de 2 x MENU_ICON_COLUMN, el centrat de la llibreria les deixa just a la columna.
+// A més, en plegat el text de cada entrada només es fa transparent, però continua ocupant lloc:
+// les entrades llargues fan dues línies i les icones queden a distàncies diferents. La consulta
+// de contenidor l'amaga només quan el menú és estret, sense haver de saber-ne l'estat.
+const menuPlegatAlineatSx = {
+    '& nav .MuiDrawer-root, & nav .MuiDrawer-paper': {
+        minWidth: 2 * MENU_ICON_COLUMN + 'px',
+    },
+    '& nav .MuiDrawer-paper': {
+        containerType: 'inline-size',
+    },
+    '@container (max-width: 120px)': {
+        '& nav .MuiDrawer-paper .MuiListItemText-root': {
+            display: 'none',
+        },
+    },
+};
+
 export const BaseApp: React.FC<BaseAppProps> = (props) => {
     const {
         code,
@@ -181,14 +204,15 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
         }
     };
     const formDialogApiRef = useMuiFormDialogApiRef();
-    const { currentRole: rolActual } = useDistribucioContext();
-    // L'idioma surt del perfil de l'usuari (dis_usuari.idioma), que DistribucioProvider ja té
-    // carregat abans de pintar res. i18n.language -- el que detecta el navegador -- només fa de
-    // recurs si el perfil no en duu cap. Fer-ho aquí, i no des del diàleg de perfil, és el que
-    // evita que obrir el perfil canviï l'idioma i recarregui la pantalla.
+    const { currentRole: rolActual } = useConcsvContext();
+    // L'idioma surt del perfil de l'usuari (csv_usuari.idioma) i, si no en té, del navegador. Es
+    // calcula amb idiomaAplicacio, la mateixa funció amb què ConcsvProvider ja l'ha aplicat a
+    // l'API abans de pintar res: així base-react no el torna a canviar i no recarrega l'índex.
+    // Fer-ho aquí, i no des del diàleg de perfil, és el que evita que obrir el perfil canviï
+    // l'idioma i recarregui la pantalla.
     const { idioma } = useUserPreferences();
     return (
-        <Box sx={menuColorSetSx}>
+        <Box sx={{ ...menuPlegatAlineatSx, ...menuColorSetSx }}>
         <MuiBaseApp
             code={code}
             headerTitle={title}
@@ -198,9 +222,6 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
             headerAppbarStyle={appbarStyle}
             headerVersion={version}
             headerAdditionalComponents={[
-                <Box key="interficie_classica" sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-                    <InterficieClassicaButton />
-                </Box>,
                 <Box key="entitat_selector" sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
                     <EntitatSelector />
                 </Box>,
@@ -220,7 +241,7 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
             // sobrevivia a la recàrrega i el perfil l'havia de desfer després, amb el refresc
             // corresponent. La preferència desada a la base de dades és l'única font.
             i18nUseTranslation={useTranslation}
-            i18nCurrentLanguage={idioma ?? i18n.language}
+            i18nCurrentLanguage={idiomaAplicacio(idioma)}
             i18nHandleLanguageChange={i18nHandleLanguageChange}
             i18nAddResourceBundleCallback={i18nAddResourceBundleCallback}
             routerGoBack={goBack}
@@ -235,9 +256,6 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
         >
             <CustomLocalizationProvider>
                 <UserProfileFormDialog formDialogApiRef={formDialogApiRef} />
-                {/* Damunt del contingut i a totes les pantalles, com l'acordió d'avisos de la
-                    interfície JSP. */}
-                <AvisosBanner />
                 {children}
             </CustomLocalizationProvider>
         </MuiBaseApp>

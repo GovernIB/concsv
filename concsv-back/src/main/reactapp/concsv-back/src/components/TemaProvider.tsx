@@ -8,8 +8,8 @@ import { getThemeForTema, TemaAplicacio } from '../theme';
 /**
  * Tema visual actiu de l'aplicació.
  *
- * La font de veritat és el perfil de l'usuari (dis_usuari.tema_aplicacio), que arriba amb
- * DistribucioProvider; però aquest no pinta res fins a tenir-lo carregat, i la seva pantalla de
+ * La font de veritat és el perfil de l'usuari (csv_usuari.tema_aplicacio), que arriba amb
+ * ConcsvProvider; però aquest no pinta res fins a tenir-lo carregat, i la seva pantalla de
  * càrrega quedava fora del ThemeProvider: un usuari amb tema obscur veia un instant en clar a
  * cada recàrrega. Per evitar-ho el proveïdor va per damunt de tot i arrenca amb l'últim tema
  * conegut, desat al localStorage, fins que UserPreferencesProvider hi puja el del perfil.
@@ -17,7 +17,7 @@ import { getThemeForTema, TemaAplicacio } from '../theme';
  * La memòria cau es desa per usuari: en un navegador compartit, arrencar amb el tema de l'usuari
  * anterior seria el mateix parpelleig que es vol evitar.
  */
-const CLAU_TEMA_CACHE = 'DISTRIBUCIO_TEMA';
+const CLAU_TEMA_CACHE = 'CONCSV_TEMA';
 
 const clauTemaCache = (usuariId: string) => CLAU_TEMA_CACHE + '_' + usuariId.toUpperCase();
 
@@ -65,7 +65,10 @@ export const TemaProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     return (
         <TemaContext.Provider value={setTema}>
             <ThemeProvider theme={theme}>
-                <CssBaseline />
+                {/* enableColorScheme declara el color-scheme del tema (clar/fosc) al document: així
+                    els controls natius del navegador, com les barres de desplaçament, segueixen el
+                    tema en lloc de sortir sempre clars. */}
+                <CssBaseline enableColorScheme />
                 {children}
             </ThemeProvider>
         </TemaContext.Provider>

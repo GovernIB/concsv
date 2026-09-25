@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 /**
  * Utilitats de format de dates per als filtres.
  *
- * Port de `src/util/dateUtils.ts` de RIPEA adaptat a dayjs (DISTRIBUCIO no té moment entre
+ * Port de `src/util/dateUtils.ts` de RIPEA adaptat a dayjs (CONCSV no té moment entre
  * les dependències). Els literals "T", "00:00:00" i "23:59:59" van entre claudàtors perquè
  * dayjs no els interpreti com a tokens de format.
  */

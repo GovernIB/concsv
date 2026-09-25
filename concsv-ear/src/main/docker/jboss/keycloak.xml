@@ -12,4 +12,11 @@
                 <credential name="secret">${env.JBOSS_AUTH_CREDENTIAL_SECRET}</credential>
                 <principal-attribute>preferred_username</principal-attribute>
             </secure-deployment>
+            <secure-deployment name="concsv-back.war">
+                <realm>${env.JBOSS_AUTH_REALM}</realm>
+                <resource>${env.JBOSS_AUTH_CLIENTID}</resource>
+                <public-client>true</public-client>
+                <use-resource-role-mappings>false</use-resource-role-mappings>
+                <principal-attribute>preferred_username</principal-attribute>
+            </secure-deployment>
         </subsystem>

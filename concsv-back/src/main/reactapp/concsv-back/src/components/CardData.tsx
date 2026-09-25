@@ -1,4 +1,4 @@
-import {Box, Card, CardContent, CardHeader, Grid, Typography, Icon, IconButton, Collapse, darken} from "@mui/material";
+import {Box, Card, CardContent, CardHeader, Grid, Typography, Icon, IconButton, Collapse} from "@mui/material";
 import React, {useState} from "react";
 import {useDetailContext} from "reactlib";
 
@@ -245,7 +245,8 @@ export const CardPage = (props:CardPageProps) => {
                 // bgcolor: theme.palette.primary.main,
                 borderBottom: 'none',
                 '& h1': { color: theme.palette.primary.contrastText, fontWeight: 600 },
-                backgroundColor: theme.palette.mode === 'dark' ? darken(theme.palette.primary.main, 0.3) : theme.palette.primary.main,
+                // Mateix color en tots els temes (el corporatiu, veure theme.ts), sense enfosquir-lo en mode obscur.
+                backgroundColor: theme.palette.primary.main,
                 ...headerProps,
             })}>
                 {title && <Typography mt={0.5} variant={"h4"} component={"h1"}>{title}</Typography>}

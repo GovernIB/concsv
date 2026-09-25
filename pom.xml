@@ -9,6 +9,9 @@
 	<version>2.2.1</version>
 	<properties>
 		<openapi.version>1.8.0</openapi.version>
+		<spring-filter.version>2.1.6</spring-filter.version>
+		<jasperreports.version>6.21.4</jasperreports.version>
+		<dynamicreports.version>6.12.1</dynamicreports.version>
 		<implementation.vendor>Govern de les Illes Balears</implementation.vendor>
 		<keycloak.version>22.0.4</keycloak.version>
 		<jersey.version>2.35</jersey.version>
@@ -32,6 +35,27 @@
 	</parent>
 	<dependencyManagement>
 		<dependencies>
+			<!-- Jackson alineat amb la versió que requereix Spring Boot 2.7. Ha d'anar abans dels BOM
+			     de JBoss, que el baixarien a la 2.9 (incompatible amb el backoffice). -->
+			<dependency>
+				<groupId>com.fasterxml.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
+				<version>${jackson-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- Dependències de Hibernate 5.6 (Spring Boot) que els BOM de JBoss baixarien a les
+			     versions de JBoss EAP 7.2, incompatibles amb aquest Hibernate. -->
+			<dependency>
+				<groupId>org.hibernate.common</groupId>
+				<artifactId>hibernate-commons-annotations</artifactId>
+				<version>5.1.2.Final</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss</groupId>
+				<artifactId>jandex</artifactId>
+				<version>2.4.2.Final</version>
+			</dependency>
 			<!-- Dependències internes dins el projecte -->
 			<dependency>
 				<groupId>es.caib.concsv</groupId>

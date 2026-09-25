@@ -1,0 +1,361 @@
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useAuthContext, useResourceApiContext, useResourceApiService } from 'reactlib';
+import {
+    DistribucioContext,
+    ROLE_PREFIX,
+    ROLE_SUPER,
+    ROLE_ADMIN,
+    ROLE_ADMIN_LECTURA,
+    ROLE_USER,
+} from './DistribucioContext';
+
+const ALLOWED_ROLES = [ROLE_SUPER, ROLE_ADMIN, ROLE_ADMIN_LECTURA, ROLE_USER].reverse();
+
+export const distribucioChannel = new BroadcastChannel('distribucio');
+type CurrentSession = Readonly<{
+    role?: string;
+    entitatId?: number;
+}>;
+
+/**
+ * Rol i entitat de treball de la pestanya, sincronitzats amb les altres pestanyes de l'aplicació
+ * (com a la interfície JSP, on viuen a la sessió del servidor i són compartits).
+ *
+ * Només es difonen els canvis que fa l'usuari des dels selectors (`publishSession`). Els passos
+ * d'inicialització de la pestanya (`setSession`) són locals: si es difonguessin, una pestanya que
+ * arrenca (pestanya nova, F5) enviaria `entitatId: undefined` a les altres, que mostrarien la
+ * pantalla de càrrega i desmuntarien tota l'aplicació, i a més els imposaria la seva entitat
+ * inicial.
+ */
+const useBroadcastSession = () => {
+
+    const [session, setSessionState] = React.useState<CurrentSession>({});
+
+    /** Canvi local de la pestanya, sense difondre'l. */
+    const setSession = React.useCallback((changes: Partial<CurrentSession>) => {
+        setSessionState((previous) => ({ ...previous, ...changes }));
+    }, []);
+
+    /**
+     * Canvi fet per l'usuari: s'aplica i es difon a les altres pestanyes. El missatge s'envia
+     * fora de l'updater de l'estat, que ha de ser pur (StrictMode l'executa dues vegades).
+     */
+    const publishSession = React.useCallback((next: CurrentSession) => {
+        setSessionState(next);
+        distribucioChannel.postMessage(next);
+    }, []);
+
+    React.useEffect(() => {
+
+        const listener = ({ data }: MessageEvent<CurrentSession>) => {
+            if (!data) {
+                return;
+            }
+            // Si no canvia res es conserva l'objecte anterior perquè React no torni a pintar.
+            setSessionState((previous) =>
+                previous.role === data.role && previous.entitatId === data.entitatId
+                    ? previous
+                    : { role: data.role, entitatId: data.entitatId }
+            );
+        };
+
+        distribucioChannel.addEventListener("message", listener);
+
+        return () =>
+            distribucioChannel.removeEventListener("message", listener);
+
+    }, []);
+
+    return {
+        session,
+        setSession,
+        publishSession,
+    };
+
+};
+
+type BroadcastSession = ReturnType<typeof useBroadcastSession>;
+
+const decodeJwt = (token: string) => {
+
+    const payload = token.split('.')[1];
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+};
+
+const useSessionStorage = (...keyParts: any[]) => {
+
+    const key = keyParts.map((p) => (typeof p === 'object' && p !== null ? JSON.stringify(p) : String(p))).join('|');
+    const getValue = () => sessionStorage.getItem(key);
+    const setValue = (value: string | null) => {
+        if (value == null) {
+            sessionStorage.removeItem(key);
+            return;
+        }
+        sessionStorage.setItem(key, value);
+    };
+    return {getValue, setValue,};
+};
+
+const useCurrentUser = () => {
+
+    const {isReady: apiIsReady, find: apiFind,} = useResourceApiService('usuariResource');
+    const [currentUser, setCurrentUser] = React.useState<any>();
+    React.useEffect(() => {
+        if (!apiIsReady) {
+            return;
+        }
+        void apiFind({ unpaged: true }).then((response) => {
+            if (response.rows.length) {
+                setCurrentUser(response.rows[0]);
+            }
+        });
+    }, [apiIsReady]);
+    return { currentUser, setCurrentUser };
+};
+
+const useCurrentRole = (broadcast: BroadcastSession, currentUser: any) => {
+
+    const {isReady: authIsReady, getUserId: authGetUserId, getToken: authGetToken,} = useAuthContext();
+    const { httpHeaders: apiHttpHeaders, setHttpHeaders: apiSetHttpHeaders } = useResourceApiContext();
+    const [currentUserId, setCurrentUserId] = React.useState<string>();
+    const [rolesAvailable, setRolesAvailable] = React.useState<string[]>();
+    const {
+        session,
+        setSession,
+        publishSession
+    } = broadcast;
+
+    const currentRole = session.role;
+
+    // Canvi de rol des del selector: es difon a les altres pestanyes.
+    const setCurrentRole = (role?: string) => publishSession({ role, entitatId: undefined });
+    const { getValue: roleSessionGetValue, setValue: roleSessionSetValue } = useSessionStorage(currentUserId, 'currentRole');
+    React.useEffect(() => {
+        // Obté els rols disponibles del token JWT o de __AUTH_ROLES__
+        if (!authIsReady) {
+            return;
+        }
+        const userId = authGetUserId();
+        setCurrentUserId(userId);
+        const token = authGetToken();
+        if (token == null) {
+            return;
+        }
+        const tokenDecoded = decodeJwt(token);
+        // Els rols vénen del token (mode OIDC) o de __AUTH_ROLES__ (mode contenidor, on el token
+        // no duu realm_access), i sempre s'hi afegeix ROLE_USER: "tothom" no és un rol de Keycloak
+        // sinó el rol base que el backend concedeix a tot usuari autenticat (veure
+        // WebSecurityConfig.filterAllowedGrantedAuthorities), igual que a RIPEA.
+        const rolsIdp: string[] =
+            tokenDecoded.realm_access != null
+                ? tokenDecoded.realm_access?.roles?.filter(
+                      (r: string) => r === ROLE_USER || r.startsWith(ROLE_PREFIX)
+                  ) ?? []
+                : (window as any).__AUTH_ROLES__ ?? [];
+        setRolesAvailable(ALLOWED_ROLES.filter((a) => a === ROLE_USER || rolsIdp.includes(a)));
+    }, [authIsReady]);
+
+    React.useEffect(() => {
+        // Rol inicial, per aquest ordre: el de la pestanya actual (sessionStorage), el darrer rol
+        // amb què l'usuari va operar (dis_usuari.rol_actual, el mateix camp que la interfície JSP)
+        // i, si cap dels dos no està disponible, el rol base "tothom". S'espera currentUser per no
+        // decidir abans de conèixer el rol desat (isReady ja l'espera igualment).
+        if (rolesAvailable == null || currentUser == null || currentRole != null) {
+            return;
+        }
+        const rolDisponible = (rol?: string) => rol != null && rolesAvailable.includes(rol);
+        const rolInicial =
+            [roleSessionGetValue() ?? undefined, currentUser.rolActual].find(rolDisponible) ??
+            (rolDisponible(ROLE_USER) ? ROLE_USER : rolesAvailable[0]);
+        if (rolInicial != null) {
+            setSession({ role: rolInicial, entitatId: undefined });
+        }
+    }, [rolesAvailable, currentRole, currentUser]);
+
+    React.useEffect(() => {
+        // Configura el session storage i la capçalera HTTP amb el rol actual quan aquest canvia
+        if (currentRole === undefined) {
+            return;
+        }
+        roleSessionSetValue(currentRole);
+        if (currentRole) {
+            apiSetHttpHeaders([{ 'X-App-Role': currentRole }]);
+        }
+    }, [currentRole]);
+    const currentRoleFromHttpHeader = apiHttpHeaders?.find((h) => 'X-App-Role' in h)?.['X-App-Role'];
+    const roleHttpHeaderInitialized = currentRole != null && currentRole === currentRoleFromHttpHeader;
+    return {
+        currentUserId,
+        currentRole,
+        currentRoleReady: roleHttpHeaderInitialized,
+        rolesAvailable,
+        setCurrentRole,
+    };
+};
+
+const useCurrentEntitat = (
+    broadcast: BroadcastSession,
+    currentUserId: string | undefined,
+    entitatPerDefecteId: number | undefined,
+    currentRole: string | undefined,
+    currentRoleReady: boolean
+) => {
+
+    const { httpHeaders: apiHttpHeaders, setHttpHeaders: apiSetHttpHeaders } = useResourceApiContext();
+    const {isReady: apiIsReady, find: apiFind, getOne: apiGetOne} = useResourceApiService('entitatResource');
+    const [entitatsAvailable, setEntitatsAvailable] = React.useState<any[]>();
+    const [currentEntitatLoading, setCurrentEntitatLoading] = React.useState<boolean>();
+    const [currentEntitat, setCurrentEntitat] = React.useState<any>();
+    const { getValue: sessionSessionGetValue, setValue: sessionSessionSetValue } = useSessionStorage(currentUserId, 'currentSession');
+    const {
+        session,
+        setSession,
+        publishSession
+    } = broadcast;
+
+    const currentEntitatId = session.entitatId;
+
+    // Canvi d'entitat des del selector: es difon a les altres pestanyes.
+    const setCurrentEntitatId = (id?: number) => publishSession({ role: session.role, entitatId: id });
+    // Inicialització de l'entitat de la pestanya: local.
+    const setCurrentEntitatIdLocal = (id?: number) => setSession({ entitatId: id });
+
+    React.useEffect(() => {
+        if (!apiIsReady || !currentRoleReady || currentRole == null) {
+            return;
+        }
+        setEntitatsAvailable(undefined);
+        setCurrentEntitat(undefined);
+        setCurrentEntitatIdLocal(undefined);
+
+        if (currentRole === ROLE_SUPER) {
+            setEntitatsAvailable([]);
+            return;
+        }
+        apiFind({ unpaged: true }).then((response) => {
+            const entitatsAvailable = response.rows;
+            setEntitatsAvailable(entitatsAvailable);
+
+            // Entitat de treball inicial, per aquest ordre: la de la pestanya actual
+            // (sessionStorage), l'entitat per defecte del perfil (dis_usuari.entitat_defecte_id) i
+            // la primera accessible. És el mateix ordre que la interfície JSP, on l'atribut de
+            // sessió mana i el perfil només s'aplica quan no n'hi ha cap de vàlida (veure
+            // EntitatHelper.getEntitatActual). Com la JSP, canviar d'entitat al selector no
+            // reescriu la preferència: només es canvia des del perfil.
+            const storedSession = sessionSessionGetValue();
+            const parsedSession = storedSession ? JSON.parse(storedSession) : {};
+            const idsAccessibles = entitatsAvailable.map((e) => e.id);
+            const esAccessible = (id?: number) => id != null && idsAccessibles.includes(id);
+            const entitatInicial =
+                [parsedSession.e, entitatPerDefecteId].find(esAccessible) ?? idsAccessibles[0];
+            // Sense comprovar currentEntitatId: l'efecte acaba de posar-lo a undefined i el valor
+            // que es veuria des d'aquí seria el del rol anterior, que impediria fixar el nou.
+            if (entitatInicial != null) {
+                setCurrentEntitatIdLocal(entitatInicial);
+            }
+        });
+    }, [apiIsReady, currentRoleReady, currentRole]);
+
+    React.useEffect(() => {
+        if (currentRole == null || currentRole === ROLE_SUPER || currentEntitatId == null) {
+            return;
+        }
+
+        const sessionJson = JSON.stringify({ e: currentEntitatId });
+        sessionSessionSetValue(sessionJson);
+
+        apiSetHttpHeaders([
+            { "X-App-Role": currentRole },
+            { "X-App-Session": sessionJson },
+        ]);
+    }, [currentRole, currentEntitatId]);
+
+    React.useEffect(() => {
+        if (!apiIsReady || currentEntitatId == null || entitatsAvailable == null) {
+            return;
+        }
+        const entitatExisteix = entitatsAvailable.some(e => e.id === currentEntitatId);
+        if (!entitatExisteix) {
+            return;
+        }
+        setCurrentEntitatLoading(true);
+        apiGetOne(currentEntitatId)
+        .then(setCurrentEntitat)
+        .finally(() => setCurrentEntitatLoading(false));
+
+    }, [apiIsReady, currentEntitatId, entitatsAvailable,]);
+
+    const currentSessionFromHttpHeader = apiHttpHeaders?.find((h) => 'X-App-Session' in h)?.['X-App-Session'];
+    const currentEntitatIdFromHttpHeader = currentSessionFromHttpHeader != null ? JSON.parse(currentSessionFromHttpHeader).e : undefined;
+    const entitatIdHttpHeaderInitialized = currentRole === ROLE_SUPER
+        || (currentEntitatId == null && currentEntitatIdFromHttpHeader == null)
+        || currentEntitatId === currentEntitatIdFromHttpHeader;
+    const currentEntitatReady = apiIsReady && entitatsAvailable != null && entitatIdHttpHeaderInitialized;
+    return {
+        currentEntitatId,
+        currentEntitatReady,
+        currentEntitat,
+        currentEntitatLoading,
+        entitatsAvailable,
+        setCurrentEntitatId,
+    };
+};
+
+const DistribucioProviderLoading: React.FC = () => {
+
+    const { t } = useTranslation();
+    return (
+        <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh',}}>
+            <CircularProgress size={70} />
+            <Typography sx={{ mt: 1 }}>{t('app.loading')}</Typography>
+        </Box>
+    );
+};
+
+export const DistribucioProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+
+    const { offline: apiOffline } = useResourceApiContext();
+    const broadcast = useBroadcastSession();
+    const { currentUser, setCurrentUser } = useCurrentUser();
+    const { currentUserId, currentRole, currentRoleReady, rolesAvailable, setCurrentRole } = useCurrentRole(broadcast, currentUser);
+    const {
+        currentEntitatId,
+        currentEntitatReady,
+        currentEntitat,
+        currentEntitatLoading,
+        entitatsAvailable,
+        setCurrentEntitatId,
+    } = useCurrentEntitat(
+        broadcast,
+        currentUserId,
+        currentUser?.entitatPerDefecteId,
+        currentRole,
+        currentRoleReady
+    );
+    const isReady = apiOffline || (currentRoleReady && currentEntitatReady && currentUser != null);
+    const contextValue = {
+        isReady,
+        currentUser,
+        setCurrentUser,
+        rolesAvailable,
+        currentRole,
+        setCurrentRole,
+        entitatsAvailable,
+        currentEntitatId,
+        setCurrentEntitatId,
+        currentEntitat,
+        currentEntitatLoading,
+    };
+    return (
+        <DistribucioContext.Provider value={contextValue}>
+            {isReady ? children : <DistribucioProviderLoading />}
+        </DistribucioContext.Provider>
+    );
+};
+
+export default DistribucioProvider;

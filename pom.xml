@@ -6,10 +6,11 @@
 	<groupId>es.caib.concsv</groupId>
 	<artifactId>concsv</artifactId>
 	<packaging>pom</packaging>
-	<version>2.1.7</version>
+	<version>2.2.1</version>
 	<properties>
 		<openapi.version>1.8.0</openapi.version>
 		<implementation.vendor>Govern de les Illes Balears</implementation.vendor>
+		<keycloak.version>22.0.4</keycloak.version>
 		<jersey.version>2.35</jersey.version>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jboss-eap.version>7.2.7.GA</jboss-eap.version>
@@ -157,5 +158,7 @@
         <module>concsv-persistence</module>
 		<module>concsv-commons</module>
 		<module>concsv-service-intf</module>
+		<module>concsv-back</module>
+		<module>concsv-backend</module>
 	</modules>
 </project>

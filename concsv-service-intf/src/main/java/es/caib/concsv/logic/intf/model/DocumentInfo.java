@@ -1,5 +1,9 @@
 package es.caib.concsv.logic.intf.model;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.enums.EniDocumentType;
 import es.caib.concsv.logic.intf.enums.EniElaborationStatus;
@@ -7,10 +11,6 @@ import es.caib.concsv.logic.intf.enums.EniSignatureType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 @Getter @Setter
 public class DocumentInfo implements Serializable {

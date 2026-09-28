@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -75,8 +76,10 @@ public class ReactController extends BaseUtilsController {
 	 * mode Spring Boot, també la tornada del login i del logout (que redirigeixen a l'arrel).
 	 */
 	@GetMapping("/")
-	public String arrel() {
-		return "redirect:" + BaseConfig.REACT_APP_PATH + "/";
+	public ModelAndView arrel() {
+		// ModelAndView i no String: BaseUtilsController és @RestController i el @ResponseBody
+		// s'hereta, de manera que un String s'escriuria tal qual com a cos de la resposta.
+		return new ModelAndView("redirect:" + BaseConfig.REACT_APP_PATH + "/");
 	}
 
 	@RequestMapping(BaseConfig.REACT_APP_PATH + "/**")

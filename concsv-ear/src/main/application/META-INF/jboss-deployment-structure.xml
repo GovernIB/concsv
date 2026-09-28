@@ -3,6 +3,15 @@
 	<!--
 	Permet introduïr configuracions relacionades amb el desplegament.
 	Com ara ignorar mòduls del servidor si el nostre EAR conté versions més recents.
+
+	Jackson: el subsistema jaxrs afegeix a TOTS els desplegaments els mòduls de Jackson 2.9 de JBoss
+	(directament i a través de resteasy-jackson2-provider, que els exporta). Com que els mòduls
+	del servidor tenen prioritat sobre EAR/lib, Spring Boot 2.7 acabaria amb el jackson-databind 2.9
+	de JBoss barrejat amb la resta de jars 2.13 de l'EAR (NoSuchMethodError a XmlMapper en arrencar).
+	Les exclusions s'han de posar amb el nom complet del mòdul i per a cada sub-deployment: les de
+	<deployment> només afecten el mòdul arrel de l'EAR.
+	A concsv-api-interna.war el proveïdor JSON de JAX-RS és el jackson-jaxrs-json-provider del seu
+	WEB-INF/lib (via swagger-jaxrs2), coherent amb el Jackson d'EAR/lib.
 	-->
 	<ear-subdeployments-isolated>false</ear-subdeployments-isolated>
 	<deployment>
@@ -14,9 +23,57 @@
 			</system>
 		</dependencies>
 		<exclusions>
-			<module name="com.fasterxml.jackson.core"/>
-			<module name="com.fasterxml.jackson.jaxrs"/>
-			<module name="com.fasterxml.jackson.dataformat.yaml"/>
+			<module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+			<module name="com.fasterxml.jackson.core.jackson-annotations"/>
+			<module name="com.fasterxml.jackson.core.jackson-core"/>
+			<module name="com.fasterxml.jackson.core.jackson-databind"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
+			<module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
 		</exclusions>
 	</deployment>
+	<sub-deployment name="concsv-ejb.jar">
+		<exclusions>
+			<module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+			<module name="com.fasterxml.jackson.core.jackson-annotations"/>
+			<module name="com.fasterxml.jackson.core.jackson-core"/>
+			<module name="com.fasterxml.jackson.core.jackson-databind"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
+			<module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+		</exclusions>
+	</sub-deployment>
+	<sub-deployment name="concsv-front.war">
+		<exclusions>
+			<module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+			<module name="com.fasterxml.jackson.core.jackson-annotations"/>
+			<module name="com.fasterxml.jackson.core.jackson-core"/>
+			<module name="com.fasterxml.jackson.core.jackson-databind"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
+			<module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+		</exclusions>
+	</sub-deployment>
+	<sub-deployment name="concsv-api-interna.war">
+		<exclusions>
+			<module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+			<module name="com.fasterxml.jackson.core.jackson-annotations"/>
+			<module name="com.fasterxml.jackson.core.jackson-core"/>
+			<module name="com.fasterxml.jackson.core.jackson-databind"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
+			<module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+		</exclusions>
+	</sub-deployment>
+	<sub-deployment name="concsv-back.war">
+		<exclusions>
+			<module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+			<module name="com.fasterxml.jackson.core.jackson-annotations"/>
+			<module name="com.fasterxml.jackson.core.jackson-core"/>
+			<module name="com.fasterxml.jackson.core.jackson-databind"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8"/>
+			<module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
+			<module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+		</exclusions>
+	</sub-deployment>
 </jboss-deployment-structure>

@@ -17,10 +17,13 @@
 			<url-pattern>/manifest</url-pattern>
 			<url-pattern>/reactapp/assets/*</url-pattern>
 		</web-resource-collection>
+		<!-- L'API no la protegeix el contenidor (una petició AJAX sense sessió rebria una redirecció
+		     al login de Keycloak en lloc d'un 401/403): ho fa Spring Security, que exigeix usuari
+		     autenticat a tot /api/* excepte l'índex. Declarar-la per a tots els mètodes (i no només
+		     OPTIONS) evita l'avís UT015020 d'Undertow sense canviar el comportament. -->
 		<web-resource-collection>
-			<web-resource-name>API preflight</web-resource-name>
+			<web-resource-name>API</web-resource-name>
 			<url-pattern>/api/*</url-pattern>
-			<http-method>OPTIONS</http-method>
 		</web-resource-collection>
 	</security-constraint>
 	<security-constraint>

@@ -52,7 +52,17 @@ import lombok.extern.slf4j.Slf4j;
 		"org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration",
 		"org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration",
 		"org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration",
-		"org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration"
+		"org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration",
+		// Igual amb springdoc (EAR/lib pel backoffice): el front no publica documentació OpenAPI i,
+		// com que Spring Data REST és a WEB-INF/lib del front, les classes de springdoc (a EAR/lib)
+		// no el veuen i l'arrencada peta amb TypeNotPresentException de RepositoryRestConfiguration.
+		"org.springdoc.core.SpringDocConfiguration",
+		"org.springdoc.webmvc.core.SpringDocWebMvcConfiguration",
+		"org.springdoc.webmvc.core.MultipleOpenApiSupportConfiguration",
+		"org.springdoc.webmvc.ui.SwaggerConfig",
+		"org.springdoc.core.SpringDocUIConfiguration",
+		"org.springdoc.hateoas.SpringDocHateoasConfiguration",
+		"org.springdoc.security.SpringDocSecurityConfiguration"
 })
 public class ConcsvFrontApp extends SpringBootServletInitializer {
 

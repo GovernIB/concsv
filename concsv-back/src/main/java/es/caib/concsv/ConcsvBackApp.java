@@ -47,7 +47,10 @@ import java.util.jar.Manifest;
 				WebSocketServletAutoConfiguration.class
 		},
 		excludeName = {
-				"org.springframework.boot.actuate.autoconfigure.metrics.jersey.JerseyServerMetricsAutoConfiguration"
+				"org.springframework.boot.actuate.autoconfigure.metrics.jersey.JerseyServerMetricsAutoConfiguration",
+				// L'usuari l'autentica el contenidor (Keycloak): sense aquesta exclusió Spring Boot crea
+				// un usuari "user" en memòria i escriu la contrasenya generada al log.
+				"org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
 		})
 @ComponentScan(BaseConfig.BASE_PACKAGE + ".back")
 @PropertySource(

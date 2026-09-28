@@ -110,6 +110,7 @@ public class WebSecurityConfig extends BaseWebSecurityConfig {
 				new AntPathRequestMatcher("/api-docs/**/*"),
 				new AntPathRequestMatcher(BaseConfig.REACT_APP_PATH + "/assets/**"),
 				new AntPathRequestMatcher(BaseConfig.REACT_APP_PATH + "/favicon.png"),
+				new AntPathRequestMatcher(BaseConfig.REACT_APP_PATH + "/favicon.svg"),
 		};
 	}
 

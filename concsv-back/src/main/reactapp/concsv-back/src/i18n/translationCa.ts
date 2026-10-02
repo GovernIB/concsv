@@ -72,6 +72,30 @@ const translationCa = {
                 error: "No s'ha pogut executar l'acció",
             },
         },
+        avisos: {
+            grid: {
+                title: "Gestió d'avisos",
+            },
+            form: {
+                resourceTitle: 'avís',
+            },
+            accio: {
+                nova: 'Nou avís',
+                modificar: 'Modifica',
+                activar: 'Activa',
+                desactivar: 'Desactiva',
+                esborrar: 'Esborra',
+                crearOk: "L'avís s'ha creat correctament",
+                modificarOk: "L'avís s'ha modificat correctament",
+                esborrarOk: "L'avís s'ha esborrat correctament",
+                activarOk: "L'avís s'ha activat correctament",
+                desactivarOk: "L'avís s'ha desactivat correctament",
+                massivaActivarOk: "S'han activat els avisos seleccionats",
+                massivaDesactivarOk: "S'han desactivat els avisos seleccionats",
+                massivaEsborrarOk: "S'han esborrat els avisos seleccionats",
+                error: "No s'ha pogut executar l'acció",
+            },
+        },
         enConstruccio: {
             missatge: 'Aquesta pantalla encara està en construcció.',
         },

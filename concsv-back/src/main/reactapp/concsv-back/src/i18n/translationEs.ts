@@ -72,6 +72,30 @@ const translationEs = {
                 error: 'No se ha podido ejecutar la acción',
             },
         },
+        avisos: {
+            grid: {
+                title: 'Gestión de avisos',
+            },
+            form: {
+                resourceTitle: 'aviso',
+            },
+            accio: {
+                nova: 'Nuevo aviso',
+                modificar: 'Modifica',
+                activar: 'Activa',
+                desactivar: 'Desactiva',
+                esborrar: 'Elimina',
+                crearOk: 'El aviso se ha creado correctamente',
+                modificarOk: 'El aviso se ha modificado correctamente',
+                esborrarOk: 'El aviso se ha borrado correctamente',
+                activarOk: 'El aviso se ha activado correctamente',
+                desactivarOk: 'El aviso se ha desactivado correctamente',
+                massivaActivarOk: 'Se han activado los avisos seleccionados',
+                massivaDesactivarOk: 'Se han desactivado los avisos seleccionados',
+                massivaEsborrarOk: 'Se han borrado los avisos seleccionados',
+                error: 'No se ha podido ejecutar la acción',
+            },
+        },
         enConstruccio: {
             missatge: 'Esta pantalla todavía está en construcción.',
         },

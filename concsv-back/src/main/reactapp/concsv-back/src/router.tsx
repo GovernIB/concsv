@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import EnConstruccio from './pages/EnConstruccio';
 import EntitatGrid from './pages/entitat/EntitatGrid';
+import AvisGrid from './pages/avis/AvisGrid';
 import type { Pantalla } from './util/pantalles';
 
 /**
@@ -57,7 +58,16 @@ export const router = createBrowserRouter(
                         },
                     ],
                 },
-                rutaEnConstruccio('avis', 'avis', 'app.menu.avisos'),
+                {
+                    element: <ProtectedRoute pantalla="avis" />,
+                    children: [
+                        {
+                            path: 'avis',
+                            element: <AvisGrid />,
+                            handle: { titol: 'page.avisos.grid.title' },
+                        },
+                    ],
+                },
                 rutaEnConstruccio('documentExclos', 'documentExclos', 'app.menu.documentsExclosos'),
                 rutaEnConstruccio('propietat', 'propietat', 'app.menu.propietats'),
                 rutaEnConstruccio('integracio', 'integracio', 'app.menu.integracions'),

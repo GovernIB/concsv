@@ -4,10 +4,13 @@
 package es.caib.concsv.front.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import es.caib.concsv.logic.intf.config.PropertyConfig;
+import es.caib.concsv.logic.intf.service.ConfigServiceInterface;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -26,12 +29,22 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Limit Tecnologies
  */
 //@Hidden
+@Slf4j
 @RestController
 @RequestMapping(path = "/sysenv")
 public class SysenvController {
 
+	/** Propietats del front que es poden canviar des del backoffice (es guarden a la base de dades). */
+	private static final List<String> PROPIETATS_CONFIGURABLES = List.of(
+		PropertyConfig.PROP_FRONT_PREVIEW_ENABLED,
+		PropertyConfig.PROP_FRONT_RECAPTCHA_ENABLED,
+		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY);
+
 	@Autowired
 	private Environment env;
+
+	@Autowired(required = false)
+	private ConfigServiceInterface configService;
 
 	private Map<String, String> additionalReactEnvVars = Map.of(
 		PropertyConfig.PROP_FRONT_API_URL, "REACT_APP_API_URL",
@@ -49,6 +62,7 @@ public class SysenvController {
 	public ResponseEntity<String> systemEnvironment(
 			@RequestParam(required = false) String format) {
 		Map<String, Object> systemEnv = getAllProperties(env); // System.getenv();
+		aplicaPropietatsConfigurables(systemEnv);
 		MediaType contentType = MediaType.TEXT_PLAIN;
 		String envJson;
 		if ("reactapp".equalsIgnoreCase(format)) {
@@ -84,6 +98,26 @@ public class SysenvController {
 				ok().
 				contentType(contentType).
 				body(envJson);
+	}
+
+	/**
+	 * Substitueix el valor del fitxer pel de la base de dades a les propietats que es poden canviar
+	 * des del backoffice. Si no es poden consultar es deixa el del fitxer.
+	 */
+	private void aplicaPropietatsConfigurables(Map<String, Object> systemEnv) {
+		if (configService == null) {
+			return;
+		}
+		for (String key : PROPIETATS_CONFIGURABLES) {
+			try {
+				String value = configService.getProperty(key);
+				if (value != null) {
+					systemEnv.put(key, value);
+				}
+			} catch (Exception ex) {
+				log.warn("No s'ha pogut llegir la propietat {}; s'usa el valor del fitxer: {}", key, ex.toString());
+			}
+		}
 	}
 
 	@SuppressWarnings("rawtypes")

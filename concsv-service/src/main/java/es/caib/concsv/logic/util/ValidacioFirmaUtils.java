@@ -1,7 +1,7 @@
 package es.caib.concsv.logic.util;
 
 import es.caib.comanda.ms.salut.helper.IntegracioApp;
-import es.caib.concsv.commons.config.PropertyFileConfigUtil;
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.model.DocumentSigner;
@@ -28,6 +28,7 @@ public class ValidacioFirmaUtils {
 
 	private final String identificacio;
 	private final IntegracionsHelper integracionsHelper;
+	private final ConfigValues configValues;
 
 	public void setDocument(byte[] documentData) {
 		this.documentData = documentData;
@@ -41,8 +42,9 @@ public class ValidacioFirmaUtils {
 		long t0 = System.currentTimeMillis();
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss 'GMT'Z", Locale.getDefault());
-			Properties prop = PropertyFileConfigUtil.getProperties();
-			Boolean valideCert = (prop.get(valideProp) == null || "false".equalsIgnoreCase((String) prop.get(valideProp))) ? false : true;
+			// Les propietats es creen a cada crida: inclouen els valors canviats des del backoffice
+			Properties prop = configValues.getProperties();
+			Boolean valideCert = ConfigValues.isTrue((String) prop.get(valideProp));
 			IValidateSignaturePlugin plugin;
 			plugin = new ValidateSignaturePlugin(PropertyConfig.PROP_BASE_PREFIX_VALIDATE_SIGNATURE, prop);
 			ValidateSignatureRequest vsr = new ValidateSignatureRequest();

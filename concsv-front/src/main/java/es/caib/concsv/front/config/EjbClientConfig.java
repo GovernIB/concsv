@@ -4,6 +4,7 @@
 package es.caib.concsv.front.config;
 
 import es.caib.concsv.logic.intf.service.ComandaServiceInterface;
+import es.caib.concsv.logic.intf.service.ConfigServiceInterface;
 import es.caib.concsv.logic.intf.service.HashServiceInterface;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWarDeployment;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +30,11 @@ public class EjbClientConfig {
 	@Bean
 	public LocalStatelessSessionProxyFactoryBean hashService() {
 		return getLocalEjbFactoyBean(HashServiceInterface.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean configService() {
+		return getLocalEjbFactoyBean(ConfigServiceInterface.class);
 	}
 
 	@Bean

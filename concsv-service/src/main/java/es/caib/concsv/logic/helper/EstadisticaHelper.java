@@ -9,11 +9,9 @@ import es.caib.concsv.persistence.entity.ExplotFetsEntity;
 import es.caib.concsv.persistence.entity.ExplotTempsEntity;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -27,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
+import javax.inject.Inject;
 
 @Slf4j
 @ApplicationScoped
@@ -35,8 +34,9 @@ public class EstadisticaHelper {
 
     @PersistenceContext(unitName = "concsvPU")
     private EntityManager entityManager;
-    @Inject @ConfigProperty(name = PropertyConfig.PROP_ESTADISTICAS_DIAS_CONSERVAR, defaultValue = "365")
-    private int diasConservar;
+
+    @Inject
+    private ConfigValues configValues;
 
     /** Comptadors d'esdeveniments per dimensió i tipus de resultat */
     private final Map<String, EnumMap<ResultTypeEnum, LongAdder>> counters = new ConcurrentHashMap<>();
@@ -129,10 +129,18 @@ public class EstadisticaHelper {
         log.debug("EstadisticaHelper flushed/updated to database for date {}", date);
     }
 
+    /**
+     * Dies que es conserven les estadístiques (propietat {@code estadisticas.dias.conservar}, 365 per
+     * defecte). Es llegeix a cada ús: es pot canviar des del backoffice sense reiniciar.
+     */
+    public int getDiasConservar() {
+        return configValues.getInt(PropertyConfig.PROP_ESTADISTICAS_DIAS_CONSERVAR, 365);
+    }
+
     /** Esborra tots els Temps i Fets anteriors a la data límit */
     @Transactional
     public void netejarEstadistiques(LocalDate date) {
-        LocalDate fechaLimite = date.minusDays(diasConservar);
+        LocalDate fechaLimite = date.minusDays(getDiasConservar());
         List<ExplotTempsEntity> antiguos = findAllTempsBefore(fechaLimite);
 
         for (ExplotTempsEntity t : antiguos) {

@@ -72,6 +72,20 @@ const translationCa = {
                 error: "No s'ha pogut executar l'acció",
             },
         },
+        propietats: {
+            title: 'Propietats de sistema',
+            empty: 'No hi ha propietats',
+            accio: {
+                sync: {
+                    label: 'Sincronitza',
+                    confirm:
+                        "Es copiarà a la base de dades el valor que els fitxers de propietats del servidor defineixen per a les propietats editables, i es perdran els valors que s'hagin desat des d'aquesta pantalla. Vols continuar?",
+                    ok: "Les propietats s'han sincronitzat correctament",
+                    okCount: 'Sincronització feta: {{count}} propietats actualitzades',
+                    error: "No s'han pogut sincronitzar les propietats",
+                },
+            },
+        },
         avisos: {
             grid: {
                 title: "Gestió d'avisos",

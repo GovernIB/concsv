@@ -72,6 +72,20 @@ const translationEs = {
                 error: 'No se ha podido ejecutar la acción',
             },
         },
+        propietats: {
+            title: 'Propiedades de sistema',
+            empty: 'No hay propiedades',
+            accio: {
+                sync: {
+                    label: 'Sincroniza',
+                    confirm:
+                        'Se copiará a la base de datos el valor que los ficheros de propiedades del servidor definen para las propiedades editables, y se perderán los valores guardados desde esta pantalla. ¿Quieres continuar?',
+                    ok: 'Las propiedades se han sincronizado correctamente',
+                    okCount: 'Sincronización hecha: {{count}} propiedades actualizadas',
+                    error: 'No se han podido sincronizar las propiedades',
+                },
+            },
+        },
         avisos: {
             grid: {
                 title: 'Gestión de avisos',

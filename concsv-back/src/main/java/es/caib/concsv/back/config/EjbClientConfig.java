@@ -4,6 +4,9 @@ import es.caib.concsv.logic.intf.base.service.PermissionEvaluatorService;
 import es.caib.concsv.logic.intf.base.service.ResourceApiService;
 import es.caib.concsv.logic.intf.config.BaseConfig;
 import es.caib.concsv.logic.intf.resourceservice.AvisResourceService;
+import es.caib.concsv.logic.intf.resourceservice.ConfigGroupResourceService;
+import es.caib.concsv.logic.intf.resourceservice.ConfigResourceService;
+import es.caib.concsv.logic.intf.resourceservice.ConfigTypeResourceService;
 import es.caib.concsv.logic.intf.resourceservice.EntitatResourceService;
 import es.caib.concsv.logic.intf.resourceservice.UsuariResourceService;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +61,24 @@ public class EjbClientConfig {
 	@ConditionalOnWarDeployment
 	public LocalStatelessSessionProxyFactoryBean avisResourceService() {
 		return getLocalEjbFactoyBean(AvisResourceService.class);
+	}
+
+	@Bean
+	@ConditionalOnWarDeployment
+	public LocalStatelessSessionProxyFactoryBean configResourceService() {
+		return getLocalEjbFactoyBean(ConfigResourceService.class);
+	}
+
+	@Bean
+	@ConditionalOnWarDeployment
+	public LocalStatelessSessionProxyFactoryBean configGroupResourceService() {
+		return getLocalEjbFactoyBean(ConfigGroupResourceService.class);
+	}
+
+	@Bean
+	@ConditionalOnWarDeployment
+	public LocalStatelessSessionProxyFactoryBean configTypeResourceService() {
+		return getLocalEjbFactoyBean(ConfigTypeResourceService.class);
 	}
 
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {

@@ -29,12 +29,14 @@ public class EstadisticaHelperTest {
 
     @Mock
     private EntityManager entityManager;
+    @Mock
+    private ConfigValues configValues;
     private AutoCloseable closeable;
 
     @Before
     public void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        System.setProperty(PropertyConfig.PROP_ESTADISTICAS_DIAS_CONSERVAR, "365");
+        when(configValues.getInt(PropertyConfig.PROP_ESTADISTICAS_DIAS_CONSERVAR, 365)).thenReturn(365);
     }
 
     @Test

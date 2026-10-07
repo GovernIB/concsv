@@ -6,10 +6,8 @@ import es.caib.concsv.logic.intf.model.DocumentInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -24,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
 
 /**
  * Implementació d'una cache basada en sistema de fitxers.
@@ -49,12 +48,16 @@ import java.util.stream.Stream;
 @ApplicationScoped
 public class CacheHelper {
 
-	@Inject
-	@ConfigProperty(name = PropertyConfig.PROP_FITXERS_PATH)
+	/**
+	 * Valors fixats pels tests. Si són null es llegeixen de la configuració a cada ús (es poden
+	 * canviar des del backoffice sense reiniciar), veure {@link #getFitxersPath()} i
+	 * {@link #getCacheTtlMinuts()}.
+	 */
 	private String fitxersPath;
+	private Long cacheTtlMinuts;
+
 	@Inject
-	@ConfigProperty(name = PropertyConfig.PROP_CACHE_TTL_MINUTS, defaultValue = "30")
-	private long cacheTtlMinuts;
+	private ConfigValues configValues;
 
 	/**
 	 * Recupera la informació d'un document de la cache.
@@ -118,7 +121,7 @@ public class CacheHelper {
 	 */
 	public int cleanExpired() throws IOException {
 		int removed = 0;
-		if (cacheTtlMinuts == 0) {
+		if (getCacheTtlMinuts() == 0) {
 			return removed;
 		}
 		Path root = resolveCacheRoot();
@@ -212,16 +215,30 @@ public class CacheHelper {
 	}
 
 	private Path resolveCacheRoot() {
-		return Paths.get(fitxersPath, "cache");
+		return Paths.get(getFitxersPath(), "cache");
+	}
+
+	/** Carpeta de fitxers de l'aplicació (propietat {@code fitxers}, obligatòria). */
+	private String getFitxersPath() {
+		String path = fitxersPath != null ? fitxersPath : configValues.get(PropertyConfig.PROP_FITXERS_PATH);
+		if (path == null) {
+			throw new IllegalStateException("Falta la propietat " + PropertyConfig.PROP_FITXERS_PATH);
+		}
+		return path;
+	}
+
+	/** Minuts de vida d'un document a la memòria cau (propietat {@code cache.ttl.minuts}, 30 per defecte). */
+	private long getCacheTtlMinuts() {
+		return cacheTtlMinuts != null ? cacheTtlMinuts : configValues.getLong(PropertyConfig.PROP_CACHE_TTL_MINUTS, 30L);
 	}
 
 	private boolean isExpired(long timestamp) {
-		if (cacheTtlMinuts == 0) return false;
+		if (getCacheTtlMinuts() == 0) return false;
 		return (System.currentTimeMillis() - timestamp) > ttlMillis();
 	}
 
 	private long ttlMillis() {
-		return Duration.ofMinutes(cacheTtlMinuts).toMillis();
+		return Duration.ofMinutes(getCacheTtlMinuts()).toMillis();
 	}
 
 	public enum CacheType {

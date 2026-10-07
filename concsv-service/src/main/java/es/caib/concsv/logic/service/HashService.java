@@ -29,6 +29,7 @@ import es.caib.concsv.logic.annotation.PerformanceInt;
 import es.caib.concsv.logic.helper.CacheHelper;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.enums.EniDocumentType;
@@ -82,24 +83,16 @@ public class HashService implements HashServiceInterface {
 	private static final int MARGIN_TOP = 20;
 	private static final int MARGIN_BOTTOM = 70;
 
-	@Inject @ConfigProperty(name = PropertyConfig.PROP_CONSULT_OLD_SAFEKEEPING)
-	private String consultOldSafeKeeping;
-	@Inject @ConfigProperty(name = PropertyConfig.PROP_CONSULT_NEW_DIGITAL_ARCHIVE)
-	private String consultNewDigitalArchive;
-	@Inject @ConfigProperty(name = PropertyConfig.PROP_LOGO_PATH, defaultValue = "")
+	/**
+	 * Path del logo, només per fixar-lo als tests. Si és null es llegeix de la configuració a cada
+	 * ús (es pot canviar des del backoffice sense reiniciar), veure {@link #getLogoPath()}.
+	 */
 	private String logoPath;
 	/** Propietat amb el path cap al fitxer d'exclusions per CSV de documents. */
 	@Inject @ConfigProperty(name = PropertyConfig.PROP_ARXIU_DOCS_EXCLOSOS_PATH, defaultValue = "")
 	private String exclusionsPath;
-	@Inject
-	@ConfigProperty(name = PropertyConfig.PROP_CACHE_ACTIVA, defaultValue = "false")
-	private boolean cacheActiva;
 	/** Llista de CSV exclosos per a la descàrrega de l'original. */
 	private List<String> csvExclosos = new ArrayList<String>();
-
-	/** Indica si amagar per defecte el botó de descàrrega del botó original per documents amb versió imprimible. Per amagar posar el valor "true" */
-	@Inject @ConfigProperty(name = PropertyConfig.PROP_AMAGAR_BOTO_ORIGINAL, defaultValue = "false")
-	private String amagarBotoOriginal;
 
 	private PrintableUtils printableUtils = new PrintableUtils();
 
@@ -112,6 +105,7 @@ public class HashService implements HashServiceInterface {
 	@Inject private SubsistemesHelper subsistemesHelper;
 	@Inject private IntegracionsHelper integracionsHelper;
 	@Inject private CacheHelper cacheHelper;
+	@Inject private ConfigValues configValues;
 
 	/** Si s'informa el document d'exclusions es llegeix i carrega.
 	 *
@@ -140,7 +134,7 @@ public class HashService implements HashServiceInterface {
 		long t0 = System.currentTimeMillis();
 		try {
 			Optional<DocumentInfo> documentInfoCache = Optional.empty();
-			if (cacheActiva) {
+			if (isCacheActiva()) {
 				documentInfoCache = cacheHelper.getInfo(hash, false);
 			}
 			if (documentInfoCache.isPresent()) {
@@ -152,7 +146,7 @@ public class HashService implements HashServiceInterface {
 			// Consulta a l'Arxiu Digital CAIB
 			documentInfoNewDigitalArchive = null;
 			Throwable newDigitalArchiveException = null;
-			if ("S".equals(consultNewDigitalArchive)) {
+			if (isConsultNewDigitalArchive()) {
 				boolean isError = false;
 				long t00 = System.currentTimeMillis();
 				try {
@@ -171,8 +165,7 @@ public class HashService implements HashServiceInterface {
 			// Consulta a la custòdia antiga si no l'ha trobat a l'Arxiu
 			Throwable oldSafeKeepingException = null;
 			if (documentInfoNewDigitalArchive == null
-				&& consultOldSafeKeeping != null
-				&& "S".equals(consultOldSafeKeeping))
+				&& isConsultOldSafeKeeping())
 			{
 				boolean isError = false;
 				long t00 = System.currentTimeMillis();
@@ -231,7 +224,7 @@ public class HashService implements HashServiceInterface {
 				}
 			}
 			hasError = false;
-			if (cacheActiva) {
+			if (isCacheActiva()) {
 				cacheHelper.setInfo(hash, false, docInfo);
 			}
 			return docInfo;
@@ -254,7 +247,7 @@ public class HashService implements HashServiceInterface {
 		long t0 = System.currentTimeMillis();
 		try {
 			Optional<DocumentInfo> documentInfoCache = Optional.empty();
-			if (cacheActiva) {
+			if (isCacheActiva()) {
 				documentInfoCache = cacheHelper.getInfo(uuid, true);
 			}
 			if (documentInfoCache.isPresent()) {
@@ -264,7 +257,7 @@ public class HashService implements HashServiceInterface {
 			DocumentInfo documentInfo = this.newDigitalArchiveService.checkHashFromUUID(uuid, null);
 			documentInfo.setCsvExclos(this.getCsvExclosos().contains(documentInfo.getHash()));
 			isError = false;
-			if (cacheActiva) {
+			if (isCacheActiva()) {
 				cacheHelper.setInfo(uuid, true, documentInfo);
 			}
 			return documentInfo;
@@ -289,7 +282,7 @@ public class HashService implements HashServiceInterface {
 			if (documentInfo.getDocumentLocation() == null)
 				return null;
 			Optional<DocumentContent> documentContentCache = Optional.empty();
-			if (cacheActiva) {
+			if (isCacheActiva()) {
 				documentContentCache = cacheHelper.getContent(documentInfo.getCodi(), CacheHelper.CacheType.ORIGINAL, null);
 			}
 			if (documentContentCache.isPresent()) {
@@ -305,7 +298,7 @@ public class HashService implements HashServiceInterface {
 				documentContent = this.newDigitalArchiveService.getDocument(documentInfo.getDocumentCode(), packedFile);
 			}
 			subsistemesHelper.addSuccessOperation(SubsistemesHelper.SubsistemesEnum.ORI, System.currentTimeMillis() - t0);
-			if (cacheActiva && documentContent != null) {
+			if (isCacheActiva() && documentContent != null) {
 				cacheHelper.setContent(documentInfo.getCodi(), CacheHelper.CacheType.ORIGINAL, null, documentContent);
 			}
 			return documentContent;
@@ -330,7 +323,7 @@ public class HashService implements HashServiceInterface {
 		long t0 = System.currentTimeMillis();
 		try {
 			Optional<DocumentContent> documentContentCache = Optional.empty();
-			if (cacheActiva) {
+			if (isCacheActiva()) {
 				documentContentCache = cacheHelper.getContent(documentInfo.getCodi(), CacheHelper.CacheType.IMPRIMIBLE, lang);
 			}
 			if (documentContentCache.isPresent()) {
@@ -385,7 +378,7 @@ public class HashService implements HashServiceInterface {
 			// S'afegeix _imprimible com a "nom" + "_imprimible" + ".pdf"
 			fileName = fileName.substring(0, fileName.lastIndexOf(".")) + "_imprimible.pdf";
 			documentContent.setFileName(fileName);
-			if (cacheActiva) {
+			if (isCacheActiva()) {
 				cacheHelper.setContent(documentInfo.getCodi(), CacheHelper.CacheType.IMPRIMIBLE, lang, documentContent);
 			}
 			return documentContent;
@@ -539,14 +532,14 @@ public class HashService implements HashServiceInterface {
 
 		try {
 			PdfCanvas pdfCanvas = new PdfCanvas(page);
-			ImageData imageData = ImageDataFactory.create(logoPath);
+			ImageData imageData = ImageDataFactory.create(getLogoPath());
 			Image image = new Image(imageData);
 			image.scaleToFit(150f, 150f);
 			Canvas canvas = new Canvas(pdfCanvas,  page.getPageSize());
 			canvas.add(image.setFixedPosition(20, PageSize.A4.getHeight() - image.getImageScaledHeight() - 30));
 			canvas.close();
 		} catch (IOException e) {
-			log.error("Can't find image: " + logoPath);
+			log.error("Can't find image: " + getLogoPath());
 		}
 
 		// Estableix la tipografia
@@ -850,13 +843,28 @@ public class HashService implements HashServiceInterface {
 		}
 	}
 
-	/** Converteix el valor string a boolean. És true si el text del valor de la propietat és "true".
-	 *
-	 * @return
+	/**
+	 * Indica si amagar per defecte el botó de descàrrega de l'original en documents amb versió
+	 * imprimible (propietat {@code amagar.boto.original}; ara també s'accepten S, 1, yes, y i on).
+	 * Es llegeix a cada ús: es pot canviar des del backoffice sense reiniciar.
 	 */
 	private boolean isAmagarBotoOriginal() {
-		return this.amagarBotoOriginal != null
-			&& this.amagarBotoOriginal.trim().toLowerCase().equals("true");
+		return configValues.getBoolean(PropertyConfig.PROP_AMAGAR_BOTO_ORIGINAL, false);
+	}
+
+	/** Indica si la memòria cau de documents està activa (propietat {@code cache.activa}). */
+	private boolean isCacheActiva() {
+		return configValues.getBoolean(PropertyConfig.PROP_CACHE_ACTIVA, false);
+	}
+
+	/** Indica si es consulta a l'antic sistema de custòdia (propietat {@code consult.oldSafeKeeping}). */
+	private boolean isConsultOldSafeKeeping() {
+		return configValues.getBoolean(PropertyConfig.PROP_CONSULT_OLD_SAFEKEEPING, false);
+	}
+
+	/** Indica si es consulta al nou arxiu digital (propietat {@code consult.newDigitalArchive}). */
+	private boolean isConsultNewDigitalArchive() {
+		return configValues.getBoolean(PropertyConfig.PROP_CONSULT_NEW_DIGITAL_ARCHIVE, false);
 	}
 
 	/** Consulta la llista de CSV's exclosos. */
@@ -868,7 +876,7 @@ public class HashService implements HashServiceInterface {
 
 	@Override
 	public void cacheClearExpiredFiles() throws IOException {
-		if (cacheActiva) {
+		if (isCacheActiva()) {
 			log.debug("Netejant cache de documents de l'arxiu...");
 			int deletedCount = cacheHelper.cleanExpired();
 			log.debug("...neteja de cache de documents finalitzada. S'han eliminat {} documents.", deletedCount);
@@ -895,8 +903,9 @@ public class HashService implements HashServiceInterface {
 		this.integracionsHelper = integracionsHelper;
 	}
 
+	/** Path del logo: el fixat als tests o, si no, el de la configuració (llegit a cada ús). */
 	public String getLogoPath() {
-		return logoPath;
+		return logoPath != null ? logoPath : configValues.get(PropertyConfig.PROP_LOGO_PATH, "");
 	}
 
 	public void setLogoPath(String logoPath) {

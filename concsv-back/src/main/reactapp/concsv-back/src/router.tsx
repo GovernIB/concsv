@@ -7,6 +7,7 @@ import NotFound from './pages/NotFound';
 import EnConstruccio from './pages/EnConstruccio';
 import EntitatGrid from './pages/entitat/EntitatGrid';
 import AvisGrid from './pages/avis/AvisGrid';
+import Propietats from './pages/propietats/Propietats';
 import type { Pantalla } from './util/pantalles';
 
 /**
@@ -69,7 +70,16 @@ export const router = createBrowserRouter(
                     ],
                 },
                 rutaEnConstruccio('documentExclos', 'documentExclos', 'app.menu.documentsExclosos'),
-                rutaEnConstruccio('propietat', 'propietat', 'app.menu.propietats'),
+                {
+                    element: <ProtectedRoute pantalla="propietat" />,
+                    children: [
+                        {
+                            path: 'propietat',
+                            element: <Propietats />,
+                            handle: { titol: 'page.propietats.title' },
+                        },
+                    ],
+                },
                 rutaEnConstruccio('integracio', 'integracio', 'app.menu.integracions'),
                 rutaEnConstruccio('cacheDocument', 'cacheDocument', 'app.menu.cacheDocuments'),
                 // També és necessari perquè l'iframe de renovació silenciosa de sessió

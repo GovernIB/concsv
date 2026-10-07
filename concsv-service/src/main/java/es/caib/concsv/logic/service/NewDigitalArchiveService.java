@@ -14,6 +14,7 @@ import es.caib.arxiudigital.apirest.facade.resultados.Resultado;
 import es.caib.comanda.ms.salut.helper.IntegracioApp;
 import es.caib.concsv.logic.annotation.ErrorInt;
 import es.caib.concsv.logic.annotation.PerformanceInt;
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
@@ -71,6 +72,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	List<String> listAtachedDocuments = Arrays.asList("TF02","TF03","TF05","TF06");
 
 	@Inject private IntegracionsHelper integracionsHelper;
+	@Inject private ConfigValues configValues;
 
 	@PermitAll
 	public DocumentInfo checkHash(String hash) throws DuplicatedHashException, DocumentNotExistException, GenericServiceException {
@@ -216,7 +218,8 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 
             ValidacioFirmaUtils validacioFirma = new ValidacioFirmaUtils(
 				hash != null ? "hash:" + hash : "uuid:" + uuid,
-				integracionsHelper);
+				integracionsHelper,
+				configValues);
 	        validacioFirma.setDocument(pdfSource);
             if (listAtachedDocuments.contains(signType)) {
 	            try {

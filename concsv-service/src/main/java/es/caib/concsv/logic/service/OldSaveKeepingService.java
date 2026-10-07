@@ -5,6 +5,7 @@ import es.caib.comanda.ms.salut.helper.IntegracioApp;
 import es.caib.concsv.logic.annotation.ErrorInt;
 import es.caib.concsv.logic.annotation.PerformanceInt;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.exception.DuplicatedHashException;
@@ -45,13 +46,12 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
     private String endpoint;
     @Inject @ConfigProperty(name = PropertyConfig.PROP_QUERY_URL)
     private String queryUrl;
-    @Inject @ConfigProperty(name = PropertyConfig.PROP_OLD_SAVEKEEPING_TIMEOUT, defaultValue = "")
-    private String timeout;
 
     private Logger log = Logger.getLogger(this.getClass());
     private SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss 'GMT'Z");
 
 	@Inject private IntegracionsHelper integracionsHelper;
+	@Inject private ConfigValues configValues;
 
     @PermitAll
     public DocumentInfo checkHash(String hash) throws GenericServiceException, DuplicatedHashException {
@@ -145,7 +145,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
 
             byte[] pdfSource = getDocument(hash).getContent();
             try {
-                ValidacioFirmaUtils validacio = new ValidacioFirmaUtils("hash:" + hash, integracionsHelper);
+                ValidacioFirmaUtils validacio = new ValidacioFirmaUtils("hash:" + hash, integracionsHelper, configValues);
                 validacio.setDocument(pdfSource);
                 documentInfo.setSigners(validacio.validaFirma());
             } catch (Exception ex) {
@@ -230,11 +230,13 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
         return null;
     }
 
-    /** Llegeix la propietat pel timeout. És un text amb el valor en ms.
+    /** Llegeix la propietat pel timeout. És un text amb el valor en ms. Es llegeix a cada crida: es pot
+     * canviar des del backoffice sense reiniciar.
      *
      * @return
      */
     private Integer getTimeoutPropertyValue() {
+    	String timeout = configValues.get(PropertyConfig.PROP_OLD_SAVEKEEPING_TIMEOUT, "");
     	Integer timeoutValue = null;
     	if (timeout != null && !timeout.isEmpty()) {
     		try {

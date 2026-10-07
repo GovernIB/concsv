@@ -1,14 +1,15 @@
 package es.caib.concsv.logic.interceptor;
 
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.annotation.Performance;
 import es.caib.concsv.logic.annotation.PerformanceInt;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
 import org.apache.log4j.Logger;
-import org.eclipse.microprofile.config.ConfigProvider;
 
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+import javax.inject.Inject;
 
 /**
  * Clase interceptora para la gestión de rendimiento
@@ -22,6 +23,9 @@ public class PerformanceInterceptor {
     private Integer minPerformanceTimeMS = 500;
     private Integer middlePerformanceTimeMS = 1000;
     private Integer maxPerformanceTimeMS = 2000;
+
+	@Inject
+	private ConfigValues configValues;
 
 	public PerformanceInterceptor() {}
 
@@ -42,8 +46,9 @@ public class PerformanceInterceptor {
                 forcePerformance = sp.forcePerformance();
             }
 
-            String logPerformace = ConfigProvider.getConfig().getValue(PropertyConfig.PROP_PERFORMANCE, String.class);
-            if (forcePerformance || logPerformace.equals("S")) {
+            // Es llegeix a cada crida (es pot canviar des del backoffice). Accepta S/N i true/false.
+            boolean logPerformace = configValues.getBoolean(PropertyConfig.PROP_PERFORMANCE, false);
+            if (forcePerformance || logPerformace) {
                 LOGGER.info("----------------------------------------------------------------------------------------");
                 LOGGER.info("- Ejecución de método: "+ic.getTarget().getClass().getName()+"."+ic.getMethod().getName());
                 LOGGER.info("- Parámetros");

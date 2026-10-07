@@ -10,6 +10,7 @@ import es.caib.concsv.logic.estadistiques.FetEnum;
 import es.caib.concsv.logic.helper.EstadisticaHelper;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.enums.ResultTypeEnum;
 import es.caib.concsv.logic.intf.exception.GenericServiceException;
@@ -21,7 +22,6 @@ import es.caib.concsv.persistence.entity.ExplotDimensioEntity;
 import es.caib.concsv.persistence.entity.ExplotFetsEntity;
 import es.caib.concsv.persistence.entity.ExplotTempsEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.security.PermitAll;
@@ -47,8 +47,7 @@ public class ComandaService implements ComandaServiceInterface {
 	@Inject
 	private IntegracionsHelper integracionsHelper;
 	@Inject
-	@ConfigProperty(name = PropertyConfig.PROP_LOGS_LOCATION, defaultValue = "standalone/log/")
-	private String LOGS_LOCATION;
+	private ConfigValues configValues;
 
 	private static final String CODE_APP = "CSV";
 	private static final int MAX_CONNECTION_RETRY = 3;
@@ -186,17 +185,25 @@ public class ComandaService implements ComandaServiceInterface {
 
 	@Override
 	public FitxerContingut getFitxerByNom(String nomFitxer) throws GenericServiceException {
-		return LogHelper.getFitxerByNom(LOGS_LOCATION, nomFitxer);
+		return LogHelper.getFitxerByNom(getLogsLocation(), nomFitxer);
 	}
 
 	@Override
 	public List<String> llegitUltimesLinies(String nomFitxer, Long nLinies) {
-		return LogHelper.readLastNLines(LOGS_LOCATION, nomFitxer, nLinies);
+		return LogHelper.readLastNLines(getLogsLocation(), nomFitxer, nLinies);
 	}
 
 	@Override
 	public List<FitxerInfo> llistarFitxers() throws GenericServiceException {
-		return LogHelper.llistarFitxers(LOGS_LOCATION, "concsv");
+		return LogHelper.llistarFitxers(getLogsLocation(), "concsv");
+	}
+
+	/**
+	 * Carpeta dels logs del servidor (propietat {@code logs.location}). Es llegeix a cada ús: es pot
+	 * canviar des del backoffice sense reiniciar.
+	 */
+	private String getLogsLocation() {
+		return configValues.get(PropertyConfig.PROP_LOGS_LOCATION, "standalone/log/");
 	}
 
 	/**

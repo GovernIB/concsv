@@ -16,12 +16,13 @@ type PropsListItemProps = {
  *
  * - Les propietats del fitxer de propietats del servidor (`jbossProperty`) es mostren en només
  *   lectura, amb el valor efectiu.
+ * - Els botons de desfer i desar només estan habilitats si el valor s'ha modificat.
  * - Si la base de dades no té valor, el camp mostra `alternativeValue` (el valor del fitxer del
  *   servidor, que és el que s'aplica) com a placeholder o, a les caselles, com a valor.
  */
 const PropsListItem: React.FC<PropsListItemProps> = ({ highlight }) => {
     const { t } = useTranslation();
-    const { data, apiRef } = useFormContext();
+    const { data, apiRef, modified } = useFormContext();
     const item = data as PropietatItem;
 
     const disabled = item.jbossProperty;
@@ -29,9 +30,13 @@ const PropsListItem: React.FC<PropsListItemProps> = ({ highlight }) => {
     const decimalScale = item.type.id === 'INT' ? 0 : undefined;
     const field = getFieldFromItem(item, t);
 
-    // El formulari ja mostra l'error del servidor (p. ex. un valor que no és d'aquest tipus)
     const save = () => {
         apiRef.current?.save().catch(() => undefined);
+    };
+
+    // Torna al valor carregat o desat per últim cop, sense demanar confirmació
+    const undo = () => {
+        apiRef.current?.revert(true);
     };
 
     return (
@@ -39,7 +44,7 @@ const PropsListItem: React.FC<PropsListItemProps> = ({ highlight }) => {
             <Grid size={4.5}>
                 <TextHighlight text={item.description} match={highlight} ignoreCase />
             </Grid>
-            <Grid size={6}>
+            <Grid size={6.5}>
                 <FormField
                     field={field}
                     name={'value'}
@@ -55,12 +60,23 @@ const PropsListItem: React.FC<PropsListItemProps> = ({ highlight }) => {
                     }}
                 />
             </Grid>
-            <Grid size={1.5}>
+            <Grid size={1}>
                 <Box sx={{ display: 'flex', justifyContent: 'end' }}>
                     {!disabled && (
-                        <IconButton title={t('common.save')} size="small" onClick={save} color={'success'}>
-                            <Icon fontSize="small">save</Icon>
-                        </IconButton>
+                        <>
+                            <IconButton title={t('common.undo')} size="small" onClick={undo} disabled={!modified}>
+                                <Icon fontSize="small">undo</Icon>
+                            </IconButton>
+                            <IconButton
+                                title={t('common.save')}
+                                size="small"
+                                onClick={save}
+                                color={'success'}
+                                disabled={!modified}
+                            >
+                                <Icon fontSize="small">save</Icon>
+                            </IconButton>
+                        </>
                     )}
                 </Box>
             </Grid>

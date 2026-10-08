@@ -8,6 +8,7 @@ const translationEs = {
     // etiqueta de acción (botones, menús, tooltips) va en imperativo: "Guarda", "Cancela"...
     common: {
         save: 'Guarda',
+        undo: 'Deshaz',
         create: 'Crea',
         update: 'Modifica',
         delete: 'Elimina',

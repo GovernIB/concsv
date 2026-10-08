@@ -8,6 +8,7 @@ const translationCa = {
     // etiqueta d'acció (botons, menús, tooltips) va en imperatiu: "Desa", "Cancel·la"...
     common: {
         save: 'Desa',
+        undo: 'Desfés',
         create: 'Crea',
         update: 'Modifica',
         delete: 'Esborra',

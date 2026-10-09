@@ -111,6 +111,29 @@ const translationEs = {
                 error: 'No se ha podido ejecutar la acción',
             },
         },
+        documentsExclosos: {
+            grid: {
+                title: 'Fichero de documentos excluidos para la descarga del original',
+            },
+            form: {
+                resourceTitle: 'documento excluido',
+            },
+            accio: {
+                nova: 'Nueva entrada',
+                modificar: 'Modifica',
+                esborrar: 'Borra',
+                descarrega: 'Descarga',
+                carrega: 'Carga',
+                crearOk: 'La entrada se ha creado correctamente',
+                modificarOk: 'La entrada se ha modificado correctamente',
+                esborrarOk: 'La entrada se ha borrado correctamente',
+                confirmarEsborrat: '¿Seguro que desea borrar {{count}} entradas seleccionadas?',
+                massivaEsborrarOk: 'Se han borrado {{count}} entradas',
+                importacioOk:
+                    'Importación terminada: {{afegits}} añadidas, {{jaExistents}} ya estaban o estaban repetidas y {{descartats}} descartadas por ser demasiado largas',
+                error: 'No se ha podido ejecutar la acción',
+            },
+        },
         enConstruccio: {
             missatge: 'Esta pantalla todavía está en construcción.',
         },

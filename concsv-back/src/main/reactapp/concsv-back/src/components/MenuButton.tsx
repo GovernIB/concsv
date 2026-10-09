@@ -98,7 +98,7 @@ export const actionToItem = (entity: any, actions: any[]) => {
                         onClick={() => (entity?.id ? action?.onClick?.(entity?.id, entity) : action?.onClick?.(entity))}
                         disabled={typeof action?.disabled === 'function' ? action?.disabled(entity) : action?.disabled}
                     >
-                        {action.icon && <Icon sx={{ mr: 1 }}>{action.icon}</Icon>}
+                        {action.icon && <Icon fontSize="small" color="action" sx={{ mr: 1 }}>{action.icon}</Icon>}
                         {action.label}
                     </MenuItem>
                 </div>

@@ -7,6 +7,7 @@ import NotFound from './pages/NotFound';
 import EnConstruccio from './pages/EnConstruccio';
 import EntitatGrid from './pages/entitat/EntitatGrid';
 import AvisGrid from './pages/avis/AvisGrid';
+import DocumentExclosGrid from './pages/documentExclos/DocumentExclosGrid';
 import Propietats from './pages/propietats/Propietats';
 import type { Pantalla } from './util/pantalles';
 
@@ -69,7 +70,16 @@ export const router = createBrowserRouter(
                         },
                     ],
                 },
-                rutaEnConstruccio('documentExclos', 'documentExclos', 'app.menu.documentsExclosos'),
+                {
+                    element: <ProtectedRoute pantalla="documentExclos" />,
+                    children: [
+                        {
+                            path: 'documentExclos',
+                            element: <DocumentExclosGrid />,
+                            handle: { titol: 'page.documentsExclosos.grid.title' },
+                        },
+                    ],
+                },
                 {
                     element: <ProtectedRoute pantalla="propietat" />,
                     children: [

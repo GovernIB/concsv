@@ -19,7 +19,6 @@ public class PropertyConfig {
 	public static final String PROP_FORCE_VALIDE_CERT = PROPERTY_PREFIX + "forceValideCert";
 	public static final String PROP_CONVERT_PDF_TO_IMG = PROPERTY_PREFIX + "convertpdf2img";
 	public static final String PROP_AMAGAR_BOTO_ORIGINAL = PROPERTY_PREFIX + "amagar.boto.original";
-	public static final String PROP_ARXIU_DOCS_EXCLOSOS_PATH = PROPERTY_PREFIX + "arxiu.documents.exclosos.path";
 	public static final String PROP_ESTADISTICAS_DIAS_CONSERVAR = PROPERTY_PREFIX + "estadisticas.dias.conservar";
 	public static final String PROP_OPTIONAL_LABEL_METADATA_PATH = PROPERTY_PREFIX + "optionalLabelMetadata.path";
 	public static final String PROP_PERSIST_CONTAINER_TRANSACTIONS_DISABLED = PROPERTY_PREFIX + "persist.container-transactions-disabled";

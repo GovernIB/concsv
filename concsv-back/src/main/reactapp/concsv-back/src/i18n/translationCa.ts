@@ -111,6 +111,29 @@ const translationCa = {
                 error: "No s'ha pogut executar l'acció",
             },
         },
+        documentsExclosos: {
+            grid: {
+                title: "Fitxer de documents exclosos per la descàrrega d'original",
+            },
+            form: {
+                resourceTitle: 'document exclòs',
+            },
+            accio: {
+                nova: 'Nova entrada',
+                modificar: 'Modifica',
+                esborrar: 'Esborra',
+                descarrega: 'Descarrega',
+                carrega: 'Carrega',
+                crearOk: "L'entrada s'ha creat correctament",
+                modificarOk: "L'entrada s'ha modificat correctament",
+                esborrarOk: "L'entrada s'ha esborrat correctament",
+                confirmarEsborrat: "Segur que voleu esborrar {{count}} entrades seleccionades?",
+                massivaEsborrarOk: "S'han esborrat {{count}} entrades",
+                importacioOk:
+                    "Importació acabada: {{afegits}} afegides, {{jaExistents}} ja hi eren o estaven repetides i {{descartats}} descartades per ser massa llargues",
+                error: "No s'ha pogut executar l'acció",
+            },
+        },
         enConstruccio: {
             missatge: 'Aquesta pantalla encara està en construcció.',
         },

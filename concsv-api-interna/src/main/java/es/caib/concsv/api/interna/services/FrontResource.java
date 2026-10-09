@@ -146,7 +146,7 @@ public class FrontResource {
 	public Response decodeHashOriginal(
 		@Parameter(description = "Codi CSV del document") @PathParam("csv") String csv) {
 		return executarIEnregistrar(EnviamentTipus.ORIGINAL.name(), () -> {
-			if (hashService.getCsvExclosos().contains(csv)) {
+			if (hashService.isDocumentExclos(csv)) {
 				return Response.status(Response.Status.FORBIDDEN)
 					.entity("Descàrrega de l'original no permesa")
 					.build();
@@ -154,6 +154,12 @@ public class FrontResource {
 			DocumentInfo documentInfo = hashService.checkHash(csv);
 			if (documentInfo == null) {
 				return Response.status(Response.Status.NO_CONTENT).build();
+			}
+			// El document també pot ser exclòs pel seu UUID
+			if (Boolean.TRUE.equals(documentInfo.getCsvExclos())) {
+				return Response.status(Response.Status.FORBIDDEN)
+					.entity("Descàrrega de l'original no permesa")
+					.build();
 			}
 			DocumentContent doc = hashService.getDocument(documentInfo, true);
 			return Response.ok(new ByteArrayInputStream(doc.getContent()), MediaType.APPLICATION_OCTET_STREAM)
@@ -175,7 +181,7 @@ public class FrontResource {
 			if (documentInfo == null) {
 				return Response.status(Response.Status.NO_CONTENT).build();
 			}
-			if (hashService.getCsvExclosos().contains(documentInfo.getHash())) {
+			if (Boolean.TRUE.equals(documentInfo.getCsvExclos())) {
 				return Response.status(Response.Status.FORBIDDEN)
 					.entity("Descàrrega de l'original no permesa")
 					.build();

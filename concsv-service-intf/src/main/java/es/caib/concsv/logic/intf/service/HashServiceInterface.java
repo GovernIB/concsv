@@ -19,8 +19,8 @@ public interface HashServiceInterface {
 	DocumentContent getPrintableDocument(DocumentInfo documentInfo, String lang) throws GenericServiceException, DuplicatedHashException, DocumentNotExistException, IOException;
 	DocumentContent getEniDocument(DocumentInfo documentInfo) throws GenericServiceException;
 	ArrayList<Entry<String, String>> getOptionalMetadata(String lang, DocumentInfo documentInfo);
-	/** Consulta la llista de CSV's exclosos. */
-	List<String> getCsvExclosos();
+	/** Indica si algun dels identificadors (UUID o CSV del document) és a la llista de documents exclosos de la descàrrega de l'original. */
+	boolean isDocumentExclos(String... identificadors);
 
 	void cacheClearExpiredFiles() throws IOException;
 

@@ -7,6 +7,7 @@ import es.caib.concsv.logic.intf.resourceservice.AvisResourceService;
 import es.caib.concsv.logic.intf.resourceservice.ConfigGroupResourceService;
 import es.caib.concsv.logic.intf.resourceservice.ConfigResourceService;
 import es.caib.concsv.logic.intf.resourceservice.ConfigTypeResourceService;
+import es.caib.concsv.logic.intf.resourceservice.DocumentExclosResourceService;
 import es.caib.concsv.logic.intf.resourceservice.EntitatResourceService;
 import es.caib.concsv.logic.intf.resourceservice.UsuariResourceService;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +80,12 @@ public class EjbClientConfig {
 	@ConditionalOnWarDeployment
 	public LocalStatelessSessionProxyFactoryBean configTypeResourceService() {
 		return getLocalEjbFactoyBean(ConfigTypeResourceService.class);
+	}
+
+	@Bean
+	@ConditionalOnWarDeployment
+	public LocalStatelessSessionProxyFactoryBean documentExclosResourceService() {
+		return getLocalEjbFactoyBean(DocumentExclosResourceService.class);
 	}
 
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {

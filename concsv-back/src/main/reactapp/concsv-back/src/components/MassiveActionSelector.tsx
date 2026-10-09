@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, ButtonGroup, Chip, Icon, Tooltip, Typography } from '@mui/material';
+import { alpha, Box, Button, ButtonGroup, Chip, Icon, Tooltip, Typography } from '@mui/material';
 import { useResourceApiService } from 'reactlib';
 import { useTranslation } from 'react-i18next';
 import { MenuActionButton } from './MenuButton.tsx';
@@ -94,7 +94,16 @@ const MassiveActionSelector: React.FC<MassiveActionSelectorProps> = (props: Mass
     return (
         <Load value={actions.length > 0 && actions.filter((a) => !a?.hidden).length > 0} noEffect>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', ml: 1 }}>
-                <ButtonGroup variant="outlined" size="small" className={'massive-selector'}>
+                <ButtonGroup
+                    variant="outlined"
+                    size="small"
+                    className={'massive-selector'}
+                    sx={(theme) => ({
+                        '& .MuiButtonGroup-grouped.Mui-disabled': {
+                            borderColor: alpha(theme.palette.primary.main, 0.5),
+                        },
+                    })}
+                >
                     {buttonActions.map(
                         (action: any, index: number) =>
                             !(typeof action.hidden === 'function' ? action.hidden(selectedRows) : action.hidden) && (
@@ -130,8 +139,13 @@ const MassiveActionSelector: React.FC<MassiveActionSelectorProps> = (props: Mass
                                 </Tooltip>
                             )
                     )}
-                    <Button disabled>
-                        <Chip label={selectedRows?.length} size="small" />
+                    <Button>
+                        <Chip
+                            label={selectedRows?.length}
+                            size="small"
+                            color={selectedRows?.length > 0 ? 'primary' : 'default'}
+                            disabled={!(selectedRows?.length > 0)}
+                        />
                     </Button>
 
                     {menuActions?.length !== 0 && (

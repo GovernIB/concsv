@@ -27,6 +27,7 @@ import com.itextpdf.layout.properties.HorizontalAlignment;
 import es.caib.concsv.logic.annotation.ErrorInt;
 import es.caib.concsv.logic.annotation.PerformanceInt;
 import es.caib.concsv.logic.helper.CacheHelper;
+import es.caib.concsv.logic.helper.DocumentsExclososHelper;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
 import es.caib.concsv.logic.helper.ConfigValues;
@@ -50,17 +51,13 @@ import es.caib.concsv.logic.util.OptionalMetadataBlock;
 import es.caib.concsv.logic.util.PrintableUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -88,12 +85,6 @@ public class HashService implements HashServiceInterface {
 	 * ús (es pot canviar des del backoffice sense reiniciar), veure {@link #getLogoPath()}.
 	 */
 	private String logoPath;
-	/** Propietat amb el path cap al fitxer d'exclusions per CSV de documents. */
-	@Inject @ConfigProperty(name = PropertyConfig.PROP_ARXIU_DOCS_EXCLOSOS_PATH, defaultValue = "")
-	private String exclusionsPath;
-	/** Llista de CSV exclosos per a la descàrrega de l'original. */
-	private List<String> csvExclosos = new ArrayList<String>();
-
 	private PrintableUtils printableUtils = new PrintableUtils();
 
 	@Inject
@@ -106,27 +97,7 @@ public class HashService implements HashServiceInterface {
 	@Inject private IntegracionsHelper integracionsHelper;
 	@Inject private CacheHelper cacheHelper;
 	@Inject private ConfigValues configValues;
-
-	/** Si s'informa el document d'exclusions es llegeix i carrega.
-	 *
-	 */
-	@PostConstruct
-	public void init() {
-		if (this.exclusionsPath != null && !this.exclusionsPath.isBlank() ) {
-			long t0 = System.currentTimeMillis();
-			try {
-				File documentExclusions = new File(this.exclusionsPath);
-				this.csvExclosos = Files.readAllLines(documentExclusions.toPath());
-				log.info("Carregat el fitxer de documents exclosos \"" + this.getExclusionsPath() + "\" amb " + this.csvExclosos.size() + " línies.");
-				subsistemesHelper.addSuccessOperation(SubsistemesHelper.SubsistemesEnum.EXC, System.currentTimeMillis() - t0);
-			} catch (IOException e) {
-				String errMsg = "Error llegint el fitxer de documents exclosos pel path \"" + this.getExclusionsPath() + "\": " + e.toString();
-				log.error(errMsg, e);
-				subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.EXC);
-				throw new RuntimeException(errMsg, e);
-			}
-		}
-	}
+	@Inject private DocumentsExclososHelper documentsExclososHelper;
 
 	@PermitAll
 	public DocumentInfo checkHash(final String hash) throws GenericServiceException, DuplicatedHashException, DocumentNotExistException {
@@ -139,7 +110,10 @@ public class HashService implements HashServiceInterface {
 			}
 			if (documentInfoCache.isPresent()) {
 				hasError = false;
-				return documentInfoCache.get();
+				// El flag es recalcula: la llista d'exclosos pot haver canviat des que es va desar a la memòria cau.
+				DocumentInfo cachedInfo = documentInfoCache.get();
+				cachedInfo.setCsvExclos(isDocumentExclos(cachedInfo.getDocumentCode(), hash));
+				return cachedInfo;
 			}
 			DocumentInfo documentInfoNewDigitalArchive = null;
 			DocumentInfo documentInfoOldSaveKeeping = null;
@@ -212,7 +186,7 @@ public class HashService implements HashServiceInterface {
 				} catch (Exception ex) {
 					throw new GenericServiceException("Error comprovant si el document " + hash + " és imprimible", ex);
 				}
-				docInfo.setCsvExclos(this.csvExclosos.contains(hash));
+				docInfo.setCsvExclos(isDocumentExclos(docInfo.getDocumentCode(), hash));
 				docInfo.setAmagarBotoOriginal(this.isAmagarBotoOriginal());
 			} else {
 				log.debug("\tHash " + hash + " no trobat.");
@@ -252,10 +226,13 @@ public class HashService implements HashServiceInterface {
 			}
 			if (documentInfoCache.isPresent()) {
 				isError = false;
-				return documentInfoCache.get();
+				// El flag es recalcula: la llista d'exclosos pot haver canviat des que es va desar a la memòria cau.
+				DocumentInfo cachedInfo = documentInfoCache.get();
+				cachedInfo.setCsvExclos(isDocumentExclos(uuid, cachedInfo.getHash()));
+				return cachedInfo;
 			}
 			DocumentInfo documentInfo = this.newDigitalArchiveService.checkHashFromUUID(uuid, null);
-			documentInfo.setCsvExclos(this.getCsvExclosos().contains(documentInfo.getHash()));
+			documentInfo.setCsvExclos(isDocumentExclos(uuid, documentInfo.getHash()));
 			isError = false;
 			if (isCacheActiva()) {
 				cacheHelper.setInfo(uuid, true, documentInfo);
@@ -867,11 +844,11 @@ public class HashService implements HashServiceInterface {
 		return configValues.getBoolean(PropertyConfig.PROP_CONSULT_NEW_DIGITAL_ARCHIVE, false);
 	}
 
-	/** Consulta la llista de CSV's exclosos. */
+	/** Indica si algun dels identificadors (UUID o CSV) és a la llista de documents exclosos de la descàrrega de l'original. */
 	@PermitAll
 	@Override
-	public List<String> getCsvExclosos() {
-		return csvExclosos;
+	public boolean isDocumentExclos(String... identificadors) {
+		return documentsExclososHelper.isExclos(identificadors);
 	}
 
 	@Override
@@ -912,16 +889,8 @@ public class HashService implements HashServiceInterface {
 		this.logoPath = logoPath;
 	}
 
-	public String getExclusionsPath() {
-		return exclusionsPath;
-	}
-
-	public void setExclusionsPath(String exclusionsPath) {
-		this.exclusionsPath = exclusionsPath;
-	}
-
-	public void setCsvExclosos(List<String> csvExclosos) {
-		this.csvExclosos = csvExclosos;
+	public void setDocumentsExclososHelper(DocumentsExclososHelper documentsExclososHelper) {
+		this.documentsExclososHelper = documentsExclososHelper;
 	}
 
 	/** Classe privada per detectar els canvis de pàgina durant l'edició de la pàgina resum

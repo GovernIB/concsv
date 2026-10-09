@@ -58,13 +58,11 @@ public class HashServiceTest {
 	@BeforeClass
 	public static void setUp() throws Exception {
 		String logoPath = "/opt/webapps/concsv/logoGOIBc.png";
-		String exclusionsPath = "/opt/webapps/concsv/documents-exclosos.txt";
 
 		System.setProperty(PropertyConfig.PROP_CONSULT_OLD_SAFEKEEPING, "N");
 		System.setProperty(PropertyConfig.PROP_CONSULT_NEW_DIGITAL_ARCHIVE, "S");
 		System.setProperty(PropertyConfig.PROP_LOGO_PATH, logoPath);
 		System.setProperty(PropertyConfig.PROP_CONVERT_PDF_TO_IMG, "false");
-		// System.setProperty(PropertyConfig.PROP_ARXIU_DOCS_EXCLOSOS_PATH, exclusionsPath);
 
 		// Helpers
 		SubsistemesHelper subsistemesHelper = new SubsistemesHelper();
@@ -138,10 +136,8 @@ public class HashServiceTest {
 		hashService.setOldSaveKeepingService(configureMockOldSaveKeepingService());
 		hashService.setNewDigitalArchiveService(configureMockNewDigitalArchiveService());
 		hashService.setLogoPath(logoPath);
-		hashService.setExclusionsPath(exclusionsPath);
 		hashService.setSubsistemesHelper(subsistemesHelper);
 		hashService.setIntegracionsHelper(integracionsHelper);
-		hashService.init();
 
 		HashServiceTest.hashService = hashService;
 	}

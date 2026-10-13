@@ -4,28 +4,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import RutaInicial from './components/RutaInicial';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
-import EnConstruccio from './pages/EnConstruccio';
 import EntitatGrid from './pages/entitat/EntitatGrid';
 import AvisGrid from './pages/avis/AvisGrid';
 import DocumentExclosGrid from './pages/documentExclos/DocumentExclosGrid';
 import Propietats from './pages/propietats/Propietats';
 import CacheDocument from './pages/cacheDocument/CacheDocument';
-import type { Pantalla } from './util/pantalles';
-
-/**
- * Ruta d'un manteniment encara no implementat: ja té el control d'accés definitiu i mostra la
- * pantalla provisional. Per implementar-lo n'hi ha prou amb substituir-ne l'element.
- */
-const rutaEnConstruccio = (pantalla: Pantalla, path: string, titol: string) => ({
-    element: <ProtectedRoute pantalla={pantalla} />,
-    children: [
-        {
-            path,
-            element: <EnConstruccio titol={titol} />,
-            handle: { titol },
-        },
-    ],
-});
+import IntegracioGrid from './pages/integracio/IntegracioGrid';
 
 export const router = createBrowserRouter(
     [
@@ -91,7 +75,16 @@ export const router = createBrowserRouter(
                         },
                     ],
                 },
-                rutaEnConstruccio('integracio', 'integracio', 'app.menu.integracions'),
+                {
+                    element: <ProtectedRoute pantalla="integracio" />,
+                    children: [
+                        {
+                            path: 'integracio',
+                            element: <IntegracioGrid />,
+                            handle: { titol: 'page.integracio.grid.title' },
+                        },
+                    ],
+                },
                 {
                     element: <ProtectedRoute pantalla="cacheDocument" />,
                     children: [

@@ -15,6 +15,7 @@ const translationCa = {
         refresh: 'Refresca',
         cancel: 'Cancel·la',
         close: 'Tanca',
+        copiat: 'Copiat al portapapers',
         clear: 'Neteja',
         filter: 'Filtra',
         processing: 'Processant...',
@@ -161,6 +162,41 @@ const translationCa = {
                 importacioOk:
                     "Importació acabada: {{afegits}} afegides, {{jaExistents}} ja hi eren o estaven repetides i {{descartats}} descartades per ser massa llargues",
                 error: "No s'ha pogut executar l'acció",
+            },
+        },
+        integracio: {
+            grid: {
+                title: "Monitor d'integracions",
+            },
+            pipella: {
+                ARXIU: 'Arxiu',
+                CUSTODIA: 'Custòdia antiga',
+                VALIDACIO_FIRMES: 'Validació de firmes',
+                CONVERSIO: 'Conversió de documents',
+            },
+            detail: {
+                title: 'Detall de la petició',
+                data: 'Data',
+                tipus: 'Tipus',
+                tipusValor: {
+                    ENVIAMENT: 'Enviament',
+                    RECEPCIO: 'Recepció',
+                },
+                integracio: 'Integració',
+                endpoint: 'Endpoint',
+                descripcio: 'Descripció',
+                parametres: 'Paràmetres',
+                tempsResposta: 'Temps de resposta',
+                estat: 'Estat',
+                errorDescripcio: "Descripció de l'error",
+                excepcioMessage: "Missatge de l'excepció",
+                excepcioStacktrace: "Traça de l'excepció",
+                copyTooltip: 'Copia la traça',
+            },
+            diagnostic: {
+                boto: 'Diagnòstic',
+                titol: 'Diagnòstic ràpid de les integracions',
+                enConstruccio: 'El diagnòstic de les integracions encara està en construcció.',
             },
         },
         enConstruccio: {

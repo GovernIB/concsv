@@ -37,6 +37,21 @@ public class ComandaServiceEjb implements ComandaServiceInterface {
 		} catch (Exception e) {
 			log.error("Error en netejar estadístiques", e);
 		}
+		try {
+			delegate.netejarIntegracions();
+		} catch (Exception e) {
+			log.error("Error en netejar el monitor d'integracions", e);
+		}
+	}
+
+	/** Desa cada minut les peticions a les integracions que es mostren al monitor del backoffice. */
+	@Schedule(hour = "*", minute = "*", persistent = false)
+	public void actualizarMonitorIntegracions() {
+		try {
+			delegate.flushIntegracions();
+		} catch (Exception e) {
+			log.error("Error en desar les peticions del monitor d'integracions", e);
+		}
 	}
 
 }

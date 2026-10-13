@@ -77,13 +77,15 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	@PermitAll
 	public DocumentInfo checkHash(String hash) throws DuplicatedHashException, DocumentNotExistException, GenericServiceException {
 		long t0 = System.currentTimeMillis();
-		Boolean hasError = false;
+		Throwable error = null;
+		boolean registrar = true;
+		String uuid;
         try {
         	hash = hash.trim();
         	// Si el hash ja no ne el format de l'arxiu evitam fer la petició.
         	if (!hash.matches("^([0-9a-f]{64})$")) {
 				log.debug("\tCodi amb format erroni: " + hash + ".");
-				hasError = null;
+				registrar = false;
 				return null;
 			}
 
@@ -127,20 +129,25 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             // Si hubiera duplicados habríamos lanzado un excepción de tipo DuplicatedHashException
             // Cómo no existen duplicados se puede recuperar cualquiera de los documentos recuperados
             documentNode = resParam.getDocuments().get(0);
-            return checkHashFromUUID(documentNode.getId(), hash); // UUID alfresco
+            uuid = documentNode.getId(); // UUID alfresco
 
         } catch (DocumentNotExistException ex) {
-			hasError = false;
+			error = ex;
             throw ex;
         } catch (DuplicatedHashException | GenericServiceException ex) {
-			hasError = true;
+			error = ex;
             throw ex;
         } catch (Exception ex) {
-			hasError = true;
+			error = ex;
             throw new GenericServiceException(ex);
         } finally {
-			integracionsHelper.addOperation(IntegracioApp.ARX, t0, hasError);
+			// Només la cerca per CSV: la consulta del document per UUID registra la seva pròpia operació.
+			if (registrar) {
+				integracionsHelper.addOperation(IntegracioApp.ARX, t0, "Cerca de document per CSV", endpoint,
+						IntegracionsHelper.params("csv", hash), error);
+			}
 		}
+		return checkHashFromUUID(uuid, hash);
     }
 
     @PermitAll
@@ -148,7 +155,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
     public DocumentInfo checkHashFromUUID(String uuid, String hash) throws DocumentNotExistException, GenericServiceException {
     	//uuid = "4c66b473-347a-45d1-bc22-e13625d55cf1";2adeae575ee78ae3e1f8cf20f4eb7fe8b2a65834cbfa194395a65dc23a417aa5
 		long t0 = System.currentTimeMillis();
-		Boolean hasError = false;
+		Throwable error = null;
         try {
 	        ApiArchivoDigital apiArxiu = getApiArxiu();
             Resultado<Documento> results = apiArxiu.obtenerDocumento(uuid, true);
@@ -321,13 +328,14 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	        });
             return documentInfo;
         } catch (DocumentNotExistException ex) {
-			hasError = false;
+			error = ex;
 			throw ex;
         } catch (Exception ex) {
-			hasError = true;
+			error = ex;
             throw new GenericServiceException(ex);
         } finally {
-			integracionsHelper.addOperation(IntegracioApp.ARX, t0, hasError);
+			integracionsHelper.addOperation(IntegracioApp.ARX, t0, "Consulta de document per UUID", endpoint,
+				IntegracionsHelper.params("uuid", uuid, "csv", hash), error);
 		}
     }
 
@@ -371,10 +379,11 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	@PermitAll
     public DocumentContent getDocument(String uuid, Boolean packedFile) throws GenericServiceException {
 		long t0 = System.currentTimeMillis();
-		Boolean hasError = false;
+		Throwable error = null;
+		boolean registrar = true;
         try {
             if (uuid == null) {
-				hasError = null;
+				registrar = false;
 				return null;
 			}
             String fileSigExtension = null;
@@ -382,7 +391,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	        ApiArchivoDigital apiArxiu = getApiArxiu();
             Resultado<Documento> result = apiArxiu.obtenerDocumento(uuid, true);
 			if (result == null || result.getElementoDevuelto() == null) {
-				hasError = null;
+				registrar = false;
 				return null;
 			}
             String fileExtension = getGenericMetadata(result.getElementoDevuelto().getMetadataCollection(), "eni:extension_formato");
@@ -434,10 +443,13 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
                 return dc;
             }
         } catch (Exception e) {
-			hasError = true;
+			error = e;
             throw new GenericServiceException(e);
         } finally {
-			integracionsHelper.addOperation(IntegracioApp.ARX, t0, hasError);
+			if (registrar) {
+				integracionsHelper.addOperation(IntegracioApp.ARX, t0, "Descàrrega del contingut del document", endpoint,
+						IntegracionsHelper.params("uuid", uuid, "packedFile", packedFile != null ? packedFile.toString() : null), error);
+			}
 		}
         return null;
     }
@@ -446,7 +458,8 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	//@RolesAllowed({"CSV_REST"})
     public DocumentContent getEniDocument(String uuid) throws GenericServiceException {
 		long t0 = System.currentTimeMillis();
-		Boolean hasError = null;
+		Throwable error = null;
+		boolean registrar = false;
         try {
             if (uuid == null) return null;
             ApiArchivoDigital apiArxiu = getApiArxiu();
@@ -458,14 +471,18 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
                 Tika tika = new Tika();
                 String mime = tika.detect(dc.getContent());
                 dc.setMimeType(mime);
-				hasError = false;
+				registrar = true;
                 return dc;
             }
         } catch (Exception e) {
-			hasError = true;
+			error = e;
+			registrar = true;
             throw new GenericServiceException(e);
         } finally {
-			integracionsHelper.addOperation(IntegracioApp.ARX, t0, hasError);
+			if (registrar) {
+				integracionsHelper.addOperation(IntegracioApp.ARX, t0, "Obtenció del document en format ENI", endpoint,
+						IntegracionsHelper.params("uuid", uuid), error);
+			}
 		}
         return null;
     }

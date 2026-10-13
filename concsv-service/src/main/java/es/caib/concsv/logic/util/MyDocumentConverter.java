@@ -31,18 +31,21 @@ public class MyDocumentConverter {
 				com.artofsolving.jodconverter.DocumentFormat df = (com.artofsolving.jodconverter.DocumentFormat) object;
 				mimeByExtension.put(df.getFileExtension(), df.getMimeType());
 			}
-			this.integracionsHelper.addSuccessOperation(IntegracioApp.ARX, System.currentTimeMillis() - t0);
+			this.integracionsHelper.addSuccessOperation(IntegracioApp.CDO, System.currentTimeMillis() - t0,
+				"Càrrega de formats convertibles", null, null);
 		}
 		if (mimeByExtension.isEmpty()) {
-			this.integracionsHelper.addErrorOperation(IntegracioApp.ARX);
-			throw new ConversionDocumentException("La llista de formats convertibles es buida.");
+			ConversionDocumentException ex = new ConversionDocumentException("La llista de formats convertibles es buida.");
+			this.integracionsHelper.addErrorOperation(IntegracioApp.CDO, System.currentTimeMillis() - t0,
+				"Càrrega de formats convertibles", null, null, ex);
+			throw ex;
 		}
 	}
 
 	public byte[] convertToPdf(byte[] content, String extension) throws InputDocumentNotSupportedException,
 			OutputDocumentNotSupportedException, ConversionDocumentException {
 		long t0 = System.currentTimeMillis();
-		boolean hasError = true;
+		Throwable error = null;
 		byte[] ret = null;
 		var prop = PropertyFileConfigUtil.getProperties();
 		IDocumentConverterPlugin oodcp = new OpenOfficeDocumentConverterPlugin(PropertyConfig.PROP_BASE_PREFIX_DOCUMENT_CONVERTER, prop);
@@ -52,14 +55,29 @@ public class MyDocumentConverter {
 			os = new ByteArrayOutputStream();
 			oodcp.convertDocumentByMime(is, mimeByExtension.get(extension), os, mimeByExtension.get("pdf"));
 			ret = os.toByteArray();
-			hasError = false;
+		} catch (Exception ex) {
+			error = ex;
+			throw ex;
 		} finally {
 			if (os != null) {
 				try { os.close(); } catch (Exception e) {;}
 			}
-			integracionsHelper.addOperation(IntegracioApp.ARX, t0, hasError);
+			integracionsHelper.addOperation(IntegracioApp.CDO, t0, "Conversió de document a PDF", endpoint(),
+				IntegracionsHelper.params("extensio", extension, "mida", String.valueOf(content.length)), error);
 		}
 		return ret;
+	}
+
+	/** Adreça (host:port) del servidor OpenOffice, per al monitor d'integracions; null si no és configurada. */
+	private static String endpoint() {
+		try {
+			var prop = PropertyFileConfigUtil.getProperties();
+			String host = prop.getProperty(PropertyConfig.PROP_BASE_PREFIX_DOCUMENT_CONVERTER + "plugins.documentconverter.openoffice.host");
+			String port = prop.getProperty(PropertyConfig.PROP_BASE_PREFIX_DOCUMENT_CONVERTER + "plugins.documentconverter.openoffice.port");
+			return host == null ? null : (port == null ? host : host + ":" + port);
+		} catch (Exception ex) {
+			return null;
+		}
 	}
 
 	public boolean isExtensionSupported(String fileExtension) throws ConversionDocumentException {

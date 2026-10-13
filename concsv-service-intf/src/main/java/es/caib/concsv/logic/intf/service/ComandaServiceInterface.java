@@ -32,6 +32,13 @@ public interface ComandaServiceInterface {
 
 	void netejarEstadistiques(LocalDate date);
 
+	/* Monitor d'integracions */
+	/** Desa a la base de dades les peticions a les integracions pendents. */
+	void flushIntegracions();
+
+	/** Esborra les peticions a les integracions més antigues que la retenció configurada. */
+	void netejarIntegracions();
+
 	/* Logs */
 	FitxerContingut getFitxerByNom(String nomFitxer) throws GenericServiceException;
 

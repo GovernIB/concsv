@@ -56,7 +56,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
     @PermitAll
     public DocumentInfo checkHash(String hash) throws GenericServiceException, DuplicatedHashException {
 		long t0 = System.currentTimeMillis();
-		Boolean hasError = true;
+		Throwable error = null;
         try {
         	hash = hash.trim();
             // TODO: Es poden subtituir les crides amb Axis 1.4?
@@ -215,17 +215,17 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
  			        }
  		        });
  		    }
-			hasError = false;
 	        return documentInfo;
         } catch (Exception ex) {
-        	String message = ex.getMessage();
+			error = ex;
+			String message = ex.getMessage();
             if (message == null || !message.contains("es.caib.signatura.error.ReservaNotFoundException")) {
             	log.error("Error consultant el servei antic: " + message, ex);
                 throw new GenericServiceException(ex);
             }
-			hasError = false;
         } finally {
-			integracionsHelper.addOperation(IntegracioApp.SIG, t0, hasError);
+			integracionsHelper.addOperation(IntegracioApp.CUS, t0, "Consulta de custòdia per hash", endpoint,
+				IntegracionsHelper.params("hash", hash), error);
 		}
         return null;
     }
@@ -251,7 +251,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
 	@PermitAll
     public DocumentContent getDocument(String hash) throws GenericServiceException {
 		long t0 = System.currentTimeMillis();
-		Boolean hasError = true;
+		Throwable error = null;
         try {
             Service service = new Service();
             Call call = (Call) service.createCall();
@@ -265,14 +265,14 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
                 Tika tika = new Tika();
                 String mime = tika.detect(ret);
                 dc.setMimeType(mime);
-				hasError = false;
                 return dc;
             }
-            hasError = false;
         } catch (Exception e) {
-        	throw new GenericServiceException(e);
+			error = e;
+			throw new GenericServiceException(e);
         } finally {
-			integracionsHelper.addOperation(IntegracioApp.SIG, t0, hasError);
+			integracionsHelper.addOperation(IntegracioApp.CUS, t0, "Descàrrega del document de custòdia", endpoint,
+				IntegracionsHelper.params("hash", hash), error);
 		}
         return null;
     }

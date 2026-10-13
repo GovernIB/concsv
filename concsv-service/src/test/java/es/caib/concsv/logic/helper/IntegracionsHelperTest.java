@@ -26,7 +26,7 @@ public class IntegracionsHelperTest {
 	@Test
 	public void testAddSuccessOperationAfectaSalut() throws InterruptedException {
 		long start = System.currentTimeMillis();
-		helper.addOperation(IntegracioApp.ARX, start, false);
+		helper.addOperation(IntegracioApp.ARX, start, "operacio", null, null, null);
 
 		List<IntegracioSalut> integracions = helper.checkIntegracions();
 		assertNotNull(integracions);
@@ -45,14 +45,14 @@ public class IntegracionsHelperTest {
 	@Test
 	public void testAddErrorOperationAfectaSalut() {
 		for (int i = 0; i < 3; i++) {
-			helper.addOperation(IntegracioApp.SIG, System.currentTimeMillis(), true);
+			helper.addOperation(IntegracioApp.CUS, System.currentTimeMillis(), "operacio", null, null, new RuntimeException("error"));
 		}
 
 		List<IntegracioSalut> integracions = helper.checkIntegracions();
 		assertNotNull(integracions);
 
 		IntegracioSalut sig = integracions.stream()
-			.filter(i -> i.getCodi().startsWith("SIG"))
+			.filter(i -> i.getCodi().startsWith("CUS"))
 			.findFirst()
 			.orElse(null);
 
@@ -65,9 +65,9 @@ public class IntegracionsHelperTest {
 	@Test
 	public void testEstatDegradadoYWARN() {
 		// Añadimos 2 errores y 1 éxito → error % = 66% → ERROR
-		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), true);
-		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), true);
-		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), false);
+		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), "operacio", null, null, new RuntimeException("error"));
+		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), "operacio", null, null, new RuntimeException("error"));
+		helper.addOperation(IntegracioApp.ARX, System.currentTimeMillis(), "operacio", null, null, null);
 
 		List<IntegracioSalut> integracions = helper.checkIntegracions();
 

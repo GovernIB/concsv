@@ -15,6 +15,7 @@ const translationEs = {
         refresh: 'Refresca',
         cancel: 'Cancela',
         close: 'Cierra',
+        copiat: 'Copiado al portapapeles',
         clear: 'Limpia',
         filter: 'Filtra',
         processing: 'Procesando...',
@@ -161,6 +162,41 @@ const translationEs = {
                 importacioOk:
                     'Importación terminada: {{afegits}} añadidas, {{jaExistents}} ya estaban o estaban repetidas y {{descartats}} descartadas por ser demasiado largas',
                 error: 'No se ha podido ejecutar la acción',
+            },
+        },
+        integracio: {
+            grid: {
+                title: 'Monitor de integraciones',
+            },
+            pipella: {
+                ARXIU: 'Archivo',
+                CUSTODIA: 'Custodia antigua',
+                VALIDACIO_FIRMES: 'Validación de firmas',
+                CONVERSIO: 'Conversión de documentos',
+            },
+            detail: {
+                title: 'Detalle de la petición',
+                data: 'Fecha',
+                tipus: 'Tipo',
+                tipusValor: {
+                    ENVIAMENT: 'Envío',
+                    RECEPCIO: 'Recepción',
+                },
+                integracio: 'Integración',
+                endpoint: 'Endpoint',
+                descripcio: 'Descripción',
+                parametres: 'Parámetros',
+                tempsResposta: 'Tiempo de respuesta',
+                estat: 'Estado',
+                errorDescripcio: 'Descripción del error',
+                excepcioMessage: 'Mensaje de la excepción',
+                excepcioStacktrace: 'Traza de la excepción',
+                copyTooltip: 'Copia la traza',
+            },
+            diagnostic: {
+                boto: 'Diagnóstico',
+                titol: 'Diagnóstico rápido de las integraciones',
+                enConstruccio: 'El diagnóstico de las integraciones todavía está en construcción.',
             },
         },
         enConstruccio: {

@@ -9,6 +9,7 @@ import es.caib.concsv.logic.estadistiques.DimensioEnum;
 import es.caib.concsv.logic.estadistiques.FetEnum;
 import es.caib.concsv.logic.helper.EstadisticaHelper;
 import es.caib.concsv.logic.helper.IntegracionsHelper;
+import es.caib.concsv.logic.helper.MonitorIntegracioHelper;
 import es.caib.concsv.logic.helper.SubsistemesHelper;
 import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
@@ -46,6 +47,8 @@ public class ComandaService implements ComandaServiceInterface {
 	private SubsistemesHelper subsistemesHelper;
 	@Inject
 	private IntegracionsHelper integracionsHelper;
+	@Inject
+	private MonitorIntegracioHelper monitorIntegracioHelper;
 	@Inject
 	private ConfigValues configValues;
 
@@ -127,6 +130,25 @@ public class ComandaService implements ComandaServiceInterface {
 	@PermitAll
 	public void netejarEstadistiques(LocalDate date) {
 		estadisticaHelper.netejarEstadistiques(date);
+	}
+
+	/**
+	 * Desa a la base de dades les peticions a les integracions pendents (monitor d'integracions)
+	 */
+	@Override
+	@PermitAll
+	public void flushIntegracions() {
+		monitorIntegracioHelper.flush();
+	}
+
+	/**
+	 * Esborra les peticions a les integracions més antigues que els dies de retenció configurats
+	 */
+	@Override
+	@PermitAll
+	public void netejarIntegracions() {
+		int dies = configValues.getInt(PropertyConfig.PROP_INTEGRACIO_MONITOR_DIES_CONSERVAR, 30);
+		monitorIntegracioHelper.esborraAntics(dies);
 	}
 
 	@Override

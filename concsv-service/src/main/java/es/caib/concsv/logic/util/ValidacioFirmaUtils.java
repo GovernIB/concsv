@@ -38,12 +38,14 @@ public class ValidacioFirmaUtils {
 	}
 
 	public List<DocumentSigner> validaFirma() throws Exception {
-		boolean isError = true;
+		Throwable error = null;
+		String endpoint = null;
 		long t0 = System.currentTimeMillis();
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss 'GMT'Z", Locale.getDefault());
 			// Les propietats es creen a cada crida: inclouen els valors canviats des del backoffice
 			Properties prop = configValues.getProperties();
+			endpoint = prop.getProperty(PropertyConfig.PROP_BASE_PREFIX_VALIDATE_SIGNATURE + "plugins.validatesignature.afirmacxf.endpoint");
 			Boolean valideCert = ConfigValues.isTrue((String) prop.get(valideProp));
 			IValidateSignaturePlugin plugin;
 			plugin = new ValidateSignaturePlugin(PropertyConfig.PROP_BASE_PREFIX_VALIDATE_SIGNATURE, prop);
@@ -91,7 +93,6 @@ public class ValidacioFirmaUtils {
 						}
 						result.add(docSigner);
 					}
-					isError = false;
 					return result;
 				} else {
 					throw new Exception("Error de validació de certificat: " + statusInfo.getErrorMsg());
@@ -99,10 +100,14 @@ public class ValidacioFirmaUtils {
 			} else {
 				throw new Exception("El sistema de validació de firma ha retornat una resposta <null>");
 			}
+		} catch (Exception ex) {
+			error = ex;
+			throw ex;
 		} finally {
 			long durada = System.currentTimeMillis() - t0;
-			integracionsHelper.addOperation(IntegracioApp.VFI, t0, isError);
-			log.trace("Validació de firmes del document " + identificacio + ": " + (isError ? "ERROR" : "OK") + " (" + (durada) + " ms)");
+			integracionsHelper.addOperation(IntegracioApp.VFI, t0, "Validació de firmes del document", endpoint,
+				IntegracionsHelper.params("identificacio", identificacio), error);
+			log.trace("Validació de firmes del document " + identificacio + ": " + (error != null ? "ERROR" : "OK") + " (" + (durada) + " ms)");
 		}
 	}
 

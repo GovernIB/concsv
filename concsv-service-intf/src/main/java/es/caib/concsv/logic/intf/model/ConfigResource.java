@@ -8,6 +8,7 @@ import es.caib.concsv.logic.intf.base.model.ResourceArtifactType;
 import es.caib.concsv.logic.intf.base.model.ResourceReference;
 import es.caib.concsv.logic.intf.base.permission.PermissionEnum;
 import es.caib.concsv.logic.intf.config.BaseConfig;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +16,7 @@ import lombok.experimental.FieldNameConstants;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -48,12 +50,41 @@ import java.time.LocalDateTime;
 				@ResourceArtifact(
 						type = ResourceArtifactType.ACTION,
 						code = ConfigResource.ACTION_SYNC_JBOSS_CODE,
+						requiresId = false),
+				// Esborren el contingut de les carpetes de la cache de documents (veure CacheCarpeta).
+				// Sense formClass perquè el botó executi directament, amb confirmació; mateix control
+				// d'accés que l'anterior.
+				@ResourceArtifact(
+						type = ResourceArtifactType.ACTION,
+						code = ConfigResource.ACTION_ESBORRAR_CACHE_IMPRIMIBLE_CODE,
+						requiresId = false),
+				@ResourceArtifact(
+						type = ResourceArtifactType.ACTION,
+						code = ConfigResource.ACTION_ESBORRAR_CACHE_INFO_CODE,
+						requiresId = false),
+				@ResourceArtifact(
+						type = ResourceArtifactType.ACTION,
+						code = ConfigResource.ACTION_ESBORRAR_CACHE_ORIGINAL_CODE,
+						requiresId = false),
+				@ResourceArtifact(
+						type = ResourceArtifactType.ACTION,
+						code = ConfigResource.ACTION_ESBORRAR_CACHE_TOTES_CODE,
+						requiresId = false),
+				// Retorna el nombre de fitxers de cada carpeta de la cache (no modifica res).
+				@ResourceArtifact(
+						type = ResourceArtifactType.ACTION,
+						code = ConfigResource.ACTION_COMPTAR_CACHE_CODE,
 						requiresId = false)
 		}
 )
 public class ConfigResource extends BaseResource<String> {
 
 	public static final String ACTION_SYNC_JBOSS_CODE = "SYNC_JBOSS";
+	public static final String ACTION_ESBORRAR_CACHE_IMPRIMIBLE_CODE = "ESBORRAR_CACHE_IMPRIMIBLE";
+	public static final String ACTION_ESBORRAR_CACHE_INFO_CODE = "ESBORRAR_CACHE_INFO";
+	public static final String ACTION_ESBORRAR_CACHE_ORIGINAL_CODE = "ESBORRAR_CACHE_ORIGINAL";
+	public static final String ACTION_ESBORRAR_CACHE_TOTES_CODE = "ESBORRAR_CACHE_TOTES";
+	public static final String ACTION_COMPTAR_CACHE_CODE = "COMPTAR_CACHE";
 
 	@NotNull
 	private String key;
@@ -78,6 +109,34 @@ public class ConfigResource extends BaseResource<String> {
 	@Override
 	public String getId() {
 		return key;
+	}
+
+	/**
+	 * Resultat d'esborrar el contingut de la cache de documents: fitxers esborrats i fitxers que
+	 * no s'han pogut esborrar.
+	 */
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class ResultatEsborratCache implements Serializable {
+		private static final long serialVersionUID = 1L;
+		private int esborrats;
+		private int errors;
+	}
+
+	/**
+	 * Nombre de fitxers que hi ha a cada carpeta de la cache de documents, i la carpeta de la cache
+	 * que s'ha consultat (per detectar una propietat {@code fitxers} mal configurada).
+	 */
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class ResumCache implements Serializable {
+		private static final long serialVersionUID = 1L;
+		private int info;
+		private int original;
+		private int imprimible;
+		private String ruta;
 	}
 
 }

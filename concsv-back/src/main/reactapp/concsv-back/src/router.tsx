@@ -9,6 +9,7 @@ import EntitatGrid from './pages/entitat/EntitatGrid';
 import AvisGrid from './pages/avis/AvisGrid';
 import DocumentExclosGrid from './pages/documentExclos/DocumentExclosGrid';
 import Propietats from './pages/propietats/Propietats';
+import CacheDocument from './pages/cacheDocument/CacheDocument';
 import type { Pantalla } from './util/pantalles';
 
 /**
@@ -91,7 +92,16 @@ export const router = createBrowserRouter(
                     ],
                 },
                 rutaEnConstruccio('integracio', 'integracio', 'app.menu.integracions'),
-                rutaEnConstruccio('cacheDocument', 'cacheDocument', 'app.menu.cacheDocuments'),
+                {
+                    element: <ProtectedRoute pantalla="cacheDocument" />,
+                    children: [
+                        {
+                            path: 'cacheDocument',
+                            element: <CacheDocument />,
+                            handle: { titol: 'page.cacheDocuments.title' },
+                        },
+                    ],
+                },
                 // També és necessari perquè l'iframe de renovació silenciosa de sessió
                 // (oidc-client-ts) munti App en navegar a "oidcSilentRenew".
                 {

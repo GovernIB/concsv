@@ -87,6 +87,35 @@ const translationEs = {
                 },
             },
         },
+        cacheDocuments: {
+            title: 'Caché de documentos',
+            descripcio: {
+                intro: 'Desde esta pantalla se puede borrar la caché de documentos del servidor. Cada botón borra los ficheros de una de las carpetas de la caché, y el último las borra todas:',
+                imprimible: 'PDF imprimible con los márgenes, por UUID o CSV e idioma.',
+                info: 'Información del documento recuperada del Archivo y de los firmantes validados con Afirma, para que no haya que volver a consultar el Archivo.',
+                original: 'Documento original recuperado del Archivo.',
+                final: 'Los documentos que se vuelvan a consultar se obtendrán de nuevo del origen.',
+            },
+            accio: {
+                esborrarCarpeta: 'Borrar {{carpeta}}',
+                esborrarTotes: 'Borrar todos los documentos',
+                refrescar: 'Refresca el número de documentos',
+                confirmCarpeta:
+                    'Confirmad que queréis borrar los documentos de la caché que hay en la carpeta {{carpeta}}. Esta acció no se puede deshacer.',
+                confirmRecompte: 'Documentos que se borrarán: {{count}}.',
+                recompteCarregant: 'Consultando el número de documentos...',
+                recompteError: 'No se ha podido consultar el número de documentos.',
+                ruta: 'Ruta: {{ruta}}',
+                confirmTotes:
+                    'Confirmad que queréis borrar la caché de documentos, es decir, todos los documentos de las carpetas IMPRIMIBLE, INFO y ORIGINAL. Las carpetas no se borran, solo su contenido.',
+                confirmRecompteTotes:
+                    'Documentos que se borrarán: {{count}} (INFO: {{info}}, ORIGINAL: {{original}}, IMPRIMIBLE: {{imprimible}}).',
+                ok: 'Ficheros borrados: {{esborrats}}',
+                okAmbErrors:
+                    'Ficheros borrados: {{esborrats}}. Ficheros que no se han podido borrar: {{errors}}. Consultad el log del servidor.',
+                error: 'No se ha podido borrar la caché de documentos',
+            },
+        },
         avisos: {
             grid: {
                 title: 'Gestión de avisos',

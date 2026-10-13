@@ -1,10 +1,12 @@
 package es.caib.concsv.logic.resourceservice;
 
 import es.caib.concsv.logic.base.service.BaseMutableResourceService;
+import es.caib.concsv.logic.helper.CacheEsborratHelper;
 import es.caib.concsv.logic.helper.ConfigHelper;
 import es.caib.concsv.logic.intf.base.exception.ActionExecutionException;
 import es.caib.concsv.logic.intf.base.exception.AnswerRequiredException;
 import es.caib.concsv.logic.intf.base.exception.ResourceNotUpdatedException;
+import es.caib.concsv.logic.intf.model.CacheCarpeta;
 import es.caib.concsv.logic.intf.model.ConfigResource;
 import es.caib.concsv.logic.intf.resourceservice.ConfigResourceService;
 import es.caib.concsv.persist.entity.ConfigEntity;
@@ -49,10 +51,16 @@ public class ConfigResourceServiceImpl extends BaseMutableResourceService<Config
 	private static final Pattern ENTER = Pattern.compile("-?\\d{1,18}");
 
 	private final ConfigHelper configHelper;
+	private final CacheEsborratHelper cacheEsborratHelper;
 
 	@PostConstruct
 	public void init() {
 		register(ConfigResource.ACTION_SYNC_JBOSS_CODE, new SincronitzaActionExecutor());
+		register(ConfigResource.ACTION_ESBORRAR_CACHE_IMPRIMIBLE_CODE, new EsborrarCacheActionExecutor(CacheCarpeta.IMPRIMIBLE));
+		register(ConfigResource.ACTION_ESBORRAR_CACHE_INFO_CODE, new EsborrarCacheActionExecutor(CacheCarpeta.INFO));
+		register(ConfigResource.ACTION_ESBORRAR_CACHE_ORIGINAL_CODE, new EsborrarCacheActionExecutor(CacheCarpeta.ORIGINAL));
+		register(ConfigResource.ACTION_ESBORRAR_CACHE_TOTES_CODE, new EsborrarCacheActionExecutor(null));
+		register(ConfigResource.ACTION_COMPTAR_CACHE_CODE, new ComptarCacheActionExecutor());
 	}
 
 	/**
@@ -190,6 +198,73 @@ public class ConfigResourceServiceImpl extends BaseMutableResourceService<Config
 				ConfigEntity entity,
 				Serializable params) throws ActionExecutionException {
 			return configHelper.synchronize();
+		}
+
+	}
+
+	/**
+	 * Esborra el contingut d'una carpeta de la cache de documents, o de totes si {@code carpeta} és
+	 * {@code null}. Retorna els fitxers esborrats i els que no s'han pogut esborrar.
+	 */
+	private class EsborrarCacheActionExecutor implements ActionExecutor<ConfigEntity, Serializable, Serializable> {
+
+		private final CacheCarpeta carpeta;
+
+		EsborrarCacheActionExecutor(CacheCarpeta carpeta) {
+			this.carpeta = carpeta;
+		}
+
+		@Override
+		public void onChange(
+				Serializable id,
+				Serializable previous,
+				String fieldName,
+				Object fieldValue,
+				Map<String, AnswerRequiredException.AnswerValue> answers,
+				String[] previousFieldNames,
+				Serializable target) {
+			// Sense formulari no hi ha cap camp que pugui canviar.
+		}
+
+		@Override
+		public Serializable exec(
+				String code,
+				ConfigEntity entity,
+				Serializable params) throws ActionExecutionException {
+			try {
+				return carpeta != null ? cacheEsborratHelper.esborrar(carpeta) : cacheEsborratHelper.esborrarTotes();
+			} catch (RuntimeException ex) {
+				throw new ActionExecutionException(ConfigResource.class, null, code, ex.getMessage(), ex);
+			}
+		}
+
+	}
+
+	/** Retorna el nombre de fitxers de cada carpeta de la cache de documents. */
+	private class ComptarCacheActionExecutor implements ActionExecutor<ConfigEntity, Serializable, Serializable> {
+
+		@Override
+		public void onChange(
+				Serializable id,
+				Serializable previous,
+				String fieldName,
+				Object fieldValue,
+				Map<String, AnswerRequiredException.AnswerValue> answers,
+				String[] previousFieldNames,
+				Serializable target) {
+			// Sense formulari no hi ha cap camp que pugui canviar.
+		}
+
+		@Override
+		public Serializable exec(
+				String code,
+				ConfigEntity entity,
+				Serializable params) throws ActionExecutionException {
+			try {
+				return cacheEsborratHelper.resum();
+			} catch (RuntimeException ex) {
+				throw new ActionExecutionException(ConfigResource.class, null, code, ex.getMessage(), ex);
+			}
 		}
 
 	}

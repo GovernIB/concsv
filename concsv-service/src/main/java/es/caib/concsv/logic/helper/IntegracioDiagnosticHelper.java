@@ -65,6 +65,8 @@ public class IntegracioDiagnosticHelper {
 	/** Codi que no pot existir: l'Arxiu i la custòdia responen «no trobat». */
 	private static final String CODI_INEXISTENT = "0000000000000000000000000000000000000000000000000000000000000000";
 	private static final String CUSTODIA_NO_TROBAT = "es.caib.signatura.error.ReservaNotFoundException";
+	/** Prefix del resultat DSS que @firma inclou a qualsevol resposta processada (RequesterError, ResponderError...). */
+	private static final String AFIRMA_RESULTAT_DSS = "urn:oasis:names:tc:dss:1.0:resultmajor:";
 
 	private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool(runnable -> {
 		Thread thread = new Thread(runnable, "concsv-integracio-diagnostic");
@@ -179,7 +181,11 @@ public class IntegracioDiagnosticHelper {
 		}
 	}
 
-	/** Validació d'una signatura buida: qualsevol resposta del servei @firma és correcta. */
+	/**
+	 * Validació d'una signatura no vàlida: qualsevol resposta del servei @firma és correcta.
+	 * El plugin converteix el rebuig de @firma en una excepció; només són errors
+	 * els que no porten resultat DSS (timeout, connexió, autenticació...).
+	 */
 	private String provaValidacioFirmes() throws Exception {
 		Properties propietats = configHelper.getProperties();
 		IValidateSignaturePlugin plugin = new ValidateSignaturePlugin(
@@ -188,9 +194,15 @@ public class IntegracioDiagnosticHelper {
 		ValidateSignatureRequest request = new ValidateSignatureRequest();
 		request.setLanguage("ca");
 		request.setSignatureData("diagnostic".getBytes(StandardCharsets.UTF_8));
-		ValidateSignatureResponse response = plugin.validateSignature(request);
-		if (response == null) {
-			throw new IllegalStateException("El sistema de validació de firma ha retornat una resposta <null>");
+		try {
+			ValidateSignatureResponse response = plugin.validateSignature(request);
+			if (response == null) {
+				throw new IllegalStateException("El sistema de validació de firma ha retornat una resposta <null>");
+			}
+		} catch (Exception ex) {
+			if (ex.getMessage() == null || !ex.getMessage().contains(AFIRMA_RESULTAT_DSS)) {
+				throw ex;
+			}
 		}
 		return "El sistema de validació de firmes ha respost correctament";
 	}

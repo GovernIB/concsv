@@ -26,7 +26,7 @@ const getEnvApiUrl = () => {
         if (envApiBaseUrl) {
             return envApiBaseUrl + envApiSuffix;
         } else {
-            return window.location.protocol + '//' + window.location.host + ':' + window.location.port + envApiSuffix;
+            return window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, '') + envApiSuffix;
         }
     }
 }

@@ -515,8 +515,10 @@ public class HashService implements HashServiceInterface {
 			Canvas canvas = new Canvas(pdfCanvas,  page.getPageSize());
 			canvas.add(image.setFixedPosition(20, PageSize.A4.getHeight() - image.getImageScaledHeight() - 30));
 			canvas.close();
-		} catch (IOException e) {
-			log.error("Can't find image: " + getLogoPath());
+		} catch (IOException | com.itextpdf.io.exceptions.IOException e) {
+			// iText llança la seva pròpia IOException (no comprovada) si no troba la imatge o el
+			// format no és suportat (p. ex. SVG): el document es genera sense logo.
+			log.error("No s'ha pogut carregar el logo " + getLogoPath() + ": " + e.getMessage());
 		}
 
 		// Estableix la tipografia

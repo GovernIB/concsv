@@ -16,8 +16,8 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 @ConditionalOnWarDeployment
 @PropertySource(ignoreResourceNotFound = true, value = {
-	"file://${" + BaseConfig.APP_PROPERTIES + "}",
-	"file://${" + BaseConfig.APP_SYSTEM_PROPERTIES + "}"})
+	"file:${" + BaseConfig.APP_PROPERTIES + "}",
+	"file:${" + BaseConfig.APP_SYSTEM_PROPERTIES + "}"})
 public class SystemPropertiesConfig {
 
 }

@@ -1,15 +1,20 @@
 package es.caib.concsv.logic.helper;
 
+import es.caib.concsv.commons.config.PropertyFileConfigUtil;
 import es.caib.concsv.persist.entity.ConfigEntity;
 import es.caib.concsv.persist.repository.ConfigRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Properties;
 
 /**
  * Accés a les propietats configurables de l'aplicació que es mantenen des del backoffice.
@@ -29,6 +34,8 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class ConfigHelper {
+
+	private static final String PROPIETATS_PREFIX = "es.caib.concsv.";
 
 	private final ConfigRepository configRepository;
 	private final Environment springEnvironment;
@@ -59,6 +66,68 @@ public class ConfigHelper {
 			value = springEnvironment.getProperty(key);
 		}
 		return value != null ? value : defaultValue;
+	}
+
+	/**
+	 * Propietats del fitxer del servidor, com les veuen els plugins que només en llegeixen del
+	 * fitxer. Si no es poden llegir (per exemple en mode standalone) es retorna un objecte buit.
+	 * Es crea un objecte nou a cada crida.
+	 */
+	public Properties getFileProperties() {
+		Properties properties = new Properties();
+		try {
+			properties.putAll(PropertyFileConfigUtil.getProperties());
+		} catch (Throwable ex) {
+			log.debug("No s'han pogut llegir les propietats del fitxer: {}", ex.toString());
+		}
+		if (!properties.isEmpty()) {
+			// Amb el fitxer del servidor (JBoss) només n'hi ha aquest, com als serveis CDI.
+			return properties;
+		}
+		// En mode standalone el fitxer no hi és: les propietats venen de les propietats de sistema,
+		// de les variables d'entorn o de l'entorn de Spring (application.properties).
+		try {
+			var config = ConfigProvider.getConfig();
+			for (String key : config.getPropertyNames()) {
+				if (key.startsWith(PROPIETATS_PREFIX) && !properties.containsKey(key)) {
+					config.getOptionalValue(key, String.class).ifPresent(value -> properties.put(key, value));
+				}
+			}
+		} catch (Throwable ex) {
+			log.debug("No s'han pogut llegir les propietats de MicroProfile Config: {}", ex.toString());
+		}
+		if (springEnvironment instanceof ConfigurableEnvironment) {
+			for (PropertySource<?> source : ((ConfigurableEnvironment) springEnvironment).getPropertySources()) {
+				if (source instanceof EnumerablePropertySource) {
+					for (String key : ((EnumerablePropertySource<?>) source).getPropertyNames()) {
+						if (key.startsWith(PROPIETATS_PREFIX) && !properties.containsKey(key)) {
+							String value = springEnvironment.getProperty(key);
+							if (value != null) {
+								properties.put(key, value);
+							}
+						}
+					}
+				}
+			}
+		}
+		return properties;
+	}
+
+	/**
+	 * Propietats per als plugins: les del fitxer del servidor amb, per damunt, les editables que
+	 * tenen valor a la base de dades. Equival a {@code ConfigValues.getProperties()} dels serveis CDI.
+	 * Es crea un objecte nou a cada crida.
+	 */
+	@Transactional(readOnly = true)
+	public Properties getProperties() {
+		Properties properties = getFileProperties();
+		for (ConfigEntity config : configRepository.findByJbossPropertyFalse()) {
+			String value = config.getValue();
+			if (value != null && !value.isEmpty()) {
+				properties.put(config.getKey(), value);
+			}
+		}
+		return properties;
 	}
 
 	/** Valor efectiu d'una fila de propietat (veure la documentació de la classe). */

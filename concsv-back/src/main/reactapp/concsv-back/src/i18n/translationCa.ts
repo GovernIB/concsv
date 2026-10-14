@@ -168,6 +168,7 @@ const translationCa = {
             grid: {
                 title: "Monitor d'integracions",
             },
+            errorPipelles: "No s'han pogut carregar les integracions",
             pipella: {
                 ARXIU: 'Arxiu',
                 CUSTODIA: 'Custòdia antiga',
@@ -196,7 +197,12 @@ const translationCa = {
             diagnostic: {
                 boto: 'Diagnòstic',
                 titol: 'Diagnòstic ràpid de les integracions',
-                enConstruccio: 'El diagnòstic de les integracions encara està en construcció.',
+                executant: 'Executant la prova...',
+                executa: 'Torna a executar el diagnòstic',
+                executaTotes: 'Torna a executar tot',
+                copiaTraca: 'Copia la traça',
+                mostraTraca: 'Mostra la traça',
+                amagaTraca: 'Amaga la traça',
             },
         },
         enConstruccio: {

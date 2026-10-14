@@ -168,6 +168,7 @@ const translationEs = {
             grid: {
                 title: 'Monitor de integraciones',
             },
+            errorPipelles: 'No se han podido cargar las integraciones',
             pipella: {
                 ARXIU: 'Archivo',
                 CUSTODIA: 'Custodia antigua',
@@ -196,7 +197,12 @@ const translationEs = {
             diagnostic: {
                 boto: 'Diagnóstico',
                 titol: 'Diagnóstico rápido de las integraciones',
-                enConstruccio: 'El diagnóstico de las integraciones todavía está en construcción.',
+                executant: 'Ejecutando la prueba...',
+                executa: 'Volver a ejecutar el diagnóstico',
+                executaTotes: 'Volver a ejecutar todo',
+                copiaTraca: 'Copiar la traza',
+                mostraTraca: 'Mostrar la traza',
+                amagaTraca: 'Ocultar la traza',
             },
         },
         enConstruccio: {

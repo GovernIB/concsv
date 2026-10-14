@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import Alert from '@mui/material/Alert';
 import { GridPage, type MuiDataGridColDef, useMuiDataGridApiRef } from 'reactlib';
 import { CardPage } from '../../components/CardData';
 import StyledMuiGrid, { ToolbarButton } from '../../components/StyledMuiGrid';
@@ -7,6 +8,7 @@ import { formatDate } from '../../util/dateUtils';
 import IntegracioFilter from './IntegracioFilter';
 import { useIntegracioTabs } from './IntegracioTabs';
 import useIntegracioDetail from './IntegracioDetail';
+import useIntegracioDiagnostic from './IntegracioDiagnostic';
 import { IntegracioEstat } from './IntegracioEstat';
 
 const columns: MuiDataGridColDef[] = [
@@ -45,58 +47,71 @@ export const IntegracioGrid: React.FC = () => {
     const { t } = useTranslation();
     const apiRef = useMuiDataGridApiRef();
     const [formFilter, setFormFilter] = React.useState<string>();
-    const { value: tab, tabElement } = useIntegracioTabs();
+    const { value: tab, ready: tabsReady, error: tabsError, tabElement } = useIntegracioTabs();
     const { show: mostrarDetall, component: detailDialog } = useIntegracioDetail();
+    const {
+        apiIsReady: diagnosticApiIsReady,
+        show: mostrarDiagnostic,
+        component: diagnosticDialog,
+    } = useIntegracioDiagnostic();
 
     // La integració de la pestanya viatja com a "named query" i no dins `filter`
-    const namedQueries = React.useMemo(() => [tab], [tab]);
+    const namedQueries = React.useMemo(() => (tab ? [tab] : []), [tab]);
 
     return (
         <GridPage>
             <CardPage title={t('page.integracio.grid.title')}>
                 <IntegracioFilter onSpringFilterChange={setFormFilter} />
-                <StyledMuiGrid
-                    readOnly
-                    toolbarHideCreate
-                    toolbarShowFilterCount
-                    rowHideUpdateButton
-                    rowHideDeleteButton
-                    resourceName="monitorIntegracioResource"
-                    apiRef={apiRef}
-                    columns={columns}
-                    filter={formFilter}
-                    namedQueries={namedQueries}
-                    paginationActive
-                    sortModel={sortModel}
-                    onRowClick={(params: any) => mostrarDetall(params?.row?.id, params?.row)}
-                    rowAdditionalActions={[
-                        {
-                            label: t('page.integracio.detail.title'),
-                            icon: 'info',
-                            showInMenu: false,
-                            onClick: (id: any, row: any) => mostrarDetall(id, row),
-                        },
-                    ]}
-                    toolbarElementsWithPositions={[
-                        { position: 0, element: tabElement },
-                        {
-                            position: 2,
-                            element: (
-                                // Provisional: el diagnòstic ràpid encara no està implementat.
-                                <ToolbarButton
-                                    icon="monitor_heart"
-                                    title={t('page.integracio.diagnostic.titol')}
-                                    onClick={() =>
-                                        window.alert(t('page.integracio.diagnostic.enConstruccio'))
-                                    }
-                                >
-                                    {t('page.integracio.diagnostic.boto')}
-                                </ToolbarButton>
-                            ),
-                        },
-                    ]}
-                />
+                {tabsError !== undefined && (
+                    <Alert severity="error">
+                        {t('page.integracio.errorPipelles')}
+                        {tabsError ? `: ${tabsError}` : ''}
+                    </Alert>
+                )}
+                {tabsReady && tabsError === undefined && (
+                    <StyledMuiGrid
+                        readOnly
+                        toolbarHideCreate
+                        toolbarShowFilterCount
+                        rowHideUpdateButton
+                        rowHideDeleteButton
+                        resourceName="monitorIntegracioResource"
+                        apiRef={apiRef}
+                        columns={columns}
+                        filter={formFilter}
+                        namedQueries={namedQueries}
+                        paginationActive
+                        sortModel={sortModel}
+                        onRowClick={(params: any) => mostrarDetall(params?.row?.id, params?.row)}
+                        rowAdditionalActions={[
+                            {
+                                label: t('page.integracio.detail.title'),
+                                icon: 'info',
+                                showInMenu: false,
+                                onClick: (id: any, row: any) => mostrarDetall(id, row),
+                            },
+                        ]}
+                        toolbarElementsWithPositions={[
+                            { position: 0, element: tabElement },
+                            {
+                                position: 2,
+                                element: (
+                                    <ToolbarButton
+                                        icon="monitor_heart"
+                                        title={t('page.integracio.diagnostic.titol')}
+                                        variant="contained"
+                                        disabled={!diagnosticApiIsReady}
+                                        onClick={mostrarDiagnostic}
+                                    >
+                                        {t('page.integracio.diagnostic.boto')}
+                                    </ToolbarButton>
+                                ),
+                            },
+                        ]}
+                    />
+                )}
                 {detailDialog}
+                {diagnosticDialog}
             </CardPage>
         </GridPage>
     );

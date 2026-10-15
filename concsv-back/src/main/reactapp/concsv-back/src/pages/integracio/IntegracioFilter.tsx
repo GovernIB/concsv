@@ -6,11 +6,11 @@ import * as builder from '../../util/springFilterUtils';
 const IntegracioFilterForm: React.FC = () => {
     return (
         <>
-            <GridFormField size={{ xs: 12, sm: 6, md: 1.6 }} name="dataInici" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 1.6 }} name="dataFi" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 2.8 }} name="descripcio" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 1.8 }} name="tipus" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 1.8 }} name="estat" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 1.9 }} name="dataInici" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 1.9 }} name="dataFi" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 3.2 }} name="descripcio" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 2.1 }} name="tipus" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 2.15 }} name="estat" />
         </>
     );
 };

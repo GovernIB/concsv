@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatches } from 'react-router-dom';
 
@@ -30,7 +30,7 @@ export const setTitolPagina = (titol?: string) => {
  * títol de la pàgina és el que acaba manant.
  */
 export const useTitolPagina = (titol?: string) => {
-    useEffect(() => {
+    React.useEffect(() => {
         setTitolPagina(titol);
     }, [titol]);
 };
@@ -52,7 +52,7 @@ export const TitolPagina: React.FC = () => {
         (titol, match) => (match.handle as TitolRouteHandle | undefined)?.titol ?? titol,
         undefined
     );
-    useEffect(() => {
+    React.useEffect(() => {
         setTitolPagina(clauTitol != null ? t(clauTitol) : undefined);
         // i18n.language hi és perquè el títol es torni a traduir en canviar d'idioma sense sortir
         // de la pàgina.

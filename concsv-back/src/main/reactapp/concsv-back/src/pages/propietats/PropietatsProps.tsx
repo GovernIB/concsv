@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Grid } from '@mui/material';
 import Box from '@mui/material/Box';
@@ -46,7 +46,7 @@ export const PropietatsProps: React.FC<PropietatsPropsProps> = ({
 }) => {
     const { t } = useTranslation();
 
-    const group = useMemo(() => grups?.find((g) => g.id === groupId), [groupId, grups]);
+    const group = React.useMemo(() => grups?.find((g) => g.id === groupId), [groupId, grups]);
     const confProps = configs?.filter((p) => p.group?.id === groupId);
     const children = grups?.filter((p) => p.parent?.id === groupId);
 

@@ -1,11 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Grid, Icon, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Icon, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
+import { alpha } from '@mui/material/styles';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { GridPage, useBaseAppContext, useConfirmDialogButtons, useDebounce, useResourceApiService } from 'reactlib';
-import { CardPage } from '../../components/CardData';
+import ScreenFrame from '../../components/ScreenFrame';
+import { ToolbarButton } from '../../components/StyledMuiGrid';
+import { icons } from '../../util/icons';
+import { MAIN_GAP, SCREEN_GRID_MIN_HEIGHT } from '../../util/layout';
+import { accentColor } from '../../theme';
 import { PropietatsProps } from './PropietatsProps';
 import type { PropietatGrup, PropietatItem } from './PropietatsTypes';
 import { missatgeError } from './PropietatsUtils';
@@ -17,7 +22,7 @@ const QuickFilter: React.FC<{ onChange: (quickFilter: string | undefined) => voi
     const [quickFilter, setQuickFilter] = React.useState<string>('');
     const quickFilterDebounced = useDebounce(quickFilter);
 
-    useEffect(() => {
+    React.useEffect(() => {
         onChange(quickFilterDebounced);
         // `onChange` és un setState del pare: no cal tornar a executar-ho si canvia la referència.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -29,11 +34,16 @@ const QuickFilter: React.FC<{ onChange: (quickFilter: string | undefined) => voi
             onChange={(event) => setQuickFilter(event.target.value)}
             variant="outlined"
             size="small"
+            // Mateixa alçada (32px) que els botons de la barra de títol i el filtre ràpid de les graelles.
+            sx={{
+                '& .MuiOutlinedInput-root': { height: '32px' },
+                '& .MuiOutlinedInput-input': { pt: 0, pb: 0 },
+            }}
             slotProps={{
                 input: {
                     startAdornment: (
                         <InputAdornment position="start">
-                            <Icon fontSize="small">search</Icon>
+                            <Icon fontSize="small">{icons.cerca}</Icon>
                         </InputAdornment>
                     ),
                     endAdornment: quickFilter && (
@@ -60,19 +70,19 @@ export const Propietats: React.FC = () => {
     const { t } = useTranslation();
     const { temporalMessageShow, messageDialogShow } = useBaseAppContext();
     const confirmDialogButtons = useConfirmDialogButtons();
-    const [quickFilter, setQuickFilter] = useState<string>();
+    const [quickFilter, setQuickFilter] = React.useState<string>();
     // Es torna a carregar tot (llista i formularis de les files) quan canvia
-    const [refreshKey, setRefreshKey] = useState(0);
-    const [sincronitzant, setSincronitzant] = useState(false);
+    const [refreshKey, setRefreshKey] = React.useState(0);
+    const [sincronitzant, setSincronitzant] = React.useState(false);
 
     const {
         isReady: isConfigReady,
         find: apiConfigFind,
         artifactAction: apiConfigAction,
     } = useResourceApiService('configResource');
-    const [configs, setConfigs] = useState<PropietatItem[]>();
+    const [configs, setConfigs] = React.useState<PropietatItem[]>();
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (isConfigReady) {
             apiConfigFind({ sorts: ['position,asc'], unpaged: true })
                 .then((response: { rows: PropietatItem[] }) => setConfigs(response.rows))
@@ -85,7 +95,7 @@ export const Propietats: React.FC = () => {
     const alDesar = (desada: PropietatItem) =>
         setConfigs((actual) => actual?.map((c) => (c.id === desada.id ? { ...c, ...desada } : c)));
 
-    const filteredProps = useMemo(() => {
+    const filteredProps = React.useMemo(() => {
         if (!configs) {
             return [];
         }
@@ -102,10 +112,10 @@ export const Propietats: React.FC = () => {
     }, [quickFilter, configs]);
 
     const { isReady: isGroupReady, find: apiGroupFind } = useResourceApiService('configGroupResource');
-    const [configGroups, setConfigGroups] = useState<PropietatGrup[]>();
-    const [selectedGroupId, setSelectedGroupId] = useState<string>();
+    const [configGroups, setConfigGroups] = React.useState<PropietatGrup[]>();
+    const [selectedGroupId, setSelectedGroupId] = React.useState<string>();
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (isGroupReady) {
             apiGroupFind({ sorts: ['position,asc'], unpaged: true })
                 .then((response: { rows: PropietatGrup[] }) => {
@@ -118,7 +128,7 @@ export const Propietats: React.FC = () => {
     }, [isGroupReady]);
 
     // Només es mostren els grups amb alguna propietat que passa el filtre (i el pare d'aquests).
-    const filteredGroups = useMemo(() => {
+    const filteredGroups = React.useMemo(() => {
         if (!configGroups || filteredProps.length === 0) {
             return [];
         }
@@ -127,9 +137,9 @@ export const Propietats: React.FC = () => {
     }, [filteredProps, configGroups]);
 
     // Si el filtre deixa fora el grup seleccionat, se selecciona el primer que queda.
-    const grupsArrel = useMemo(() => filteredGroups.filter((g) => g.parent == null), [filteredGroups]);
+    const grupsArrel = React.useMemo(() => filteredGroups.filter((g) => g.parent == null), [filteredGroups]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (grupsArrel.length && !grupsArrel.some((g) => g.id === selectedGroupId)) {
             setSelectedGroupId(grupsArrel[0].id);
         }
@@ -169,71 +179,92 @@ export const Propietats: React.FC = () => {
 
     return (
         <GridPage>
-            <CardPage title={t('page.propietats.title')}>
-                <Grid container spacing={2}>
-                    <Grid size={12} sx={{ px: 1 }} display={'flex'} justifyContent={'end'} gap={1}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            sx={{ borderRadius: '4px' }}
+            <ScreenFrame
+                icon={icons.propietat}
+                title={t('page.propietats.title')}
+                // El cercador i el botó de sincronitzar van a la barra de títol, com la barra d'eines de les graelles
+                actions={
+                    <>
+                        <QuickFilter onChange={setQuickFilter} />
+                        <ToolbarButton
+                            title={t('page.propietats.accio.sync.label')}
+                            icon={icons.sincronitza}
+                            color="primary"
                             disabled={sincronitzant || !isConfigReady}
                             onClick={sincronitza}
                         >
-                            <Icon sx={{ mr: 0.5 }}>cached</Icon>
                             {t('page.propietats.accio.sync.label')}
-                        </Button>
-                        <QuickFilter onChange={setQuickFilter} />
-                    </Grid>
-                    {senseResultats ? (
-                        <Grid size={12}>
-                            <Box sx={{ textAlign: 'center', px: 2, py: 6 }}>
-                                <Icon fontSize="large" color="disabled">
-                                    block
-                                </Icon>
-                                <Typography variant="h5" color="text.secondary">
-                                    {t('page.propietats.empty')}
-                                </Typography>
-                            </Box>
-                        </Grid>
-                    ) : (
-                        <>
-                            <Grid size={3}>
-                                <Box
-                                    sx={{
-                                        height: '68vh',
-                                        overflow: 'auto',
-                                        border: '1px solid #e0e0e0',
-                                        borderRadius: 1,
-                                    }}
-                                >
-                                    <SimpleTreeView
-                                        selectedItems={selectedGroupId ?? null}
-                                        onSelectedItemsChange={(_event, id) => setSelectedGroupId(id || undefined)}
-                                        sx={{ '& .MuiTreeItem-content': { paddingY: 1 } }}
-                                    >
-                                        {grupsArrel.map((g) => (
-                                            <TreeItem key={g.key} itemId={g.id} label={g.description} />
-                                        ))}
-                                    </SimpleTreeView>
-                                </Box>
-                            </Grid>
-                            <Grid size={9}>
-                                <Box sx={{ height: '68vh' }}>
-                                    <PropietatsProps
-                                        root
-                                        groupId={selectedGroupId}
-                                        grups={filteredGroups}
-                                        configs={filteredProps}
-                                        highlight={quickFilter}
-                                        refreshKey={refreshKey}
-                                        onSaved={alDesar}
-                                    />
-                                </Box>
-                            </Grid>
-                        </>
-                    )}
-                </Grid>
-            </CardPage>
+                        </ToolbarButton>
+                    </>
+                }
+            >
+                {senseResultats ? (
+                    <Box sx={{ textAlign: 'center', px: 2, py: 6 }}>
+                        <Icon fontSize="large" color="disabled">
+                            block
+                        </Icon>
+                        <Typography variant="h5" color="text.secondary">
+                            {t('page.propietats.empty')}
+                        </Typography>
+                    </Box>
+                ) : (
+                    // Arbre i detall ocupen l'alçada que sobra a la pantalla (cada un fa el seu
+                    // scroll per dins) en lloc de tenir una alçada fixa en vh.
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: MAIN_GAP + 'px',
+                            flex: '1 1 0',
+                            minHeight: SCREEN_GRID_MIN_HEIGHT + 'px',
+                        }}
+                    >
+                        <Box
+                            sx={(theme) => ({
+                                flex: '0 0 25%',
+                                overflow: 'auto',
+                                // Al clar la vora de sempre; als foscos, el divisor del tema (el gris clar
+                                // fix es veia com un marc blanc)
+                                border: '1px solid',
+                                borderColor: theme.palette.mode === 'dark' ? theme.palette.divider : '#e0e0e0',
+                                borderRadius: 1,
+                            })}
+                        >
+                            <SimpleTreeView
+                                selectedItems={selectedGroupId ?? null}
+                                onSelectedItemsChange={(_event, id) => setSelectedGroupId(id || undefined)}
+                                sx={(theme) => ({
+                                    '& .MuiTreeItem-content': { paddingY: 1 },
+                                    // Als temes foscos el grup seleccionat s'ha de veure: fons atenuat i
+                                    // vora esquerra com l'entrada seleccionada del menú
+                                    ...(theme.palette.mode === 'dark' && {
+                                        '& .MuiTreeItem-content.Mui-selected, & .MuiTreeItem-content.Mui-selected:hover, & .MuiTreeItem-content.Mui-selected.Mui-focused':
+                                            {
+                                                backgroundColor: alpha(theme.palette.primary.main, 0.35),
+                                                boxShadow: `inset 4px 0 0 ${accentColor(theme)}`,
+                                                fontWeight: 600,
+                                            },
+                                    }),
+                                })}
+                            >
+                                {grupsArrel.map((g) => (
+                                    <TreeItem key={g.key} itemId={g.id} label={g.description} />
+                                ))}
+                            </SimpleTreeView>
+                        </Box>
+                        <Box sx={{ flex: '1 1 0', minWidth: 0 }}>
+                            <PropietatsProps
+                                root
+                                groupId={selectedGroupId}
+                                grups={filteredGroups}
+                                configs={filteredProps}
+                                highlight={quickFilter}
+                                refreshKey={refreshKey}
+                                onSaved={alDesar}
+                            />
+                        </Box>
+                    </Box>
+                )}
+            </ScreenFrame>
         </GridPage>
     );
 };

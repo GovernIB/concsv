@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import React from 'react';
 import { useResourceApiService } from 'reactlib';
 
 type PollingOptions = {
@@ -18,9 +18,9 @@ export const usePollingArtifactAction = (
 	options?: PollingOptions
 ): UsePollingArtifactActionReturn => {
 	const api = useResourceApiService(resourceName);
-	const isCancelledRef = useRef(false);
+	const isCancelledRef = React.useRef(false);
 
-	const startPolling = useCallback(
+	const startPolling = React.useCallback(
 		async (id: any, code: string, args?: any) => {
 			isCancelledRef.current = false;
 
@@ -50,7 +50,7 @@ export const usePollingArtifactAction = (
 		[api, options]
 	);
 
-	const cancelPolling = useCallback(
+	const cancelPolling = React.useCallback(
 		async (id: any, code: string, args?: any) => {
 			isCancelledRef.current = true;
 			try {

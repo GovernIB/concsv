@@ -24,6 +24,7 @@ import { EntitatSelector, RolSelector, getRolBadgeIcon } from './EntitatRolSelec
 import { useConcsvContext } from './ConcsvContext';
 import { MenuEstil } from '../theme';
 import { idiomaAplicacio } from '../util/idioma';
+import { MAIN_GAP, MAIN_PADDING } from '../util/layout';
 
 export type BaseAppProps = React.PropsWithChildren & {
     code: string;
@@ -115,29 +116,32 @@ const CustomLocalizationProvider = ({ children }: React.PropsWithChildren) => {
     );
 };
 
-// Columna (centre horitzontal, en px) de les icones del menú lateral obert, on App.tsx també hi
-// alinea el botó de menú de la capçalera (APPBAR_PADDING_LEFT).
-const MENU_ICON_COLUMN = 42;
+// La geometria del menú lateral (amplada plegada, icones, columna on s'alineen amb el botó de la
+// capçalera) s'ajusta al tema, a `MuiDrawer` de theme.ts, amb les mides de util/layout.ts. Aquí
+// només hi queden els colors, que depenen de l'estil de menú del perfil de l'usuari.
 
-// Manté les icones del menú lateral a la mateixa columna quan està plegat. La llibreria el plega
-// a 57px i hi centra les icones (a x=28), que queden desalineades del botó de la capçalera: amb
-// una amplada de 2 x MENU_ICON_COLUMN, el centrat de la llibreria les deixa just a la columna.
-// A més, en plegat el text de cada entrada només es fa transparent, però continua ocupant lloc:
-// les entrades llargues fan dues línies i les icones queden a distàncies diferents. La consulta
-// de contenidor l'amaga només quan el menú és estret, sense haver de saber-ne l'estat.
-const menuPlegatAlineatSx = {
-    '& nav .MuiDrawer-root, & nav .MuiDrawer-paper': {
-        minWidth: 2 * MENU_ICON_COLUMN + 'px',
+/**
+ * Marc de l'aplicació: l'arrel ocupa tota l'alçada de la finestra (capçalera dalt, peu baix) i només
+ * l'àrea de contingut (`<main>`) fa scroll. La llibreria només ho fa amb `100vh` a les pantalles que
+ * l'activen (GridPage), i no fixa cap marge propi quan es desactiven (`marginsDisabled`). Per això:
+ *  - `> div`: arrel del contingut de la llibreria (ContentComponentDefault, lib/components/BaseApp.tsx);
+ *  - `> div > div > main`: l'àrea de contingut. El `gap` és la separació entre els elements apilats
+ *    (la pantalla, els avisos...) i el padding, el marge de l'àrea.
+ * Si la llibreria canvia aquesta estructura, aquest és l'únic lloc a revisar.
+ */
+const frameSx = {
+    height: '100vh',
+    '& > div': { height: '100%' },
+    '& > div > div > main': {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: MAIN_GAP + 'px',
+        padding: MAIN_PADDING + 'px',
+        boxSizing: 'border-box',
+        minHeight: 0,
+        overflowY: 'auto',
     },
-    '& nav .MuiDrawer-paper': {
-        containerType: 'inline-size',
-    },
-    '@container (max-width: 120px)': {
-        '& nav .MuiDrawer-paper .MuiListItemText-root': {
-            display: 'none',
-        },
-    },
-};
+} as const;
 
 export const BaseApp: React.FC<BaseAppProps> = (props) => {
     const {
@@ -172,7 +176,13 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
                   },
                   '& .menu-item-icon': { color: menuColorSet.textSecondary },
                   '& .MuiListItemButton-root': {
-                      '&.Mui-selected': { backgroundColor: menuColorSet.selectedBackground },
+                      // La icona de l'entrada seleccionada pren l'accent del joc de colors del
+                      // menú (a TEMA el posa el tema, veure MuiListItemButton a theme.ts).
+                      '&.Mui-selected .menu-item-icon': { color: menuColorSet.accent },
+                      '&.Mui-selected': {
+                          backgroundColor: menuColorSet.selectedBackground,
+                          boxShadow: `inset 4px 0 0 ${menuColorSet.accent}`,
+                      },
                       '&.Mui-selected:hover': { backgroundColor: menuColorSet.selectedBackground },
                       '&:hover': { backgroundColor: menuColorSet.hoverBackground },
                   },
@@ -212,7 +222,7 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
     // l'idioma i recarregui la pantalla.
     const { idioma } = useUserPreferences();
     return (
-        <Box sx={{ ...menuPlegatAlineatSx, ...menuColorSetSx }}>
+        <Box sx={{ ...frameSx, ...menuColorSetSx }}>
         <MuiBaseApp
             code={code}
             headerTitle={title}
@@ -250,7 +260,8 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
             routerUseLocationPath={useLocationPath}
             routerAnyHistoryEntryExist={anyHistoryEntryExist}
             linkComponent={Link}
-            marginsDisabled={false}
+            // Els marges d'`<main>` els posa frameSx (la llibreria els deixa a 16px 24px).
+            marginsDisabled
             saveAs={saveAs}
             menuEntries={menuEntries}
         >

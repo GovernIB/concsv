@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useBaseAppContext, useResourceApiService, type MuiDataGridProps } from 'reactlib';
 import type { MassiveActionProps } from '../../components/MassiveActionSelector';
+import { icons } from '../../util/icons';
 
 const ACCIO_ACTIVAR = 'ACTIVAR';
 const ACCIO_DESACTIVAR = 'DESACTIVAR';
@@ -56,14 +57,14 @@ export const useAvisAccions = (
     const accions: AccionsFila = [
         {
             label: t('page.avisos.accio.modificar'),
-            icon: 'edit',
+            icon: icons.modifica,
             showInMenu: true,
             rowLink: 'update',
             clickShowUpdateDialog: true,
         },
         {
             label: t('page.avisos.accio.activar'),
-            icon: 'check',
+            icon: icons.activa,
             showInMenu: true,
             action: ACCIO_ACTIVAR,
             hidden: (row: any) => row?.actiu,
@@ -71,7 +72,7 @@ export const useAvisAccions = (
         },
         {
             label: t('page.avisos.accio.desactivar'),
-            icon: 'close',
+            icon: icons.desactiva,
             showInMenu: true,
             action: ACCIO_DESACTIVAR,
             hidden: (row: any) => !row?.actiu,
@@ -80,7 +81,7 @@ export const useAvisAccions = (
         },
         {
             label: t('page.avisos.accio.esborrar'),
-            icon: 'delete',
+            icon: icons.esborra,
             showInMenu: true,
             rowLink: 'delete',
             clickTriggerDelete: true,
@@ -90,21 +91,21 @@ export const useAvisAccions = (
     const accionsMassives: MassiveActionProps[] = [
         {
             label: t('page.avisos.accio.activar'),
-            icon: 'check',
+            icon: icons.activa,
             showInMenu: true,
             onClick: (ids: any[]) =>
                 executarMassiva(ids, 'activar', 'page.avisos.accio.massivaActivarOk'),
         },
         {
             label: t('page.avisos.accio.desactivar'),
-            icon: 'close',
+            icon: icons.desactiva,
             showInMenu: true,
             onClick: (ids: any[]) =>
                 executarMassiva(ids, 'desactivar', 'page.avisos.accio.massivaDesactivarOk'),
         },
         {
             label: t('page.avisos.accio.esborrar'),
-            icon: 'delete',
+            icon: icons.esborra,
             showInMenu: true,
             onClick: (ids: any[]) =>
                 executarMassiva(ids, 'eliminar', 'page.avisos.accio.massivaEsborrarOk'),

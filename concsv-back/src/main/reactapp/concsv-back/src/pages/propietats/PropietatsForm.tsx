@@ -6,6 +6,7 @@ import { FormField, MuiForm, useFormContext } from 'reactlib';
 import type { PropietatItem } from './PropietatsTypes';
 import { TIPUS_CREDENCIALS, getFieldFromItem } from './PropietatsUtils';
 import { TextHighlight } from './TextHighlight';
+import { icons } from '../../util/icons';
 
 type PropsListItemProps = {
     highlight?: string;
@@ -65,7 +66,7 @@ const PropsListItem: React.FC<PropsListItemProps> = ({ highlight }) => {
                     {!disabled && (
                         <>
                             <IconButton title={t('common.undo')} size="small" onClick={undo} disabled={!modified}>
-                                <Icon fontSize="small">undo</Icon>
+                                <Icon fontSize="small">{icons.desfes}</Icon>
                             </IconButton>
                             <IconButton
                                 title={t('common.save')}
@@ -74,7 +75,7 @@ const PropsListItem: React.FC<PropsListItemProps> = ({ highlight }) => {
                                 color={'success'}
                                 disabled={!modified}
                             >
-                                <Icon fontSize="small">save</Icon>
+                                <Icon fontSize="small">{icons.desa}</Icon>
                             </IconButton>
                         </>
                     )}

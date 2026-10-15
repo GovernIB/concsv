@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React from 'react';
 
 /**
  * Estat compartit damunt del `sessionStorage` del navegador.
@@ -18,10 +18,10 @@ interface SessionStorageContextProps {
     removeValue: (key: string) => void;
 }
 
-const SessionStorageContext = createContext<SessionStorageContextProps | undefined>(undefined);
+const SessionStorageContext = React.createContext<SessionStorageContextProps | undefined>(undefined);
 
 export const SessionStorageProvider = ({ children }: { children: React.ReactNode }) => {
-    const [data, setData] = useState<SessionData>(() => {
+    const [data, setData] = React.useState<SessionData>(() => {
         const allKeys = Object.keys(sessionStorage);
         const initialData: SessionData = {};
         allKeys.forEach((key) => {
@@ -52,7 +52,7 @@ export const SessionStorageProvider = ({ children }: { children: React.ReactNode
     };
 
     // Detectar canvis externs al sessionStorage (p. ex. altres pestanyes)
-    useEffect(() => {
+    React.useEffect(() => {
         const handleStorage = (e: StorageEvent) => {
             if (e.storageArea === sessionStorage && e.key) {
                 const newValue = e.newValue ? JSON.parse(e.newValue) : null;
@@ -74,7 +74,7 @@ export const SessionStorageProvider = ({ children }: { children: React.ReactNode
 };
 
 const useSessionStorage = () => {
-    const ctx = useContext(SessionStorageContext);
+    const ctx = React.useContext(SessionStorageContext);
     if (!ctx) throw new Error('useSessionStorage s’ha d’utilitzar dins de <SessionStorageProvider>');
     return ctx;
 };

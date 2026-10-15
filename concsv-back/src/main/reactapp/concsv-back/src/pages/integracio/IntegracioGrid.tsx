@@ -2,8 +2,9 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Alert from '@mui/material/Alert';
 import { GridPage, type MuiDataGridColDef, useMuiDataGridApiRef } from 'reactlib';
-import { CardPage } from '../../components/CardData';
+import ScreenFrame from '../../components/ScreenFrame';
 import StyledMuiGrid, { ToolbarButton } from '../../components/StyledMuiGrid';
+import { icons } from '../../util/icons';
 import { formatDate } from '../../util/dateUtils';
 import IntegracioFilter from './IntegracioFilter';
 import { useIntegracioTabs } from './IntegracioTabs';
@@ -60,7 +61,7 @@ export const IntegracioGrid: React.FC = () => {
 
     return (
         <GridPage>
-            <CardPage title={t('page.integracio.grid.title')}>
+            <ScreenFrame icon={icons.integracio} title={t('page.integracio.grid.title')}>
                 <IntegracioFilter onSpringFilterChange={setFormFilter} />
                 {tabsError !== undefined && (
                     <Alert severity="error">
@@ -68,6 +69,9 @@ export const IntegracioGrid: React.FC = () => {
                         {tabsError ? `: ${tabsError}` : ''}
                     </Alert>
                 )}
+                {/* Les pestanyes van en una fila pròpia, entre el filtre i la graella que filtren:
+                    a la barra de títol no hi caben. */}
+                {tabsReady && tabsError === undefined && tabElement}
                 {tabsReady && tabsError === undefined && (
                     <StyledMuiGrid
                         readOnly
@@ -86,18 +90,17 @@ export const IntegracioGrid: React.FC = () => {
                         rowAdditionalActions={[
                             {
                                 label: t('page.integracio.detail.title'),
-                                icon: 'info',
+                                icon: icons.detall,
                                 showInMenu: false,
                                 onClick: (id: any, row: any) => mostrarDetall(id, row),
                             },
                         ]}
                         toolbarElementsWithPositions={[
-                            { position: 0, element: tabElement },
                             {
                                 position: 2,
                                 element: (
                                     <ToolbarButton
-                                        icon="monitor_heart"
+                                        icon={icons.diagnostic}
                                         title={t('page.integracio.diagnostic.titol')}
                                         variant="contained"
                                         disabled={!diagnosticApiIsReady}
@@ -112,7 +115,7 @@ export const IntegracioGrid: React.FC = () => {
                 )}
                 {detailDialog}
                 {diagnosticDialog}
-            </CardPage>
+            </ScreenFrame>
         </GridPage>
     );
 };

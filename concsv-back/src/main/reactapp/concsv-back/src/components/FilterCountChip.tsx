@@ -7,14 +7,34 @@ import { icons } from '../util/icons';
  * Surt a la barra de títol de la pantalla, al costat del títol (veure StyledMuiGrid i ScreenFrame).
  */
 
+/** Substitueix per espais el contingut dels literals entre cometes simples (admet l'escapament amb `\`). */
+const maskLiterals = (filter: string): string => {
+    let out = '';
+    let inLiteral = false;
+    for (let i = 0; i < filter.length; i++) {
+        const c = filter[i];
+        if (inLiteral && c === '\\') {
+            out += '  ';
+            i++;
+        } else if (c === "'") {
+            inLiteral = !inLiteral;
+            out += c;
+        } else {
+            out += inLiteral ? ' ' : c;
+        }
+    }
+    return out;
+};
+
 /**
  * Compta els operands de primer nivell d'una cadena Spring Filter: treu els parèntesis que
  * envolten tota l'expressió, ignora el contingut dels parèntesis interiors i compta els
- * AND/OR que queden a fora.
+ * AND/OR que queden a fora. Els literals (valors escrits per l'usuari, que poden dur «and»,
+ * «or» o parèntesis) s'ignoren.
  */
-export const countTopLevel = (filter?: string): number => {
+export const countTopLevel =(filter?: string): number => {
     if (!filter || !filter?.trim()) return 0;
-    let str = filter.trim();
+    let str = maskLiterals(filter.trim());
 
     if (str.startsWith('(') && str.endsWith(')')) {
         let bal = 0;

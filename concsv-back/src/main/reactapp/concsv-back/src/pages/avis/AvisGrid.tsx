@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { GridPage, type MuiDataGridColDef, useMuiDataGridApiRef } from 'reactlib';
 import AvisFormContent from './AvisFormContent';
 import { useAvisAccions } from './AvisAccions';
-import { CardPage } from '../../components/CardData';
+import ScreenFrame from '../../components/ScreenFrame';
 import StyledMuiGrid from '../../components/StyledMuiGrid';
+import { icons } from '../../util/icons';
 import { formatDate } from '../../util/dateUtils';
 
 const columns: MuiDataGridColDef[] = [
@@ -38,7 +39,7 @@ export const AvisGrid: React.FC = () => {
 
     return (
         <GridPage>
-            <CardPage title={t('page.avisos.grid.title')}>
+            <ScreenFrame icon={icons.avis} title={t('page.avisos.grid.title')}>
                 <StyledMuiGrid
                     toolbarCreateTitle={t('page.avisos.accio.nova')}
                     resourceName="avisResource"
@@ -61,7 +62,7 @@ export const AvisGrid: React.FC = () => {
                     rowAdditionalActions={accions}
                     toolbarMassiveActions={accionsMassives}
                 />
-            </CardPage>
+            </ScreenFrame>
         </GridPage>
     );
 };

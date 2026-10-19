@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Box, Button, Grid, Icon, Typography } from '@mui/material';
 import {
@@ -7,7 +7,9 @@ import {
     useBaseAppContext,
     useResourceApiService,
 } from 'reactlib';
-import { CardPage } from '../../components/CardData';
+import ScreenFrame from '../../components/ScreenFrame';
+import { icons } from '../../util/icons';
+import { outlinedControlBorderSx } from '../../components/titleBarControlsSx';
 import { missatgeError } from '../propietats/PropietatsUtils';
 
 const ACCIO_COMPTAR = 'COMPTAR_CACHE';
@@ -40,10 +42,10 @@ const rutaCarpeta = (ruta: string, carpeta?: Carpeta) =>
 const ConfirmacioEsborrat: React.FC<{ carpeta?: Carpeta }> = ({ carpeta }) => {
     const { t } = useTranslation();
     const { isReady, artifactAction } = useResourceApiService('configResource');
-    const [resum, setResum] = useState<ResumCache>();
-    const [error, setError] = useState(false);
+    const [resum, setResum] = React.useState<ResumCache>();
+    const [error, setError] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (isReady) {
             artifactAction(undefined, { code: ACCIO_COMPTAR })
                 .then((resultat: ResumCache) => setResum(resultat))
@@ -95,11 +97,11 @@ export const CacheDocument: React.FC = () => {
     const { t } = useTranslation();
     const { temporalMessageShow } = useBaseAppContext();
     const { isReady, artifactAction } = useResourceApiService('configResource');
-    const [resum, setResum] = useState<ResumCache>();
+    const [resum, setResum] = React.useState<ResumCache>();
 
-    const [carregant, setCarregant] = useState(false);
+    const [carregant, setCarregant] = React.useState(false);
 
-    const refrescarBotons = useCallback(() => {
+    const refrescarBotons = React.useCallback(() => {
         if (isReady) {
             setCarregant(true);
             artifactAction(undefined, { code: ACCIO_COMPTAR })
@@ -111,7 +113,7 @@ export const CacheDocument: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady]);
 
-    useEffect(refrescarBotons, [refrescarBotons]);
+    React.useEffect(refrescarBotons, [refrescarBotons]);
 
     const onSucces = (resultat?: ResultatEsborrat) => {
         refrescarBotons();
@@ -148,7 +150,7 @@ export const CacheDocument: React.FC = () => {
 
     return (
         <GridPage>
-            <CardPage title={t('page.cacheDocuments.title')}>
+            <ScreenFrame icon={icons.cacheDocument} title={t('page.cacheDocuments.title')}>
                 <Grid container spacing={2}>
                     <Grid size={12} sx={{ px: 1 }}>
                         <Typography color="text.secondary">{t('page.cacheDocuments.descripcio.intro')}</Typography>
@@ -168,10 +170,10 @@ export const CacheDocument: React.FC = () => {
                         <Button
                             variant="outlined"
                             size="small"
-                            startIcon={<Icon>refresh</Icon>}
+                            startIcon={<Icon>{icons.refresca}</Icon>}
                             disabled={!isReady || carregant}
                             onClick={refrescarBotons}
-                            sx={{ borderRadius: '4px', ml: 'auto' }}
+                            sx={[{ borderRadius: '4px', ml: 'auto' }, outlinedControlBorderSx]}
                         >
                             {t('page.cacheDocuments.accio.refrescar')}
                         </Button>
@@ -181,7 +183,7 @@ export const CacheDocument: React.FC = () => {
                                 resourceName="configResource"
                                 action={accio}
                                 title={titolCarpeta(carpeta)}
-                                buttonIcon="delete"
+                                buttonIcon={icons.esborra}
                                 confirm
                                 confirmMessage={<ConfirmacioEsborrat carpeta={carpeta} />}
                                 onSuccess={onSucces}
@@ -197,7 +199,7 @@ export const CacheDocument: React.FC = () => {
                             resourceName="configResource"
                             action={ACCIO_ESBORRAR_TOTES}
                             title={titolTotes()}
-                            buttonIcon="delete_sweep"
+                            buttonIcon={icons.esborraTot}
                             confirm
                             confirmMessage={<ConfirmacioEsborrat />}
                             onSuccess={onSucces}
@@ -211,7 +213,7 @@ export const CacheDocument: React.FC = () => {
                         />
                     </Grid>
                 </Grid>
-            </CardPage>
+            </ScreenFrame>
         </GridPage>
     );
 };

@@ -6,6 +6,7 @@ import FormActionDialog, { type FormActionDialogApi } from '../../components/For
 import GridFormField from '../../components/GridFormField';
 import type { MassiveActionProps } from '../../components/MassiveActionSelector';
 import { ToolbarButton } from '../../components/StyledMuiGrid';
+import { icons } from '../../util/icons';
 
 const RESOURCE_NAME = 'documentExclosResource';
 const INFORME_EXPORTAR = 'EXPORTAR';
@@ -54,14 +55,14 @@ export const useDocumentExclosAccions = (
     const accions: AccionsFila = [
         {
             label: t('page.documentsExclosos.accio.modificar'),
-            icon: 'edit',
+            icon: icons.modifica,
             showInMenu: true,
             rowLink: 'update',
             clickShowUpdateDialog: true,
         },
         {
             label: t('page.documentsExclosos.accio.esborrar'),
-            icon: 'delete',
+            icon: icons.esborra,
             showInMenu: true,
             rowLink: 'delete',
             clickTriggerDelete: true,
@@ -98,7 +99,7 @@ export const useDocumentExclosAccions = (
     const accionsMassives: MassiveActionProps[] = [
         {
             label: t('page.documentsExclosos.accio.esborrar'),
-            icon: 'delete',
+            icon: icons.esborra,
             showInMenu: true,
             onClick: eliminaSeleccio,
         },
@@ -138,7 +139,7 @@ export const useDocumentExclosAccions = (
             element: (
                 <ToolbarButton
                     title={t('page.documentsExclosos.accio.descarrega')}
-                    icon="file_download"
+                    icon={icons.descarrega}
                     variant="contained"
                     onClick={descarrega}
                 >
@@ -151,7 +152,7 @@ export const useDocumentExclosAccions = (
             element: (
                 <ToolbarButton
                     title={t('page.documentsExclosos.accio.carrega')}
-                    icon="file_upload"
+                    icon={icons.carrega}
                     variant="contained"
                     onClick={() => importacioApiRef.current?.show(undefined)}
                 >
@@ -169,7 +170,7 @@ export const useDocumentExclosAccions = (
             apiRef={importacioApiRef}
             buttons={[
                 {
-                    icon: 'file_upload',
+                    icon: icons.carrega,
                     text: t('page.documentsExclosos.accio.carrega'),
                     componentProps: { variant: 'contained' },
                     value: true,

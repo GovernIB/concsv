@@ -2,8 +2,9 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { GridPage, type MuiDataGridColDef, useMuiDataGridApiRef } from 'reactlib';
 import { useDocumentExclosAccions } from './DocumentExclosAccions';
-import { CardPage } from '../../components/CardData';
+import ScreenFrame from '../../components/ScreenFrame';
 import StyledMuiGrid from '../../components/StyledMuiGrid';
+import { icons } from '../../util/icons';
 import { Grid } from '@mui/material';
 import GridFormField from '../../components/GridFormField';
 
@@ -25,7 +26,7 @@ const DocumentExclosGrid: React.FC = () => {
 
     return (
         <GridPage>
-            <CardPage title={t('page.documentsExclosos.grid.title')}>
+            <ScreenFrame icon={icons.documentExclos} title={t('page.documentsExclosos.grid.title')}>
                 <StyledMuiGrid
                     toolbarCreateTitle={t('page.documentsExclosos.accio.nova')}
                     resourceName="documentExclosResource"
@@ -50,7 +51,7 @@ const DocumentExclosGrid: React.FC = () => {
                     toolbarElementsWithPositions={botonsToolbar}
                 />
                 {dialegImportacio}
-            </CardPage>
+            </ScreenFrame>
         </GridPage>
     );
 };

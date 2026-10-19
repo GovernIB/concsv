@@ -4,8 +4,9 @@ import { GridPage, type MuiDataGridColDef, useMuiDataGridApiRef } from 'reactlib
 import EntitatFilter from './EntitatFilter';
 import EntitatFormContent from './EntitatFormContent';
 import { useEntitatAccions } from './EntitatAccions';
-import { CardPage } from '../../components/CardData';
+import ScreenFrame from '../../components/ScreenFrame';
 import StyledMuiGrid from '../../components/StyledMuiGrid';
+import { icons } from '../../util/icons';
 
 // Les capçaleres no es declaren aquí: el MuiDataGrid les omple amb l'etiqueta que el backend
 // publica per a cada camp (el `_prompt` del HAL-FORMS, veure concsv-back-rest-messages). És la
@@ -35,7 +36,7 @@ export const EntitatGrid: React.FC = () => {
     const accions = useEntitatAccions(refresh);
     return (
         <GridPage>
-            <CardPage title={t('page.entitats.grid.title')}>
+            <ScreenFrame icon={icons.entitat} title={t('page.entitats.grid.title')}>
                 <EntitatFilter onSpringFilterChange={setSpringFilter} />
                 <StyledMuiGrid
                     toolbarCreateTitle={t('page.entitats.accio.nova')}
@@ -61,7 +62,7 @@ export const EntitatGrid: React.FC = () => {
                     rowHideDeleteButton
                     rowAdditionalActions={accions}
                 />
-            </CardPage>
+            </ScreenFrame>
         </GridPage>
     );
 };

@@ -7,6 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import Icon from '@mui/material/Icon';
 import Box from '@mui/material/Box';
 import { useBaseAppContext } from 'reactlib';
+import { icons } from '../../util/icons';
 
 type IntegracioStacktraceProps = {
     stacktrace: string;
@@ -41,7 +42,7 @@ export const IntegracioStacktrace: React.FC<IntegracioStacktraceProps> = ({
                 <Stack direction="row" alignItems="center" spacing={1} justifyContent="space-between">
                     <Typography variant="subtitle2">{t('page.integracio.detail.excepcioStacktrace')}</Typography>
                     <IconButton size="small" onClick={copyStacktrace} title={t('page.integracio.detail.copyTooltip')}>
-                        <Icon fontSize="small">content_copy</Icon>
+                        <Icon fontSize="small">{icons.copia}</Icon>
                     </IconButton>
                 </Stack>
             )}

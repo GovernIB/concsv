@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { MuiDialog, useBaseAppContext, useCloseDialogButtons, useResourceApiService } from 'reactlib';
 import { IntegracioStacktrace } from './IntegracioStacktrace';
+import { icons } from '../../util/icons';
 
 const INTEGRACIO_RESOURCE = 'monitorIntegracioResource';
 const ACTION_INTEGRACIONS_DIAGNOSTIC = 'INTEGRACIONS_DIAGNOSTIC';
@@ -85,7 +86,7 @@ const DiagnosticFila: React.FC<{
                                     <>
                                         <Tooltip title={t('page.integracio.diagnostic.copiaTraca')}>
                                             <IconButton color="inherit" size="small" onClick={copiaTraca}>
-                                                <Icon fontSize="small">content_copy</Icon>
+                                                <Icon fontSize="small">{icons.copia}</Icon>
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip
@@ -130,7 +131,7 @@ const DiagnosticFila: React.FC<{
                 <Tooltip title={t('page.integracio.diagnostic.executa')}>
                     <span>
                         <IconButton onClick={() => onExecuta(codi)} disabled={executant}>
-                            <Icon>refresh</Icon>
+                            <Icon>{icons.refresca}</Icon>
                         </IconButton>
                     </span>
                 </Tooltip>
@@ -231,7 +232,7 @@ export const useIntegracioDiagnostic = () => {
                         <Button
                             variant="contained"
                             color="success"
-                            startIcon={<Icon sx={{ mr: 1 }}>refresh</Icon>}
+                            startIcon={<Icon sx={{ mr: 1 }}>{icons.refresca}</Icon>}
                             onClick={() => executaTotes(codis)}
                             disabled={codis.length === 0 || algunaExecutant}
                             sx={{ mb: 1 }}

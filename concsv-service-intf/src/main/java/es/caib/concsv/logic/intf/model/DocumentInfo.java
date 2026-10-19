@@ -30,7 +30,6 @@ public class DocumentInfo implements Serializable {
 	private String hash;
     private Boolean printable;
     private Boolean csvExclos;
-    private Boolean amagarBotoOriginal;
 	private Boolean hasPassword;
     private Boolean malformatted;
     private String eniDocumentId;
@@ -41,7 +40,7 @@ public class DocumentInfo implements Serializable {
     private EniSignatureType eniSignType;
     private EniElaborationStatus eniElaborationStatus;
     private String downloadUrl;
-    
+
     // Signants
     private List<DocumentSigner> signers;
     private String datacaptura;
@@ -52,7 +51,7 @@ public class DocumentInfo implements Serializable {
     private String destinoTraslado;
     private String nuevaLocalizacion;
     private String fechaTraslado;
-    
+
     public void setDocumentLocation(DocumentLocation documentLocation) {
         this.documentLocation = documentLocation;
         this.eniDoc = (documentLocation.equals(DocumentLocation.NewDigitalArchive))?"1":"0";
@@ -67,7 +66,7 @@ public class DocumentInfo implements Serializable {
 		return "DocumentInfo [documentLocation=" + documentLocation + ", correctSafeKeeping=" + correctSafeKeeping
 				+ ", validHierarchy=" + validHierarchy + ", verifiedHierarchy=" + verifiedHierarchy + ", documentCode="
 				+ documentCode + ", documentName=" + documentName + ", documentType=" + documentType + ", hash=" + hash
-				+ ", isPDF=" + printable + ", isCsvExclos=" + csvExclos + ", isAmagarBotoOriginal=" + amagarBotoOriginal
+				+ ", isPDF=" + printable + ", isCsvExclos=" + csvExclos
                 + ", isHasPassword=" + hasPassword + ", isMalformatted=" + malformatted
                 + ", eniDocumentId=" + eniDocumentId + ", eniOrgan=" + eniOrgan
 				+ ", eniDocumentType=" + eniDocumentType + ", eniOrigin=" + eniOrigin + ", eniNtiVersion="

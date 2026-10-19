@@ -187,7 +187,6 @@ public class HashService implements HashServiceInterface {
 					throw new GenericServiceException("Error comprovant si el document " + hash + " és imprimible", ex);
 				}
 				docInfo.setCsvExclos(isDocumentExclos(docInfo.getDocumentCode(), hash));
-				docInfo.setAmagarBotoOriginal(this.isAmagarBotoOriginal());
 			} else {
 				log.debug("\tHash " + hash + " no trobat.");
 				// Si no s'ha trobat i s'ha produit excepció la enregistra i propaga
@@ -820,15 +819,6 @@ public class HashService implements HashServiceInterface {
 			String message = "Excepció en el servei del nou arxiu digital";
 			throw new GenericServiceException(message, ex);
 		}
-	}
-
-	/**
-	 * Indica si amagar per defecte el botó de descàrrega de l'original en documents amb versió
-	 * imprimible (propietat {@code amagar.boto.original}; ara també s'accepten S, 1, yes, y i on).
-	 * Es llegeix a cada ús: es pot canviar des del backoffice sense reiniciar.
-	 */
-	private boolean isAmagarBotoOriginal() {
-		return configValues.getBoolean(PropertyConfig.PROP_AMAGAR_BOTO_ORIGINAL, false);
 	}
 
 	/** Indica si la memòria cau de documents està activa (propietat {@code cache.activa}). */

@@ -300,6 +300,7 @@ const ViewFound: React.FC<any> = (props) => {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
     const noImprimible = !data.printable || !!data.hasPassword || !!data.malformatted;
     const previewEnabled = envVar('VITE_PREVIEW_ENABLED', envVars)?.toLowerCase() === 'true';
+    const amagarBotoOriginal = envVar('VITE_AMAGAR_BOTO_ORIGINAL', envVars)?.toLowerCase() === 'true';
     const previewByDefault = previewEnabled && !noImprimible;
     const [previewShow, setPreviewShow] = React.useState<boolean>(previewByDefault);
     const [loadingPreview, setLoadingPreview] = React.useState<boolean>(previewByDefault);
@@ -357,7 +358,7 @@ const ViewFound: React.FC<any> = (props) => {
         )}
         <Box sx={{ display: 'flex', flexDirection: isSmallScreen ? 'column' : 'row', justifyContent: 'center', width: '100%', mt: 4 }}>
         	{ 
-				(!data.amagarBotoOriginal || noImprimible || printableFailed) &&
+				(!amagarBotoOriginal || noImprimible || printableFailed) &&
 	        	(<Button
 	                variant="contained"
 	                disabled={data.csvExclos}

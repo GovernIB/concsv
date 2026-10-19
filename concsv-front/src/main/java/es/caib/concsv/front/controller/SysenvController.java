@@ -38,7 +38,8 @@ public class SysenvController {
 	private static final List<String> PROPIETATS_CONFIGURABLES = List.of(
 		PropertyConfig.PROP_FRONT_PREVIEW_ENABLED,
 		PropertyConfig.PROP_FRONT_RECAPTCHA_ENABLED,
-		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY);
+		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY,
+		PropertyConfig.PROP_AMAGAR_BOTO_ORIGINAL);
 
 	@Autowired
 	private Environment env;
@@ -50,13 +51,15 @@ public class SysenvController {
 		PropertyConfig.PROP_FRONT_API_URL, "REACT_APP_API_URL",
 		PropertyConfig.PROP_FRONT_PREVIEW_ENABLED, "REACT_APP_PREVIEW_ENABLED",
 		PropertyConfig.PROP_FRONT_RECAPTCHA_ENABLED, "REACT_APP_RECAPTCHA_ENABLED",
-		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY, "REACT_APP_RECAPTCHA_SITE_KEY");
+		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY, "REACT_APP_RECAPTCHA_SITE_KEY",
+		PropertyConfig.PROP_AMAGAR_BOTO_ORIGINAL, "REACT_APP_AMAGAR_BOTO_ORIGINAL");
 
 	private Map<String, String> additionalViteEnvVars = Map.of(
 		PropertyConfig.PROP_FRONT_API_URL, "VITE_API_URL",
 		PropertyConfig.PROP_FRONT_PREVIEW_ENABLED, "VITE_PREVIEW_ENABLED",
 		PropertyConfig.PROP_FRONT_RECAPTCHA_ENABLED, "VITE_RECAPTCHA_ENABLED",
-		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY, "VITE_RECAPTCHA_SITE_KEY");
+		PropertyConfig.PROP_FRONT_RECAPTCHA_SITEKEY, "VITE_RECAPTCHA_SITE_KEY",
+		PropertyConfig.PROP_AMAGAR_BOTO_ORIGINAL, "VITE_AMAGAR_BOTO_ORIGINAL");
 
 	@GetMapping
 	public ResponseEntity<String> systemEnvironment(

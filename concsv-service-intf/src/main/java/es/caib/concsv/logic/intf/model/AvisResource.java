@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.hateoas.server.core.Relation;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -66,6 +67,7 @@ import java.util.List;
 						formClass = AvisResource.FormAccioMassiva.class)
 		}
 )
+@Relation(collectionRelation = "avisos", itemRelation = "avis")
 public class AvisResource implements Resource<Long> {
 
 	public static final String ACTION_ACTIVAR_CODE = "ACTIVAR";

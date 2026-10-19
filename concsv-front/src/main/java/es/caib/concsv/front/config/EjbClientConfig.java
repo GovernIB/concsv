@@ -3,6 +3,7 @@
  */
 package es.caib.concsv.front.config;
 
+import es.caib.concsv.logic.intf.resourceservice.AvisResourceService;
 import es.caib.concsv.logic.intf.service.ComandaServiceInterface;
 import es.caib.concsv.logic.intf.service.ConfigServiceInterface;
 import es.caib.concsv.logic.intf.service.HashServiceInterface;
@@ -40,6 +41,11 @@ public class EjbClientConfig {
 	@Bean
 	public LocalStatelessSessionProxyFactoryBean comandaService() {
 		return getLocalEjbFactoyBean(ComandaServiceInterface.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean avisResourceService() {
+		return getLocalEjbFactoyBean(AvisResourceService.class);
 	}
 
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {

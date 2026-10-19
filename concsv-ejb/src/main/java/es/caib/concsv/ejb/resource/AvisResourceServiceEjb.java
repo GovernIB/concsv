@@ -8,9 +8,11 @@ import es.caib.concsv.logic.intf.base.exception.ArtifactNotFoundException;
 import es.caib.concsv.logic.intf.base.exception.ReportGenerationException;
 import es.caib.concsv.logic.intf.base.exception.ResourceFieldNotFoundException;
 import es.caib.concsv.logic.intf.base.model.ResourceArtifactType;
+import es.caib.concsv.logic.intf.model.AvisResource;
 import es.caib.concsv.logic.intf.resourceservice.AvisResourceService;
 import lombok.experimental.Delegate;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Local;
 import javax.ejb.Stateless;
@@ -55,6 +57,12 @@ public class AvisResourceServiceEjb extends AbstractServiceEjb<AvisResourceServi
 	public <P extends Serializable> List<?> artifactReportGenerateData(Long id, String code, P params)
 			throws ArtifactNotFoundException, ReportGenerationException {
 		return delegateService.artifactReportGenerateData(id, code, params);
+	}
+
+	@Override
+	@PermitAll
+	public List<AvisResource> findActius(Long entitatId) {
+		return delegateService.findActius(entitatId);
 	}
 
 }

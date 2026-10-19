@@ -24,6 +24,11 @@ const translationEs = {
                 length: "El código debe tener un mínimo de 32 carácteres"
             }
         },
+        avisos: {
+            validFinsA: "Finaliza el ",
+            collapse: "Contraer",
+            expand: "Expandir",
+        },
         view: {
             loading: {
                 title: "Buscando el documento...",

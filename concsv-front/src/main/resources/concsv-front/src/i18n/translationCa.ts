@@ -24,6 +24,11 @@ const translationCa = {
                 length: "El codi ha de tenir un mínim de 32 caràcters"
             }
         },
+        avisos: {
+            validFinsA: "Finalitza el ",
+            collapse: "Contraure",
+            expand: "Expandir",
+        },
         view: {
             loading: {
                 title: "Cercant el document...",

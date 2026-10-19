@@ -10,6 +10,7 @@ import Box from '@mui/material/Box';
 import Recaptcha from 'react-google-recaptcha';
 import { BasePage, useAppContext, envVar } from '@programari-limit/base-react';
 import { envVars } from '../main';
+import AvisosAlert from '../components/AvisosAlert';
 
 
 const isRecaptchaShow = () => {
@@ -77,6 +78,9 @@ const Home: React.FC = () => {
         <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', mt: 2 }}>
             {t('page.home.title')}
         </Typography>
+        <Box sx={{ mx: 'auto' }}>
+            <AvisosAlert />
+        </Box>
         <Typography gutterBottom sx={{ textAlign: 'justify' }}>
             {t('page.home.p1')}
         </Typography>

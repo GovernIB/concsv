@@ -19,6 +19,7 @@ import {
 import Preview from '../components/Preview';
 import { envVars } from '../main';
 import { Alert } from '@mui/material';
+import AvisosAlert from '../components/AvisosAlert';
 
 const SignerRow: React.FC<any> = (props) => {
     const {
@@ -326,6 +327,9 @@ const ViewFound: React.FC<any> = (props) => {
     const { currentLanguage } = useAppContext();
 
     return <BasePage>
+        <Box sx={{ mx: 'auto' }}>
+          <AvisosAlert />
+        </Box>
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 2 }}>
             <Box sx={{ textAlign: 'center' }}>
                 <Icon sx={{ fontSize: '81.92px', color: 'rgba(165, 220, 134, 1)' }}>check_circle_outline</Icon>

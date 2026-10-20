@@ -1,9 +1,4 @@
 -- ConCSV 2.2.1: monitor d'integracions.
---
--- Registre de les peticions que ConCSV fa a les integracions externes (Arxiu, Custòdia Antiga,
--- validació de firmes i conversió de documents).
--- Si l'aplicació es connecta amb un usuari diferent del propietari de l'esquema, descomenteu el
--- GRANT del final (substituïu WWW_CONCSV per l'usuari o rol de l'entorn).
 
 CREATE TABLE CSV_INTEGRACIO_ACCIO
 (
@@ -34,12 +29,10 @@ COMMENT ON COLUMN CSV_INTEGRACIO_ACCIO.ESTAT IS 'OK o ERROR';
 ALTER TABLE CSV_INTEGRACIO_ACCIO ADD (
   CONSTRAINT CSV_INTEGRACIO_ACCIO_PK PRIMARY KEY (ID));
 
--- El llistat del monitor ordena per data i filtra per integracio i data. Els noms dels índexs
--- no passen dels 30 caràcters per ser compatibles amb versions antigues d'Oracle.
 CREATE INDEX CSV_INTEGRACIO_ACCIO_DATA_I ON CSV_INTEGRACIO_ACCIO (DATA);
 CREATE INDEX CSV_INTEGRACIO_ACCIO_CODI_I ON CSV_INTEGRACIO_ACCIO (INTEGRACIO_CODI, DATA);
 
--- GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_INTEGRACIO_ACCIO TO WWW_CONCSV;
+GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_INTEGRACIO_ACCIO TO WWW_CONCSV;
 
 -- Es creen buides (VALUE = NULL): mentre no s'hi posi cap valor des del backoffice s'aplica el
 -- valor per defecte del codi (monitor actiu i 30 dies de retenció).

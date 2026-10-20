@@ -1,21 +1,3 @@
--- ConCSV 2.2.1: manteniment de propietats configurables del backoffice (grups, tipus i propietats).
---
--- Propietats amb JBOSS_PROPERTY = 1: el seu valor es defineix als fitxers de propietats del servidor
--- (es.caib.concsv.properties i es.caib.concsv.system.properties) i el backoffice les mostra
--- deshabilitades, sense poder-les modificar.
--- Propietats amb JBOSS_PROPERTY = 0: es poden modificar des del backoffice. Els serveis llegeixen
--- el valor de la columna VALUE a cada ús i, si és NULL, el del fitxer de propietats del servidor.
--- Les files es creen amb VALUE = NULL: el valor de cada entorn s'hi copia amb el botó "Sincronitza"
--- de la pantalla "Propietats de sistema" (o es desa a mà); mentrestant mana el fitxer del servidor.
--- Les contrasenyes (tipus CREDENTIALS) no es carreguen mai a la BD ni es poden desar des del backoffice.
--- Per tornar d'emergència als fitxers del servidor, sense reiniciar:
---   UPDATE CSV_CONFIG SET VALUE = NULL WHERE JBOSS_PROPERTY = 0;
--- Després d'executar l'script i desplegar l'aplicació, prémer "Sincronitza" si es vol que la BD dugui
--- els valors dels fitxers del servidor.
--- Els textos duen accents: executeu l'script en UTF-8 (per exemple NLS_LANG=.AL32UTF8).
--- Si l'aplicació es connecta amb un usuari diferent del propietari de l'esquema, descomenteu els
--- GRANT del final (substituïu WWW_CONCSV per l'usuari o rol de l'entorn).
-
 -- ---------------------------------------------------------------------------------------------
 -- Taules
 -- ---------------------------------------------------------------------------------------------
@@ -153,8 +135,8 @@ INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION
 COMMIT;
 
 -- ---------------------------------------------------------------------------------------------
--- Permisos: només si l'aplicació es connecta amb un usuari diferent del propietari de l'esquema
+-- Permisos
 -- ---------------------------------------------------------------------------------------------
--- GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_CONFIG TO WWW_CONCSV;
--- GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_CONFIG_GROUP TO WWW_CONCSV;
--- GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_CONFIG_TYPE TO WWW_CONCSV;
+GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_CONFIG TO WWW_CONCSV;
+GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_CONFIG_GROUP TO WWW_CONCSV;
+GRANT SELECT, UPDATE, INSERT, DELETE ON CSV_CONFIG_TYPE TO WWW_CONCSV;

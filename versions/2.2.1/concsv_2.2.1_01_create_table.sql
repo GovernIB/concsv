@@ -1,5 +1,4 @@
 -- ConCSV 2.2.1: taules del backoffice (entitats, usuaris i avisos).
--- La seqüència CSV_HIBERNATE_SEQ ja existeix des de la 2.0.
 
 CREATE TABLE CSV_ENTITAT
 (

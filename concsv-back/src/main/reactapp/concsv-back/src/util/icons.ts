@@ -11,14 +11,14 @@
 export const icons = {
     // --- Pantalles (entrades de menú i títol de la pantalla) ---------------------------------
     inici: 'home',
-    entitat: 'domain',
+    entitat: 'account_balance',
     avis: 'campaign',
     documentExclos: 'block',
-    propietat: 'settings',
-    integracio: 'monitor_heart',
+    propietat: 'display_settings',
+    integracio: 'sync_alt',
     cacheDocument: 'cached',
-    configuracio: 'tune',
-    monitoritzacio: 'monitoring',
+    configuracio: 'settings',
+    monitoritzacio: 'monitor',
 
     // --- Accions -----------------------------------------------------------------------------
     crea: 'add',

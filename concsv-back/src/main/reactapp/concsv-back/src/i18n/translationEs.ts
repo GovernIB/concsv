@@ -33,6 +33,11 @@ const translationEs = {
             error: 'No se ha podido obtener la sesión del usuario.',
             tornarAProvar: 'Vuelve a intentarlo',
         },
+        sensePermisos: {
+            titol: 'Acceso no autorizado',
+            missatge: 'El usuario {{usuari}} no tiene permisos para acceder a CONCSV: se requiere el rol CSV_SUPER.',
+            tancarSessio: 'Cierra la sesión',
+        },
         menu: {
             home: 'Inicio',
             entitats: 'Entidades',
@@ -247,12 +252,6 @@ const translationEs = {
                 tema: 'Tema',
                 temaInvertit: 'Tema invertido',
                 peu: 'Fijo',
-            },
-        },
-        EntitatRolSelector: {
-            rol: {
-                CSV_SUPER: 'Superusuario',
-                tothom: 'Usuario',
             },
         },
         MassiveActionSelector: {

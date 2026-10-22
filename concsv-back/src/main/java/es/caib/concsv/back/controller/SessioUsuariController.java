@@ -46,7 +46,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SessioUsuariController {
 
-	/** Rols que la interfície REACT pot oferir al selector de rol. */
+	/**
+	 * Rols de l'usuari que es comuniquen a la interfície REACT. Només hi deixa entrar els usuaris
+	 * amb {@link BaseConfig#ROLE_SUPER} i, a la resta, els mostra una pantalla de sense permisos
+	 * (veure {@code ConcsvProvider.tsx}).
+	 */
 	public static final String[] ROLS_INTERFICIE = new String[] {
 			BaseConfig.ROLE_SUPER,
 			BaseConfig.ROLE_USER

@@ -20,7 +20,7 @@ import reactlibCa from '../i18n/reactlibCa';
 import reactlibEs from '../i18n/reactlibEs';
 import Offline from './Offline';
 import { UserProfileMenu, UserProfileFormDialog, useUserPreferences } from './UserProfile';
-import { EntitatSelector, RolSelector, getRolBadgeIcon } from './EntitatRolSelector';
+import { EntitatSelector, getRolBadgeIcon } from './EntitatRolSelector';
 import { useConcsvContext } from './ConcsvContext';
 import { MenuEstil } from '../theme';
 import { idiomaAplicacio } from '../util/idioma';
@@ -260,7 +260,6 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
                 <Box key="user_profile" sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
                     <UserProfileMenu formDialogApiRef={formDialogApiRef} />
                 </Box>,
-                <RolSelector key="rol_selector" />,
             ]}
             offline={<Offline />}
             footer={footer}

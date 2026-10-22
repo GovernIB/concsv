@@ -259,20 +259,17 @@ const PreferencesSync: React.FC = () => {
     return null;
 };
 
-// Camp de només lectura amb els rols amb què l'usuari pot operar. Es mostren els del context
-// (els mateixos que ofereix el selector de rol) i no data.rols: el backend construeix aquest camp
-// a partir de les autoritats de la petició, i RolSeleccionatFilter les restringeix al rol actiu,
-// de manera que només s'hi veuria el rol amb què s'està operant. No es tradueixen.
+// Camp de només lectura amb el rol amb què opera l'usuari, que és sempre CSV_SUPER (veure
+// ConcsvProvider). No es tradueix.
 const RolesField: React.FC = () => {
     const { t } = useTranslation();
-    const { data } = useFormContext();
-    const { rolesAvailable } = useConcsvContext();
+    const { currentRole } = useConcsvContext();
     return (
         <TextField
             fullWidth
             size="small"
             label={t('component.UserProfile.rols')}
-            value={(rolesAvailable ?? data?.rols ?? []).join(', ')}
+            value={currentRole ?? ''}
             disabled
             slotProps={{
                 input: {

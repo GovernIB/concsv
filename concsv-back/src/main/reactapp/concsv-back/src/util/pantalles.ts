@@ -1,11 +1,11 @@
 import type { MenuEntry } from 'reactlib';
-import { ROLE_SUPER, ROLE_USER } from '../components/ConcsvContext';
+import { ROLE_SUPER } from '../components/ConcsvContext';
 
 /**
- * Rols amb els quals es pot operar a la interfície REACT: els mateixos que ofereix el selector de
- * rol (veure ALLOWED_ROLES a ConcsvProvider).
+ * Rols amb els quals es pot operar a la interfície REACT. Avui només CSV_SUPER: la resta d'usuaris
+ * no hi poden entrar (veure ConcsvProvider).
  */
-export const ROLS_APLICACIO = [ROLE_SUPER, ROLE_USER];
+export const ROLS_APLICACIO = [ROLE_SUPER];
 
 /** Identificador de cada pantalla amb control d'accés. Una pantalla nova s'ha d'afegir aquí. */
 export type Pantalla =

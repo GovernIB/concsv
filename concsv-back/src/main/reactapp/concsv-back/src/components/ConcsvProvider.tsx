@@ -1,25 +1,24 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Icon from '@mui/material/Icon';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useResourceApiContext, useResourceApiService } from 'reactlib';
-import { ConcsvContext, ROLE_SUPER, ROLE_USER } from './ConcsvContext';
+import { useAuthContext, useResourceApiContext, useResourceApiService } from 'reactlib';
+import { ConcsvContext, ROLE_SUPER } from './ConcsvContext';
 import { useSessioUsuari } from './ConcsvAuthProvider';
 import { idiomaAplicacio } from '../util/idioma';
 
-const ALLOWED_ROLES = [ROLE_USER, ROLE_SUPER];
-
 export const concsvChannel = new BroadcastChannel('concsv');
 type CurrentSession = Readonly<{
-    role?: string;
     entitatId?: number;
 }>;
 
 /**
- * Rol i entitat de treball de la pestanya, sincronitzats amb les altres pestanyes de l'aplicació.
+ * Entitat de treball de la pestanya, sincronitzada amb les altres pestanyes de l'aplicació.
  *
- * Només es difonen els canvis que fa l'usuari des dels selectors (`publishSession`). Els passos
+ * Només es difonen els canvis que fa l'usuari des del selector (`publishSession`). Els passos
  * d'inicialització de la pestanya (`setSession`) són locals: si es difonguessin, una pestanya que
  * arrenca (pestanya nova, F5) enviaria `entitatId: undefined` a les altres, que mostrarien la
  * pantalla de càrrega i desmuntarien tota l'aplicació, i a més els imposaria la seva entitat
@@ -51,9 +50,7 @@ const useBroadcastSession = () => {
             }
             // Si no canvia res es conserva l'objecte anterior perquè React no torni a pintar.
             setSessionState((previous) =>
-                previous.role === data.role && previous.entitatId === data.entitatId
-                    ? previous
-                    : { role: data.role, entitatId: data.entitatId }
+                previous.entitatId === data.entitatId ? previous : { entitatId: data.entitatId }
             );
         };
 
@@ -105,70 +102,26 @@ const useCurrentUser = () => {
     return { currentUser, setCurrentUser };
 };
 
-const useCurrentRole = (broadcast: BroadcastSession, currentUser: any) => {
+/**
+ * Rol amb què opera la interfície. Només hi poden entrar els usuaris amb CSV_SUPER (a la resta
+ * ConcsvProvider els mostra la pantalla de sense permisos), així que és sempre aquest i no hi ha
+ * selector de rol. Es continua enviant a la capçalera X-App-Role perquè RolSeleccionatFilter
+ * restringeixi les autoritats de cada petició a aquest rol, sense el rol base "tothom" que el
+ * backend concedeix a tot usuari autenticat.
+ */
+const useCurrentRole = () => {
 
     const { usuari: sessioUsuari } = useSessioUsuari();
     const { httpHeaders: apiHttpHeaders, setHttpHeaders: apiSetHttpHeaders } = useResourceApiContext();
-    const [currentUserId, setCurrentUserId] = React.useState<string>();
-    const [rolesAvailable, setRolesAvailable] = React.useState<string[]>();
-    const {
-        session,
-        setSession,
-        publishSession
-    } = broadcast;
-
-    const currentRole = session.role;
-
-    // Canvi de rol des del selector: es difon a les altres pestanyes.
-    const setCurrentRole = (role?: string) => publishSession({ role, entitatId: undefined });
-    const { getValue: roleSessionGetValue, setValue: roleSessionSetValue } = useSessionStorage(currentUserId, 'currentRole');
+    const currentRole = ROLE_SUPER;
     React.useEffect(() => {
-        // Els rols surten de la sessió de servidor (SessioUsuariController), no d'un token: la
-        // interfície no en gestiona cap (veure ConcsvAuthProvider). ROLE_USER s'hi afegeix sempre:
-        // "tothom" no és un rol de Keycloak sinó el rol base que el backend concedeix a tot usuari
-        // autenticat (veure WebSecurityConfig.filterAllowedGrantedAuthorities).
-        if (sessioUsuari == null) {
-            return;
-        }
-        setCurrentUserId(sessioUsuari.codi);
-        setRolesAvailable(ALLOWED_ROLES.filter((a) => a === ROLE_USER || sessioUsuari.rols.includes(a)));
-    }, [sessioUsuari]);
-
-    React.useEffect(() => {
-        // Rol inicial, per aquest ordre: el de la pestanya actual (sessionStorage), el darrer rol
-        // amb què l'usuari va operar (csv_usuari.rol_actual) i, si cap dels dos no està
-        // disponible, el rol base "tothom". S'espera currentUser per no
-        // decidir abans de conèixer el rol desat (isReady ja l'espera igualment).
-        if (rolesAvailable == null || currentUser == null || currentRole != null) {
-            return;
-        }
-        const rolDisponible = (rol?: string) => rol != null && rolesAvailable.includes(rol);
-        const rolInicial =
-            [roleSessionGetValue() ?? undefined, currentUser.rolActual].find(rolDisponible) ??
-            (rolDisponible(ROLE_USER) ? ROLE_USER : rolesAvailable[0]);
-        if (rolInicial != null) {
-            setSession({ role: rolInicial, entitatId: undefined });
-        }
-    }, [rolesAvailable, currentRole, currentUser]);
-
-    React.useEffect(() => {
-        // Configura el session storage i la capçalera HTTP amb el rol actual quan aquest canvia
-        if (currentRole === undefined) {
-            return;
-        }
-        roleSessionSetValue(currentRole);
-        if (currentRole) {
-            apiSetHttpHeaders([{ 'X-App-Role': currentRole }]);
-        }
-    }, [currentRole]);
+        apiSetHttpHeaders([{ 'X-App-Role': currentRole }]);
+    }, []);
     const currentRoleFromHttpHeader = apiHttpHeaders?.find((h) => 'X-App-Role' in h)?.['X-App-Role'];
-    const roleHttpHeaderInitialized = currentRole != null && currentRole === currentRoleFromHttpHeader;
     return {
-        currentUserId,
+        currentUserId: sessioUsuari?.codi,
         currentRole,
-        currentRoleReady: roleHttpHeaderInitialized,
-        rolesAvailable,
-        setCurrentRole,
+        currentRoleReady: currentRole === currentRoleFromHttpHeader,
     };
 };
 
@@ -200,7 +153,7 @@ const useCurrentEntitat = (
     const currentEntitatId = session.entitatId;
 
     // Canvi d'entitat des del selector: es difon a les altres pestanyes.
-    const setCurrentEntitatId = (id?: number) => publishSession({ role: session.role, entitatId: id });
+    const setCurrentEntitatId = (id?: number) => publishSession({ entitatId: id });
     // Inicialització de l'entitat de la pestanya: local.
     const setCurrentEntitatIdLocal = (id?: number) => setSession({ entitatId: id });
 
@@ -315,12 +268,29 @@ const useIdiomaApi = (currentUser: { idioma?: string } | undefined) => {
     return idioma != null && idioma === apiCurrentLanguage;
 };
 
-export const ConcsvProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+/** Pantalla per als usuaris autenticats que no tenen el rol CSV_SUPER. */
+const ConcsvProviderSensePermisos: React.FC<{ usuari: string }> = ({ usuari }) => {
+
+    const { t } = useTranslation();
+    const { signOut } = useAuthContext();
+    return (
+        <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', gap: 2, px: 2, textAlign: 'center',}}>
+            <Icon color="error" sx={{ fontSize: 70 }}>lock</Icon>
+            <Typography variant="h5">{t('app.sensePermisos.titol')}</Typography>
+            <Typography>{t('app.sensePermisos.missatge', { usuari })}</Typography>
+            <Button variant="contained" onClick={() => signOut?.()}>
+                {t('app.sensePermisos.tancarSessio')}
+            </Button>
+        </Box>
+    );
+};
+
+const ConcsvProviderAutoritzat: React.FC<React.PropsWithChildren> = ({ children }) => {
 
     const { offline: apiOffline } = useResourceApiContext();
     const broadcast = useBroadcastSession();
     const { currentUser, setCurrentUser } = useCurrentUser();
-    const { currentUserId, currentRole, currentRoleReady, rolesAvailable, setCurrentRole } = useCurrentRole(broadcast, currentUser);
+    const { currentUserId, currentRole, currentRoleReady } = useCurrentRole();
     const {
         currentEntitatId,
         currentEntitatReady,
@@ -341,9 +311,7 @@ export const ConcsvProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         isReady,
         currentUser,
         setCurrentUser,
-        rolesAvailable,
         currentRole,
-        setCurrentRole,
         entitatsAvailable,
         currentEntitatId,
         setCurrentEntitatId,
@@ -355,6 +323,17 @@ export const ConcsvProvider: React.FC<React.PropsWithChildren> = ({ children }) 
             {isReady ? children : <ConcsvProviderLoading />}
         </ConcsvContext.Provider>
     );
+};
+
+export const ConcsvProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+
+    const { usuari: sessioUsuari } = useSessioUsuari();
+    // Només poden entrar a l'aplicació els usuaris amb el rol CSV_SUPER. Es comprova abans de
+    // muntar ConcsvProviderAutoritzat perquè als altres no se'ls faci cap crida a l'API.
+    if (sessioUsuari != null && !sessioUsuari.rols.includes(ROLE_SUPER)) {
+        return <ConcsvProviderSensePermisos usuari={sessioUsuari.nom ?? sessioUsuari.codi} />;
+    }
+    return <ConcsvProviderAutoritzat>{children}</ConcsvProviderAutoritzat>;
 };
 
 export default ConcsvProvider;

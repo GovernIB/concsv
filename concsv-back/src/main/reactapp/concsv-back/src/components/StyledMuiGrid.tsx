@@ -122,7 +122,10 @@ const defaultProps: Partial<StyledMuiGridProps> = {
     // Exemple (comentat, no actiu):
     // paginationActive: true,
     // striped: true,
-    title: '',
+    // El títol de la pantalla ja el posa ScreenFrame (<h1>). Amb `title: ''` la barra d'eines de la
+    // llibreria pintava igualment un <h6> buit, que l'OAW compta com a encapçalament buit i com a
+    // salt de nivell (h1 -> h6).
+    titleDisabled: true,
 };
 
 const StyledMuiGrid = (props: StyledMuiGridProps) => {

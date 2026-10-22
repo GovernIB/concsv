@@ -24,9 +24,9 @@ INSERT INTO CSV_CONFIG_GROUP (CODE, PARENT_CODE, POSITION, DESCRIPTION) VALUES (
 -- ---------------------------------------------------------------------------------------------
 
 -- Configuració general
-INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.fitxers', NULL, 'Ruta de la carpeta de fitxers de l''aplicació al servidor', 'GENERAL', 'TEXT', 0, 0);
-INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.logo.path', NULL, 'Ruta del logo que s''incrusta als documents generats', 'GENERAL', 'TEXT', 1, 0);
-INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.logs.location', NULL, 'Carpeta dels logs del servidor', 'GENERAL', 'TEXT', 2, 0);
+INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.fitxers', NULL, 'Ruta de la carpeta de fitxers de l''aplicació al servidor', 'GENERAL', 'TEXT', 0, 1);
+INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.logo.path', NULL, 'Ruta del logo que s''incrusta als documents generats', 'GENERAL', 'TEXT', 1, 1);
+INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.logs.location', NULL, 'Carpeta dels logs del servidor', 'GENERAL', 'TEXT', 2, 1);
 INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.performance', NULL, 'Indica si es registren els temps d''execució dels serveis', 'GENERAL', 'BOOL', 3, 0);
 INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.query.url', 'http://vd.caib.es/', 'URL base per consultar un document a partir del seu CSV', 'GENERAL', 'TEXT', 4, 1);
 INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.optionalLabelMetadata.path', '/opt/webapps/concsv', 'Ruta del fitxer d''etiquetes de les metadades opcionals', 'GENERAL', 'TEXT', 5, 1);

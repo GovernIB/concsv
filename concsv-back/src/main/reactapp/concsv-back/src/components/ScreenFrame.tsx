@@ -60,6 +60,7 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = (props) => {
     // i la de la barra d'eines no depèn de la fila on cau: no hi ha oscil·lació.
     const barRef = React.useRef<HTMLDivElement>(null);
     const titleRef = React.useRef<HTMLHeadingElement>(null);
+    const actionsRef = React.useRef<HTMLDivElement>(null);
     const [wrapToolbar, setWrapToolbar] = React.useState(false);
 
     React.useLayoutEffect(() => {
@@ -70,14 +71,16 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = (props) => {
         }
         const measure = () => {
             const info = infoSlot?.offsetWidth ?? 0;
+            const actionsNatural = actionsRef.current?.scrollWidth ?? 0;
+            const extra = toolbarWidth + actionsNatural;
             const needed =
                 2 * SCREEN_TITLE_PADDING_X +
                 ICON_SIZE +
                 SCREEN_TITLE_GAP +
                 heading.scrollWidth +
                 (info > 0 ? SCREEN_TITLE_GAP + info : 0) +
-                toolbarWidth;
-            setWrapToolbar(toolbarWidth > 0 && needed > bar.clientWidth);
+                extra;
+            setWrapToolbar(extra > 0 && needed > bar.clientWidth);
         };
         measure();
         const observer = new ResizeObserver(measure);
@@ -85,8 +88,11 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = (props) => {
         if (infoSlot) {
             observer.observe(infoSlot);
         }
+        if (actionsRef.current) {
+            observer.observe(actionsRef.current);
+        }
         return () => observer.disconnect();
-    }, [toolbarWidth, infoSlot, title]);
+    }, [toolbarWidth, infoSlot, title, actions]);
 
     return (
         <ScreenFrameContext.Provider value={context}>
@@ -138,8 +144,15 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = (props) => {
                     <Box ref={setInfoSlot} sx={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }} />
                     {actions != null && (
                         <Box
+                            ref={actionsRef}
                             sx={{
                                 ml: 'auto',
+                                ...(wrapToolbar && {
+                                    position: 'absolute',
+                                    top: SCREEN_TITLE_MIN_HEIGHT + 'px',
+                                    right: SCREEN_TITLE_PADDING_X + 'px',
+                                    height: SCREEN_TITLE_MIN_HEIGHT + 'px',
+                                }),
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 1,

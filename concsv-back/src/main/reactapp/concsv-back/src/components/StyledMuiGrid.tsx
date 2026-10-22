@@ -1,8 +1,8 @@
-import { Box, Button, Icon, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Icon, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { titleBarControlsSx } from './titleBarControlsSx';
 import { useTranslation } from 'react-i18next';
 import { FilterCountChip } from './FilterCountChip'; // TODO: corregir ruta d'import segons projecte
-import { MuiDataGrid, MuiDataGridProps, useMuiDataGridApiRef } from 'reactlib';
+import { MuiDataGrid, MuiDataGridProps, useMuiDataGridApiRef, useResourceApiService } from 'reactlib';
 import {useGridApiRef as useMuiDatagridApiRef} from "@mui/x-data-grid-pro";
 import { useUserPreferences } from './UserProfile';
 import MassiveActionSelector, {MassiveActionProps} from "./MassiveActionSelector.tsx";
@@ -20,12 +20,15 @@ import { icons } from '../util/icons';
  * pantalles del projecte, per no haver de repetir-los a cada graella.
  *
  * Funcionalitats afegides (port parcial de StyledMuiGrid de RIPEA):
- *  - Xip amb el nombre de filtres aplicats a la barra d'eines (FilterCountChip existent).
- *  - Botó estàndard de barra d'eines (ToolbarButton) reutilitzat per "Refrescar".
+ *  - Recompte de filtres aplicats (FilterCountChip): a la barra de títol de la pantalla (ScreenFrame),
+ *    al costat del títol, o a la barra d'eines si la graella no és dins un marc.
+ *  - Dins un ScreenFrame, la barra d'eines de la llibreria es superposa a la barra de títol (veure l'sx).
+ *  - Botó estàndard de barra d'eines (ToolbarButton) reutilitzat per "Crea".
  *  - Defaults pel formulari popup: botons Guardar/Cancel·lar, mida del diàleg,
  *    no tancar en fer clic fora, i no permetre guardar si hi ha errors de validació.
  *  - Mida de pàgina per defecte treta del perfil de l'usuari (numElementsPagina).
  *  - Files d'alçada variable: el text llarg passa de línia en lloc de quedar tallat.
+ *  - Scroll dins la graella (no a la pàgina); les graelles incrustades passen autoHeight.
  *
  * Deliberadament NO s'inclou (pendent de decidir més endavant):
  *  - Accions massives (RIPEA #3).
@@ -55,7 +58,7 @@ export const ToolbarButton = (props: any) => {
                     {children && (
                         <Typography
                             variant="body2"
-                            sx={{ display: { xs: 'none', sm: 'none', md: 'block' } }}
+                            sx={{ display: { xs: 'none', sm: 'none', md: 'block' }, whiteSpace: 'nowrap' }}
                             ml={1}
                         >
                             {children}
@@ -66,6 +69,9 @@ export const ToolbarButton = (props: any) => {
         </Tooltip>
     );
 };
+
+/** Posició que col·loca un element al final de la barra d'eines de la llibreria (veure reactNodePosition). */
+const TOOLBAR_END = 100;
 
 /**
  * Mides de pàgina que es poden triar al peu de les graelles: les mateixes que ofereix el perfil de
@@ -79,6 +85,8 @@ const OPCIONS_PAGINACIO = [10, 20, 50, 100, 250];
  * fill de l'embolcall de la llibreria. Es descriu pel que conté (el `.MuiToolbar-root` de MUI) i no
  * per la posició, perquè no depengui de l'ordre dels germans. Únic punt a revisar si la llibreria
  * canvia aquesta estructura: l'usen l'sx i l'efecte de mesura d'aquest component.
+ *
+ * Només s'aplica a les graelles que no són `autoHeight` (el DOM de la llibreria no hi té l'embolcall).
  */
 const LIB_TOOLBAR = 'div:has(> .MuiToolbar-root):not(.MuiDataGrid-root)';
 
@@ -97,7 +105,7 @@ export type StyledMuiGridProps = Omit<MuiDataGridProps, 'toolbarElementsWithPosi
     toolbarShowFilterCount?: boolean;
     /** Text per a la barra d'eines de la pantalla de creació. */
     toolbarCreateTitle?: string;
-    /** Elements addicionals de la barra d'eines (es combinen amb el xip de filtres i el botó de refresc). */
+    /** Elements addicionals de la barra d'eines (es combinen amb el xip de filtres i els botons de crea i refresca). */
     toolbarElementsWithPositions?: MuiDataGridProps['toolbarElementsWithPositions'];
     /** Oculta el camp de quickFilter de la barra d'eines. Per defecte es false. */
     toolbarShowQuickFilter?: boolean;
@@ -129,7 +137,7 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
         filter,
         filterCount,
         namedQueries,
-        toolbarShowFilterCount = false,
+        toolbarShowFilterCount: toolbarShowFilterCountProp,
         toolbarCreateTitle,
         toolbarElementsWithPositions,
         toolbarHideRefresh,
@@ -146,20 +154,29 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
         popupEditFormDialogOnClose,
         popupEditFormDialogButtons,
         onRowSelectionModelChange,
+        autoHeight = false,
         sx,
         ...others
     } = { ...defaultProps, ...props };
+
+    // El botó «Crea» només surt si l'API del recurs ofereix l'acció de crear.
+    const { currentActions: apiCurrentActions } = useResourceApiService(props.resourceName);
+    const isCreateLinkPresent = apiCurrentActions?.['create'] != null;
 
     const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
     // Dins un ScreenFrame, la barra d'eines de la llibreria es superposa a la barra de títol (CSS de
     // més avall) i el recompte de filtres es pinta al costat del títol. Fora d'un marc tot es manté
-    // a la barra d'eines de la llibreria, com abans.
+    // a la barra d'eines de la llibreria. Les graelles `autoHeight` (diàlegs, pestanyes, detalls) no
+    // s'hi enganxen: el context de React travessa els portals dels diàlegs i es mourien les eines de
+    // la graella principal de la pantalla.
     const frame = useScreenFrame();
-    const infoSlot = frame?.infoSlot ?? null;
-    const setToolbarWidth = frame?.setToolbarWidth;
+    const infoSlot = !autoHeight ? (frame?.infoSlot ?? null) : null;
+    const setToolbarWidth = !autoHeight ? frame?.setToolbarWidth : undefined;
+    // El recompte és visible per defecte quan la graella és al marc d'una pantalla.
+    const toolbarShowFilterCount = toolbarShowFilterCountProp ?? infoSlot != null;
     const wrapperRef = useRef<HTMLDivElement>(null);
-    
+
     useEffect(() => {
         if (!setToolbarWidth || infoSlot == null) {
             return;
@@ -183,9 +200,7 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
             toolbar = found;
             if (toolbar) {
                 const observed = toolbar;
-                sizeObserver = new ResizeObserver(() =>
-                    setToolbarWidth(Math.ceil(observed.offsetWidth) + GAP)
-                );
+                sizeObserver = new ResizeObserver(() => setToolbarWidth(Math.ceil(observed.offsetWidth) + GAP));
                 sizeObserver.observe(observed);
             } else {
                 setToolbarWidth(0);
@@ -218,8 +233,11 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
     const getRowClassName = (params: any): string =>
         `row-with-color-${params.row.id} ${params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'}`;
 
-    // Posició 0: xip de filtres. Posició 3: botó de refresc.
-    // Si la pantalla passa els seus propis toolbarElementsWithPositions, es combinen (no se sobreescriuen).
+    // Ordre de la barra d'eines (d'esquerra a dreta): xip de filtres, filtre ràpid (el posa la llibreria),
+    // accions massives, accions pròpies de la pantalla (toolbarElementsWithPositions), «Crea» i,
+    // sempre al final de tot, refresca. Tot va a «TOOLBAR_END» (el final de la barra) en aquest ordre: la
+    // llibreria insereix per posició relativa i les pantalles en passaven de diferents: aquestes posicions
+    // s'ignoren i es manté l'ordre de l'array de cada pantalla.
     const toolbarElements = [
         {
             position: 0,
@@ -228,7 +246,7 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
             hidden: !toolbarShowFilterCount || infoSlot != null,
         },
         {
-            position: 3,
+            position: TOOLBAR_END,
             element: <MassiveActionSelector
                 resourceName={others?.resourceName}
                 selectedRows={selectedRows}
@@ -242,20 +260,9 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
             />,
             hidden: !toolbarMassiveActions || others?.readOnly,
         },
+        ...(toolbarElementsWithPositions ?? []).map((e) => ({ ...e, position: TOOLBAR_END })),
         {
-            position: 3,
-            element: (
-                <ToolbarButton
-                    title={t('common.refresh')}
-                    icon={icons.refresca}
-                    onClick={refresh}
-                    color="primary"
-                />
-            ),
-            hidden: toolbarHideRefresh,
-        },
-        {
-            position: 3,
+            position: TOOLBAR_END,
             element: (
                 <ToolbarButton
                     title={t('common.create')}
@@ -266,9 +273,21 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
                     {toolbarCreateTitle}
                 </ToolbarButton>
             ),
-            hidden: toolbarHideCreate || others?.readOnly,
+            hidden: !isCreateLinkPresent || toolbarHideCreate || others?.readOnly,
         },
-        ...(toolbarElementsWithPositions ?? []),
+        {
+            position: TOOLBAR_END,
+            element: (
+                <IconButton
+                    title={t('common.refresh')}
+                    onClick={refresh}
+                    sx={{ color: (theme: Theme) => theme.palette.primary.contrastText }}
+                >
+                    <Icon>{icons.refresca}</Icon>
+                </IconButton>
+            ),
+            hidden: toolbarHideRefresh,
+        },
     ].filter((e: any) => !e?.hidden);
 
     return (
@@ -278,13 +297,12 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
                 display: 'flex',
                 flexDirection: 'column',
                 width: '100%',
-                // Dins ScreenFrame (columna flex amb alçada acotada) la graella ocupa l'alçada que
-                // sobra, amb un mínim: si no hi cap, és el contingut de la pantalla qui fa scroll
-                // i el títol i el peu es mantenen visibles. Fora d'un contenidor flex, `height`
-                // fa la mateixa feina que abans.
-                flex: '1 1 0',
-                minHeight: SCREEN_GRID_MIN_HEIGHT + 'px',
-                height: '100%',
+                // Sense autoHeight, dins ScreenFrame (columna flex amb alçada acotada) la graella ocupa
+                // l'alçada que sobra, amb un mínim: si no hi cap, és el contingut de la pantalla qui fa
+                // scroll i el títol i el peu es mantenen visibles. Amb autoHeight creix amb el contingut.
+                ...(autoHeight
+                    ? { height: '100%' }
+                    : { flex: '1 1 0', minHeight: SCREEN_GRID_MIN_HEIGHT + 'px' }),
                 // El filtre ràpid de la barra d'eines és un TextField "small" de 37px i quedava
                 // més alt que la resta de controls de la barra (32px). S'iguala des d'aquí perquè
                 // el crea reactlib i no admet ni props ni estils des de fora.
@@ -319,12 +337,14 @@ const StyledMuiGrid = (props: StyledMuiGridProps) => {
             <MuiDataGrid
                 // Files multilínia (com a RIPEA): amb l'alçada 'auto' MUI marca la fila com a
                 // row--dynamicHeight i el seu CSS deixa passar de línia el text de les cel·les, en
-                // lloc de tallar-lo amb el·lipsi. La graella no fa `autoHeight`: ocupa l'alçada de
-                // la pantalla i fa scroll de les files per dins, amb la capçalera i la paginació
-                // sempre visibles. Va abans d'`others` perquè una pantalla concreta el pugui
-                // sobreescriure.
+                // lloc de tallar-lo amb el·lipsi. Va abans d'`others` perquè una pantalla concreta
+                // el pugui sobreescriure.
                 getRowHeight={() => 'auto'}
                 {...others}
+                // Per defecte la graella fa scroll ella mateixa (capçalera, filtre i paginació
+                // queden fixos). Les graelles que no són el contingut principal de la pàgina
+                // (diàlegs, pestanyes, detalls) passen autoHeight i creixen amb el contingut.
+                autoHeight={autoHeight}
                 // Amb l'alçada 'auto' la cel·la queda enganxada al text; l'alçada mínima de la fila
                 // (45px) ve del tema. reactlib fa l'spread de l'sx com a objecte: no admet arrays.
                 sx={{

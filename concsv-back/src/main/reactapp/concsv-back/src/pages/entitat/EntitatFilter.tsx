@@ -7,15 +7,18 @@ import * as builder from '../../util/springFilterUtils';
  * Camps del filtre del llistat d'entitats. Els labels i els tipus els aporta el backend
  * (artefacte FILTER d'EntitatResource, formClass EntitatResource.FormFilter), per això només cal
  * indicar-hi el `name`.
+ *
+ * Les mides `md` sumen 11.5 perquè el bloc de botons de StyledMuiFilter (md 0.5) càpiga a la
+ * mateixa fila; si se'n canvia alguna cal mantenir la suma.
  */
 const EntitatFilterForm: React.FC = () => {
     return (
         <>
-            <GridFormField size={{ xs: 12, sm: 6, md: 2.1 }} name="codi" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 3.4 }} name="nom" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 2.1 }} name="cif" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 2.1 }} name="codiDir3" />
-            <GridFormField size={{ xs: 12, sm: 6, md: 1.55 }} name="activa" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 2 }} name="codi" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 3.5 }} name="nom" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 2 }} name="cif" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 2 }} name="codiDir3" />
+            <GridFormField size={{ xs: 12, sm: 6, md: 2 }} name="activa" />
         </>
     );
 };

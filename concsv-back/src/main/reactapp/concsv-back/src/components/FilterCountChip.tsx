@@ -32,7 +32,7 @@ const maskLiterals = (filter: string): string => {
  * AND/OR que queden a fora. Els literals (valors escrits per l'usuari, que poden dur «and»,
  * «or» o parèntesis) s'ignoren.
  */
-export const countTopLevel =(filter?: string): number => {
+export const countTopLevel = (filter?: string): number => {
     if (!filter || !filter?.trim()) return 0;
     let str = maskLiterals(filter.trim());
 

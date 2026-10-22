@@ -22,8 +22,8 @@ const translationEs = {
         filterCount_one: '{{num}} filtro aplicado',
         filterCount_other: '{{num}} filtros aplicados',
         advancedSearch: 'Búsqueda avanzada',
-        advancedSearchOpen: 'Abre la búsqueda avanzada',
-        advancedSearchClose: 'Cierra la búsqueda avanzada',
+        advancedSearchOpen: 'Avanzado',
+        advancedSearchClose: 'Básico',
     },
     app: {
         loading: 'Iniciando CONCSV',

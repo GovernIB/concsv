@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFilterApiContext, useFormContext } from 'reactlib';
-import { isTypingFieldType } from './FilterAutoApplyContext';
+import { isTypingFieldType, normalizeFilterData } from './FilterAutoApplyContext';
 
 /** Retard (ms) des que l'usuari deixa d'escriure en un camp de text fins que s'aplica el filtre. */
 export const FILTER_AUTO_APPLY_DELAY = 1000;
@@ -9,11 +9,12 @@ export const FILTER_AUTO_APPLY_DELAY = 1000;
 type FilterData = Record<string, unknown>;
 
 type FilterAutoApplyProps = {
-    /** Mateixa funció que el filtre fa servir per construir el Spring Filter a partir de les dades. */
-    springFilterBuilder?: (data: FilterData) => string | undefined;
     /**
-     * Últim Spring Filter aplicat (`undefined` = encara cap, equival al filtre buit). El manté el
-     * StyledMuiFilter des de tots els punts per on passa una aplicació, siguin o no d'aquest component.
+     * Dades normalitzades (veure normalizeFilterData) de l'últim filtre aplicat (`undefined` = encara
+     * cap, equival al filtre buit). El manté el StyledMuiFilter des de tots els punts per on passa una
+     * aplicació, siguin o no d'aquest component. Es comparen les dades del formulari i no el Spring
+     * Filter perquè un `springFilterBuilder` pot tenir efectes secundaris i no s'ha de cridar només
+     * per comparar.
      */
     lastAppliedRef: React.RefObject<string | undefined>;
     /** Perquè el pare pugui cancel·lar l'aplicació pendent (p. ex. en netejar el filtre). */
@@ -44,10 +45,10 @@ const sameValue = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON
  *  - Intro: ja ho fa la llibreria (`filterOnFieldEnterKeyPressed`); aquí només es descarta l'espera.
  *
  * No pinta res: ha d'anar com a fill del filtre (dins `MuiFilter`) per poder fer servir els seus
- * contextos. No aplica si el Spring Filter resultant és igual que l'últim d'aplicat, així que no
+ * contextos. No aplica si les dades del filtre són iguals que les de l'últim aplicat, així que no
  * duplica la cerca inicial, la neteja ni la restauració des de la sessió.
  */
-export const FilterAutoApply: React.FC<FilterAutoApplyProps> = ({ springFilterBuilder, lastAppliedRef, cancelRef }) => {
+export const FilterAutoApply: React.FC<FilterAutoApplyProps> = ({ lastAppliedRef, cancelRef }) => {
     const { data, fields } = useFormContext();
     const filterApiRef = useFilterApiContext();
     const previousDataRef = React.useRef<FilterData | undefined>(data);
@@ -65,11 +66,10 @@ export const FilterAutoApply: React.FC<FilterAutoApplyProps> = ({ springFilterBu
         cancel();
         const api = filterApiRef.current;
         const current: FilterData = api?.getData?.() ?? {};
-        const built = springFilterBuilder ? (springFilterBuilder(current) ?? '') : JSON.stringify(current);
-        if (built !== (lastAppliedRef.current ?? '')) {
+        if (normalizeFilterData(current) !== (lastAppliedRef.current ?? normalizeFilterData(undefined))) {
             api?.filter?.();
         }
-    }, [cancel, filterApiRef, springFilterBuilder, lastAppliedRef]);
+    }, [cancel, filterApiRef, lastAppliedRef]);
 
     React.useEffect(() => {
         cancelRef.current = cancel;

@@ -39,11 +39,13 @@ export const icons = {
     carrega: 'file_upload',
     detall: 'info',
     diagnostic: 'monitor_heart',
+    plega: 'expand_less',
+    desplega: 'expand_more',
 
     // --- Filtre i cerca ----------------------------------------------------------------------
     cerca: 'search',
     filtre: 'filter_alt',
-    neteja: 'auto_fix_normal',
+    neteja: 'filter_alt_off',
     cercaAvancadaObre: 'zoom_in',
     cercaAvancadaTanca: 'zoom_out',
 

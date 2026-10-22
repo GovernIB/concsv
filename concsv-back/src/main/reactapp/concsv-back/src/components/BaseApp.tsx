@@ -117,8 +117,9 @@ const CustomLocalizationProvider = ({ children }: React.PropsWithChildren) => {
 };
 
 // La geometria del menú lateral (amplada plegada, icones, columna on s'alineen amb el botó de la
-// capçalera) s'ajusta al tema, a `MuiDrawer` de theme.ts, amb les mides de util/layout.ts. Aquí
-// només hi queden els colors, que depenen de l'estil de menú del perfil de l'usuari.
+// capçalera, panell flotant dels submenús) s'ajusta al tema, a `MuiDrawer` de theme.ts, amb les mides
+// de util/layout.ts. Aquí només hi queden els colors, que depenen de l'estil de menú del perfil de
+// l'usuari.
 
 /**
  * Marc de l'aplicació: l'arrel ocupa tota l'alçada de la finestra (capçalera dalt, peu baix) i només
@@ -140,6 +141,14 @@ const frameSx = {
         boxSizing: 'border-box',
         minHeight: 0,
         overflowY: 'auto',
+    },
+    // Les entrades de submenú (llista dins la llista de l'entrada pare) ja duen la seva pròpia guia
+    // vertical de la llibreria (`:before` de Menu.tsx, 2px a 40px); la vora de 4px de l'entrada
+    // seleccionada (theme.ts i estils de menú d'aquí baix) hi quedaria doblada. Més específic que
+    // les dues, així no depèn de l'ordre. El panell flotant del menú plegat no hi entra: no és
+    // dins cap `.MuiList-root`.
+    '& nav .MuiDrawer-root .MuiList-root .MuiList-root .MuiListItemButton-root.Mui-selected': {
+        boxShadow: 'none',
     },
 } as const;
 
@@ -184,11 +193,13 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
                           boxShadow: `inset 4px 0 0 ${menuColorSet.accent}`,
                       },
                       '&.Mui-selected:hover': { backgroundColor: menuColorSet.selectedBackground },
+                      // Guia vertical dels submenús (la dibuixa la llibreria en blau fix)
+                      '&.Mui-selected :before': { background: menuColorSet.accent },
                       '&:hover': { backgroundColor: menuColorSet.hoverBackground },
                   },
               },
           }
-        : undefined;
+        : {};
     const navigate = useNavigate();
     const location = useLocation();
     const i18nHandleLanguageChange = (language?: string) => {

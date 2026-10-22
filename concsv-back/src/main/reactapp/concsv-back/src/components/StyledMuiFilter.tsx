@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSession } from './SessionStorageContext';
 import { CombinedIcon, GridButton, GridButtonField } from './GridFormField';
 import FilterAutoApply from './FilterAutoApply';
-import { FilterAutoApplyContext } from './FilterAutoApplyContext';
+import { FilterAutoApplyContext, normalizeFilterData } from './FilterAutoApplyContext';
 import { icons } from '../util/icons';
 import { outlinedControlBorderSx } from './titleBarControlsSx';
 
@@ -33,15 +33,24 @@ import { outlinedControlBorderSx } from './titleBarControlsSx';
 const filterStyle = { className: 'styledFilter' };
 
 /**
- * Columnes (de 12) que ocupa el bloc de botons del filtre (avui només "Neteja", amb icona), per
- * punt de ruptura. És l'única font de les mides del bloc: es pot ajustar tot des d'aquí.
+ * Columnes (de 12) que ocupa el bloc de botons del filtre, per punt de ruptura. És l'única font de
+ * les mides del bloc: es pot ajustar tot des d'aquí.
  *
- * Els camps de cada filtre han de sumar `12 - FILTER_BUTTONS_COLUMNS.md` a `md` perquè el bloc
- * càpiga a la mateixa fila. Amb un sol botó d'icona, `md` pot baixar fins a ~0.5 a pantalles
- * àmplies, però a ~900px d'amplada 0.5 són uns 25px i la icona (24px) hi queda justa: 0.75 és el
- * mínim còmode.
+ * El bloc simple només duu el botó "Neteja" (amb icona): amb `md: 0.5` a ~900px d'amplada són uns
+ * 17px i la icona hi queda justa (cal que el botó no tingui padding). Amb la cerca avançada
+ * (`advancedSearch`) n'hi ha dos (commutador + "Neteja"), tots dos només amb icona.
+ *
+ * Els camps de cada filtre han de sumar `12 - FILTER_BUTTONS_COLUMNS.md` a `md` (o
+ * `12 - FILTER_BUTTONS_COLUMNS_ADVANCED.md` amb cerca avançada) a l'última fila perquè el bloc càpiga
+ * a la mateixa fila.
+ *
+ * Cerca avançada: el filtre rep `advancedSearch` i el formulari llegeix `useFormContext().data?.advanced`
+ * per pintar un conjunt de camps bàsic (`!data?.advanced`, suma 11.5) o un d'avançat (`data?.advanced`,
+ * suma 11), com fa DISTRIBUCIO (pages/integracio/IntegracioFilter.tsx). Les etiquetes del commutador són
+ * `common.advancedSearchOpen` («Avançat») i `common.advancedSearchClose` («Bàsic»).
  */
-export const FILTER_BUTTONS_COLUMNS = { xs: 12, sm: 6, md: 0.75 } as const;
+export const FILTER_BUTTONS_COLUMNS = { xs: 12, sm: 6, md: 0.5 } as const;
+export const FILTER_BUTTONS_COLUMNS_ADVANCED = { xs: 12, sm: 6, md: 1 } as const;
 
 // Amplada (px) per sota de la qual els botons d'acció del filtre avançat es redueixen a
 // només icona, perquè el text no quedi retallat dins del seu contenidor.
@@ -110,8 +119,8 @@ const StyledMuiFilter = (props: any) => {
     // Marca que la propera notificació de dades prové d'un "netejar", per re-aplicar
     // el filtre buit només quan el formulari no té camps per defecte (vegeu onDataChange).
     const netejarPendingRef = React.useRef(false);
-    // Últim Spring Filter aplicat i cancel·lació de l'aplicació automàtica pendent (veure
-    // FilterAutoApply, que els fa servir per no repetir cerques).
+    // Dades (normalitzades) de l'últim filtre aplicat i cancel·lació de l'aplicació automàtica pendent
+    // (veure FilterAutoApply, que els fa servir per no repetir cerques).
     const lastAppliedRef = React.useRef<string | undefined>(undefined);
     const autoApplyCancelRef = React.useRef<(() => void) | undefined>(undefined);
 
@@ -149,7 +158,7 @@ const StyledMuiFilter = (props: any) => {
     // per cercar()) i l'auto-cerca inicial. Així Intro i botó persisteixen igual.
     // clear() amb buttonControlled no crida filter(), per tant no re-desa.
     const handleSpringFilterChange = (springFilter: any) => {
-        lastAppliedRef.current = springFilter ?? '';
+        lastAppliedRef.current = normalizeFilterData(apiRef?.current?.getData?.());
         if (sessionKey) {
             saveFilterData(apiRef?.current?.getData?.());
         }
@@ -159,9 +168,8 @@ const StyledMuiFilter = (props: any) => {
 
     React.useEffect(() => {
         if (!!sessionKey && filterData && onSpringFilterChange && springFilterBuilder) {
-            const restored = springFilterBuilder(filterData);
-            lastAppliedRef.current = restored ?? '';
-            onSpringFilterChange(restored);
+            lastAppliedRef.current = normalizeFilterData(filterData);
+            onSpringFilterChange(springFilterBuilder(filterData));
             marcarLlest();
         }
     }, []);
@@ -204,18 +212,14 @@ const StyledMuiFilter = (props: any) => {
             <FilterAutoApplyContext.Provider value>
                 <Grid container direction="row" columnSpacing={1} rowSpacing={1}>
                     {children}
-                    <FilterAutoApply
-                        springFilterBuilder={springFilterBuilder}
-                        lastAppliedRef={lastAppliedRef}
-                        cancelRef={autoApplyCancelRef}
-                    />
+                    <FilterAutoApply lastAppliedRef={lastAppliedRef} cancelRef={autoApplyCancelRef} />
 
                     <Grid
                         container
                         direction="row"
                         columnSpacing={1}
                         rowSpacing={1}
-                        size={FILTER_BUTTONS_COLUMNS}
+                        size={advancedSearch ? FILTER_BUTTONS_COLUMNS_ADVANCED : FILTER_BUTTONS_COLUMNS}
                         sx={{ display: 'flex', justifyContent: 'end', marginLeft: 'auto' }}
                         {...buttonGridProps}
                     >
@@ -228,9 +232,9 @@ const StyledMuiFilter = (props: any) => {
                                 }
                                 icon={(active: boolean) =>
                                     active ? (
-                                        <CombinedIcon base={icons.cercaAvancadaTanca} badge="expand_less" />
+                                        <CombinedIcon base={icons.cercaAvancadaTanca} badge={icons.plega} />
                                     ) : (
-                                        <CombinedIcon base={icons.cercaAvancadaObre} badge="expand_more" />
+                                        <CombinedIcon base={icons.cercaAvancadaObre} badge={icons.desplega} />
                                     )
                                 }
                             />

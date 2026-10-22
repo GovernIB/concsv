@@ -180,13 +180,16 @@ const baseComponentStyles = {
             docked: { minWidth: `${MENU_WIDTH_COLLAPSED}px` },
             paper: {
                 minWidth: `${MENU_WIDTH_COLLAPSED}px`,
-                // Cada entrada amaga el text només quan el menú és estret, sense haver de saber-ne
-                // l'estat: en plegat el text només es fa transparent, però continua ocupant lloc, i
-                // les entrades llargues fan dues línies i les icones quedarien a altures diferents.
-                containerType: 'inline-size' as const,
                 // El menú ha de començar sota la capçalera, que és més alta que els 64px de la llibreria
                 '& > .MuiBox-root:first-of-type': { marginTop: `${HEADER_HEIGHT}px` },
                 '& .menu-item-icon .MuiIcon-root': { fontSize: `${ICON_SIZE}px` },
+                // Cada entrada amaga el text només quan el menú és estret, sense haver de saber-ne
+                // l'estat: en plegat el text només es fa transparent, però continua ocupant lloc, i
+                // les entrades llargues fan dues línies i les icones quedarien a altures diferents.
+                // El contenidor de la consulta és la llista i NO el paper: un contenidor crea un bloc
+                // contenidor per als descendents `position: fixed`, i el panell flotant dels submenús
+                // del menú plegat (veure més avall) quedaria tallat dins el paper.
+                '& .MuiList-root': { containerType: 'inline-size' as const },
                 // Plegat: la llibreria hi centra les icones a `espai útil / 2`, sense dependre de
                 // la mida de la icona, que és la columna menys mig píxel per la vora del menú
                 // (MENU_BORDER_WIDTH). La icona du un marge esquerre de -8px que aquí se li treu
@@ -204,6 +207,13 @@ const baseComponentStyles = {
                     '& > .MuiList-root > .MuiListItemButton-root > .menu-item-icon': {
                         marginLeft: `${MENU_ICON_COLUMN - ICON_SIZE / 2 - MENU_ITEM_PADDING_LEFT}px`,
                     },
+                },
+                // Menú plegat: el panell flotant amb els fills d'una entrada (`position: fixed`, germà de la
+                // llista) la llibreria el col·loca a 64px de dalt i 57px d'esquerra (capçalera i menú plegat
+                // de la llibreria): s'ajusta a la capçalera i al menú plegat d'aquesta aplicació.
+                '& > div > .MuiBox-root': {
+                    top: `${HEADER_HEIGHT}px`,
+                    left: `${MENU_WIDTH_COLLAPSED}px`,
                 },
             },
         },
@@ -241,11 +251,13 @@ const baseComponentStyles = {
             }),
         },
     },
-    // Pestanya seleccionada: als temes foscos el color base (#904e95) no té prou contrast amb el text
-    // sobre el fons fosc; es fa servir el lila clar (accentColor). Al clar es manté el del tema.
+    // Text de les pestanyes tal com s'escriu (MUI el posa tot en majúscules). Pestanya seleccionada: als
+    // temes foscos el color base (#904e95) no té prou contrast amb el text sobre el fons fosc; es fa
+    // servir el lila clar (accentColor). Al clar es manté el del tema.
     MuiTab: {
         styleOverrides: {
             root: ({ theme }: { theme: Theme }) => ({
+                textTransform: 'none',
                 ...(theme.palette.mode === 'dark' && { '&.Mui-selected': { color: accentColor(theme) } }),
             }),
         },
@@ -258,6 +270,8 @@ const baseComponentStyles = {
                 // Vora esquerra de l'entrada seleccionada, del color de la barra de títol de ScreenFrame
                 // (als estils de menú amb colors propis la pren de l'accent, veure BaseApp.tsx)
                 '&.Mui-selected': { boxShadow: `inset 4px 0 0 ${theme.palette.primary.main}` },
+                // Guia vertical dels submenús (la llibreria la dibuixa en blau fix): al color de la vora
+                '&.Mui-selected :before': { background: theme.palette.primary.main },
             }),
         },
     },

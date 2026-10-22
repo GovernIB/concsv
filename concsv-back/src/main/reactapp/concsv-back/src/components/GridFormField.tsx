@@ -45,7 +45,7 @@ export const GridButton = (props: any) => {
         <Grid title={title} size={size} hidden={hidden}>
             <Button
                 variant="outlined"
-                sx={[{ borderRadius: '4px', width: '100%', height: '100%' }, ...(Array.isArray(sx) ? sx : [sx])]}
+                sx={[{ borderRadius: '4px', width: '100%', height: '100%', minWidth: 0 }, ...(Array.isArray(sx) ? sx : [sx])]}
                 style={{ margin: 0 }}
                 aria-label={title && (iconOnly || !children) ? title : undefined}
                 {...other}

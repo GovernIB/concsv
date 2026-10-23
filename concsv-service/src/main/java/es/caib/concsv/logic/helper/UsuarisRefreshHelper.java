@@ -1,4 +1,4 @@
-package es.caib.concsv.back.helper;
+package es.caib.concsv.logic.helper;
 
 import es.caib.concsv.logic.base.helper.AuthenticationHelper;
 import es.caib.concsv.persist.entity.UsuariEntity;

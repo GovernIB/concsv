@@ -2,6 +2,7 @@ package es.caib.concsv.logic.resourceservice;
 
 import es.caib.concsv.logic.base.helper.AuthenticationHelper;
 import es.caib.concsv.logic.base.service.BaseMutableResourceService;
+import es.caib.concsv.logic.helper.UsuarisRefreshHelper;
 import es.caib.concsv.logic.intf.base.model.FieldOption;
 import es.caib.concsv.logic.intf.base.util.I18nUtil;
 import es.caib.concsv.logic.intf.model.IdiomaEnum;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +44,7 @@ public class UsuariResourceServiceImpl extends BaseMutableResourceService<Usuari
 
 	private final AuthenticationHelper authenticationHelper;
 	private final UsuariRepository usuariRepository;
+	private final UsuarisRefreshHelper usuarisRefreshHelper;
 
 	@PostConstruct
 	public void init() {
@@ -89,6 +90,7 @@ public class UsuariResourceServiceImpl extends BaseMutableResourceService<Usuari
 			actualitzarDades(usuari, dades);
 			usuariRepository.save(usuari);
 		}
+		usuarisRefreshHelper.refreshCurrentUser();
 	}
 
 	private void actualitzarDades(UsuariEntity usuari, DadesUsuari dades) {

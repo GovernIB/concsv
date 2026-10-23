@@ -259,6 +259,10 @@ const translationCa = {
             all: 'Selecciona-ho tot',
             clear: 'Neteja la selecció',
         },
+        UserLastConection: {
+            lastConnection: "Data i hora de la darrera connexió de l'usuari",
+            darreraConnexio: "Darrera connexió:",
+        },
     },
 };
 

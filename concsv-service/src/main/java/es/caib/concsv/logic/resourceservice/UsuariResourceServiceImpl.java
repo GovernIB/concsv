@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ public class UsuariResourceServiceImpl extends BaseMutableResourceService<Usuari
 	 */
 	@Override
 	protected void afterConversion(UsuariEntity entity, UsuariResource resource) {
+		resource.setDarreraConnexio(entity.getDarrerPeriode());
 		String[] roles = authenticationHelper.getCurrentUserRoles();
 		resource.setRols(Arrays.stream(roles).
 				filter(r -> r.startsWith(ROLE_DISPLAY_PREFIX)).

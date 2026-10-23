@@ -3,6 +3,7 @@ package es.caib.concsv.back.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.caib.concsv.back.base.config.BaseWebMvcConfig;
+import es.caib.concsv.back.helper.UsuarisRefreshHelper;
 import es.caib.concsv.logic.intf.base.util.RequestSessionUtil;
 import es.caib.concsv.logic.intf.base.util.ThreadLocalUtil;
 import es.caib.concsv.logic.intf.config.BaseConfig;
@@ -53,6 +54,8 @@ public class WebMvcConfig extends BaseWebMvcConfig {
 	private ObjectMapper objectMapper;
 	@Autowired
 	private UsuariResourceService usuariResourceService;
+	@Autowired
+	private UsuarisRefreshHelper usuarisRefreshHelper;
 
 	@Override
 	protected boolean isJsAppResourceHandlerEnabled() {
@@ -87,6 +90,7 @@ public class WebMvcConfig extends BaseWebMvcConfig {
 				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 				if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
 					usuariResourceService.refresh();
+					usuarisRefreshHelper.refreshCurrentUser();
 				}
 				return true;
 			}

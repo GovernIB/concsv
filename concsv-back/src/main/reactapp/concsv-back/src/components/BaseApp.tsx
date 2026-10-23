@@ -25,6 +25,7 @@ import { useConcsvContext } from './ConcsvContext';
 import { MenuEstil } from '../theme';
 import { idiomaAplicacio } from '../util/idioma';
 import { MAIN_GAP, MAIN_PADDING } from '../util/layout';
+import {UserLastConection} from "./UserLastConection.tsx";
 
 export type BaseAppProps = React.PropsWithChildren & {
     code: string;
@@ -257,6 +258,7 @@ export const BaseApp: React.FC<BaseAppProps> = (props) => {
             ]}
             headerAuthBadgeIcon={getRolBadgeIcon(rolActual)}
             headerAdditionalAuthComponents={[
+                <UserLastConection key="user_last_conection" />,
                 <Box key="user_profile" sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
                     <UserProfileMenu formDialogApiRef={formDialogApiRef} />
                 </Box>,

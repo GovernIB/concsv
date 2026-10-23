@@ -259,6 +259,10 @@ const translationEs = {
             all: 'Selecciona todo',
             clear: 'Limpia la selección',
         },
+        UserLastConection: {
+            lastConnection: "Fecha y hora de la última conexión del usuario",
+            darreraConnexio: "Última conexión:",
+        },
     },
 };
 

@@ -9,9 +9,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.annotation.Transient;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 /**
  * Perfil de l'usuari autenticat actual (només es pot consultar/modificar el propi -- veure
@@ -66,5 +68,7 @@ public class UsuariResource extends BaseResource<String> {
 	private String rolActual;
 	/** Només es fixa en llegir el recurs (veure afterConversion); no es persisteix. */
 	private String[] rols;
+
+	@Transient private LocalDateTime darreraConnexio;
 
 }

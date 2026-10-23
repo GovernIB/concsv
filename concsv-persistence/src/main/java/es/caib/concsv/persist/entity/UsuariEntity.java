@@ -16,6 +16,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Version;
+import java.time.LocalDateTime;
 
 /**
  * Entitat de base de dades del recurs {@link UsuariResource}. La clau primària és el codi de
@@ -63,6 +64,11 @@ public class UsuariEntity extends BaseResourceEntity<UsuariResource, String> {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "estil_menu", length = 16, nullable = false)
 	private MenuEstilEnum estilMenu = MenuEstilEnum.TEMA;
+
+	@Column(name = "darrer_periode")
+	private LocalDateTime darrerPeriode;
+	@Column(name = "darrera_activitat")
+	private LocalDateTime darreraActivitat;
 
 	@Version
 	private long version = 0;

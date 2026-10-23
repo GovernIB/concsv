@@ -9,6 +9,7 @@ import AvisGrid from './pages/avis/AvisGrid';
 import DocumentExclosGrid from './pages/documentExclos/DocumentExclosGrid';
 import Propietats from './pages/propietats/Propietats';
 import CacheDocument from './pages/cacheDocument/CacheDocument';
+import Accesibilitat from './pages/Accesibilitat';
 import IntegracioGrid from './pages/integracio/IntegracioGrid';
 
 export const router = createBrowserRouter(
@@ -94,6 +95,11 @@ export const router = createBrowserRouter(
                             handle: { titol: 'page.cacheDocuments.title' },
                         },
                     ],
+                },
+                {
+                    path: 'accessibilitat',
+                    element: <Accesibilitat />,
+                    handle: { titol: 'page.accesibilitat.title' },
                 },
                 // També és necessari perquè l'iframe de renovació silenciosa de sessió
                 // (oidc-client-ts) munti App en navegar a "oidcSilentRenew".

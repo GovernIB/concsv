@@ -17,6 +17,7 @@ export const icons = {
     propietat: 'display_settings',
     integracio: 'sync_alt',
     cacheDocument: 'cached',
+    accessibilitat: 'accessibility',
     configuracio: 'settings',
     monitoritzacio: 'monitor',
 

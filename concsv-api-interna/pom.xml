@@ -63,6 +63,11 @@
 			<version>2.2.21</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- Serialització de java.time (dates dels models de Comanda) -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
 		<!-- jakarta -->
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>

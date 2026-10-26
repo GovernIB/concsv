@@ -99,10 +99,10 @@ const translationEs = {
             preparacio: {
                 title: "Preparación de la presente declaración",
                 elaborat: "Esta declaración se ha elaborado mediante autoevaluación realizada por el equipo de desarrollo utilizando la herramienta automatizada: Rastreador Web del Observatorio de Accesibilidad Web.",
-                dataPrep: "Fecha de preparación: 23/10/2026",
                 darreraRevisio: "Última revisión: 23/10/2026",
                 properaRevisio: "Próxima revisión programada: 23/10/2027",
                 norma: "Norma de referencia: UNE-EN 301549:2022, niveles A y AA",
+                mostra: "Muestra evaluada: 7 páginas de la aplicación, con el rol de superadministrador",
                 resultatTitle: "Resultado",
                 puntuacioLabel: "Puntuación media del sitio web",
                 puntuacioVal: "9.03",

@@ -57,7 +57,7 @@ const PropsListItem: React.FC<PropsListItemProps> = ({ highlight }) => {
                         type: password ? 'password' : field.type,
                         autoComplete: password ? 'new-password' : undefined,
                         placeholder: item.alternativeValue || undefined,
-                        helperText: <TextHighlight text={item.key} match={highlight} ignoreCase />,
+                        helperText: <TextHighlight text={item.key} component="span" match={highlight} ignoreCase />,
                     }}
                 />
             </Grid>

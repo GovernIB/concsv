@@ -66,7 +66,7 @@ export const useIntegracioTabs = () => {
                             {pipella.nom}
                         </StyledBadge>
                     }
-                    sx={{ textTransform: 'none' }}
+                    sx={{ textTransform: 'none', pl: 1.5, pr: 3 }}
                 />
             ))}
         </Tabs>

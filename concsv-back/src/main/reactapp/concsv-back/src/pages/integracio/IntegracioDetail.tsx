@@ -1,35 +1,18 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 import { MuiDialog, useCloseDialogButtons } from 'reactlib';
+import { DetailCard, DetailCardContent } from '../../components/CardData';
 import { formatDate } from '../../util/dateUtils';
 import { IntegracioEstat } from './IntegracioEstat';
 import { IntegracioStacktrace } from './IntegracioStacktrace';
 
-type DetailFieldSpec = {
-    label: string;
-    value?: React.ReactNode;
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-const DetailRow: React.FC<{ fields: DetailFieldSpec[] }> = ({ fields }) => (
-    <Stack direction="row" spacing={2} divider={<Divider orientation="vertical" flexItem />}>
-        {fields.map((field, index) => (
-            <Stack key={index} sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="subtitle2">{field.label}</Typography>
-                <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
-                    {field.value}
-                </Typography>
-            </Stack>
-        ))}
-    </Stack>
-);
+/** Propietats comunes dels camps: etiqueta amb amplada fixa perquè els valors quedin alineats. */
+const INLINE = { titleSize: 'auto', textSize: 'grow', labelWidth: 140 } as const;
 
 /**
- * Diàleg amb el detall d'una petició d'integració. 
+ * Diàleg amb el detall d'una petició d'integració.
  * Mostra la fila de la graella tal com arriba, sense tornar-la a consultar.
  */
 export const useIntegracioDetail = () => {
@@ -50,101 +33,72 @@ export const useIntegracioDetail = () => {
     };
 
     const parametres = Object.entries(row?.parametres ?? {});
+    const isError = row?.estat === 'ERROR';
 
     const dialog = (
         <MuiDialog
             open={open}
             closeCallback={handleClose}
             title={t('page.integracio.detail.title')}
-            componentProps={{ fullWidth: true, maxWidth: 'md' }}
+            componentProps={{ fullWidth: true, maxWidth: 'lg' }}
             buttons={closeButtons}
             buttonCallback={() => handleClose()}
         >
-            <Stack spacing={2} divider={<Divider />} sx={{ pt: 1 }}>
-                <DetailRow
-                    fields={[
-                        {
-                            label: t('page.integracio.detail.data'),
-                            value: row?.data ? formatDate(row.data, 'DD/MM/YYYY HH:mm:ss') : undefined,
-                        },
-                        {
-                            label: t('page.integracio.detail.tipus'),
-                            value: row?.tipus ? t('page.integracio.detail.tipusValor.' + row.tipus) : undefined,
-                        },
-                    ]}
-                />
-                <DetailRow
-                    fields={[
-                        {
-                            label: t('page.integracio.detail.integracio'),
-                            value: row?.codi ? t('page.integracio.pipella.' + row.codi) : undefined,
-                        },
-                        {
-                            label: t('page.integracio.detail.endpoint'),
-                            value: row?.endpoint,
-                        },
-                    ]}
-                />
-                <DetailRow
-                    fields={[
-                        {
-                            label: t('page.integracio.detail.descripcio'),
-                            value: row?.descripcio,
-                        },
-                    ]}
-                />
-                {parametres.length > 0 && (
-                    <Stack>
-                        <Typography variant="subtitle2">
-                            {t('page.integracio.detail.parametres')}
-                        </Typography>
-                        {parametres.map(([clau, valor]) => (
-                            <Typography key={clau} variant="body2" sx={{ overflowWrap: 'anywhere' }}>
-                                <strong>{clau}:</strong> {String(valor)}
-                            </Typography>
-                        ))}
-                    </Stack>
-                )}
-                <DetailRow
-                    fields={[
-                        {
-                            label: t('page.integracio.detail.tempsResposta'),
-                            value: row?.tempsResposta != null ? `${row.tempsResposta} ms` : undefined,
-                        },
-                        {
-                            label: t('page.integracio.detail.estat'),
-                            value: row?.estat ? (
-                                <Box sx={{ display: 'flex' }}>
-                                    <IntegracioEstat value={row.estat} />
-                                </Box>
-                            ) : undefined,
-                        },
-                    ]}
-                />
-                {row?.estat === 'ERROR' && (
-                    <>
-                        <DetailRow
-                            fields={[
-                                {
-                                    label: t('page.integracio.detail.errorDescripcio'),
-                                    value: row?.errorDescripcio,
-                                },
-                            ]}
-                        />
-                        <DetailRow
-                            fields={[
-                                {
-                                    label: t('page.integracio.detail.excepcioMessage'),
-                                    value: row?.excepcioMessage,
-                                },
-                            ]}
-                        />
-                        {row?.excepcioStacktrace && (
-                            <IntegracioStacktrace stacktrace={row.excepcioStacktrace} />
+            <Grid container>
+                <DetailCard cardProps={{ mb: 2 }}>
+                    <DetailCardContent title={t('page.integracio.detail.data')} size={6} {...INLINE}>
+                        {row?.data ? formatDate(row.data, 'DD/MM/YYYY HH:mm:ss') : undefined}
+                    </DetailCardContent>
+                    <DetailCardContent title={t('page.integracio.detail.tipus')} size={6} {...INLINE}>
+                        {row?.tipus ? t('page.integracio.detail.tipusValor.' + row.tipus) : undefined}
+                    </DetailCardContent>
+                    <DetailCardContent title={t('page.integracio.detail.integracio')} size={6} {...INLINE}>
+                        {row?.codi ? t('page.integracio.pipella.' + row.codi) : undefined}
+                    </DetailCardContent>
+                    <DetailCardContent title={t('page.integracio.detail.endpoint')} size={6} {...INLINE}>
+                        {row?.endpoint}
+                    </DetailCardContent>
+                    <DetailCardContent title={t('page.integracio.detail.descripcio')} {...INLINE}>
+                        {row?.descripcio}
+                    </DetailCardContent>
+                    <DetailCardContent title={t('page.integracio.detail.parametres')} {...INLINE} isObject hiddenIfEmpty>
+                        {parametres.length > 0 && (
+                            <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                                {parametres.map(([clau, valor]) => (
+                                    <li key={clau}>
+                                        <strong>{clau}:</strong> {String(valor)}
+                                    </li>
+                                ))}
+                            </Box>
                         )}
-                    </>
+                    </DetailCardContent>
+                    <DetailCardContent title={t('page.integracio.detail.tempsResposta')} size={6} {...INLINE}>
+                        {row?.tempsResposta != null ? `${row.tempsResposta} ms` : undefined}
+                    </DetailCardContent>
+                    <DetailCardContent title={t('page.integracio.detail.estat')} size={6} {...INLINE} isObject>
+                        {row?.estat && (
+                            <Box sx={{ display: 'flex' }}>
+                                <IntegracioEstat value={row.estat} />
+                            </Box>
+                        )}
+                    </DetailCardContent>
+                    {isError && (
+                        <>
+                            <DetailCardContent title={t('page.integracio.detail.errorDescripcio')} {...INLINE} hiddenIfEmpty>
+                                {row?.errorDescripcio}
+                            </DetailCardContent>
+                            <DetailCardContent title={t('page.integracio.detail.excepcioMessage')} {...INLINE} hiddenIfEmpty>
+                                {row?.excepcioMessage}
+                            </DetailCardContent>
+                        </>
+                    )}
+                </DetailCard>
+                {isError && row?.excepcioStacktrace && (
+                    <Grid size={12}>
+                        <IntegracioStacktrace stacktrace={row.excepcioStacktrace} />
+                    </Grid>
                 )}
-            </Stack>
+            </Grid>
         </MuiDialog>
     );
 

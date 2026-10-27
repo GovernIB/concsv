@@ -8,6 +8,8 @@ import java.io.Serializable;
 @Getter @Setter
 public class DocumentSigner implements Serializable {
 
+	public static final String CERTIFICATE_ERROR = "Certificate Error";
+
     private String signerCN;
     private String signerOU;
     private String signerOU2;

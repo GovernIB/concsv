@@ -151,7 +151,7 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
             } catch (Exception ex) {
             	log.error("Error en la validació de firmes del document " + hash, ex);
             	DocumentSigner docSigner = new DocumentSigner();
-            	docSigner.setSignerCN("Certificate Error");
+            	docSigner.setSignerCN(DocumentSigner.CERTIFICATE_ERROR);
             	documentInfo.getSigners().add(docSigner);
             }
             // Parsetjam el pdf per obtenir la data de signatura

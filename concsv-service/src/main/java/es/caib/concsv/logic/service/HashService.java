@@ -197,7 +197,7 @@ public class HashService implements HashServiceInterface {
 				}
 			}
 			hasError = false;
-			if (isCacheActiva()) {
+			if (isCacheActiva() && isFirmaValida(docInfo)) {
 				cacheHelper.setInfo(hash, false, docInfo);
 			}
 			return docInfo;
@@ -233,7 +233,7 @@ public class HashService implements HashServiceInterface {
 			DocumentInfo documentInfo = this.newDigitalArchiveService.checkHashFromUUID(uuid, null);
 			documentInfo.setCsvExclos(isDocumentExclos(uuid, documentInfo.getHash()));
 			isError = false;
-			if (isCacheActiva()) {
+			if (isCacheActiva() && isFirmaValida(documentInfo)) {
 				cacheHelper.setInfo(uuid, true, documentInfo);
 			}
 			return documentInfo;
@@ -354,7 +354,7 @@ public class HashService implements HashServiceInterface {
 			// S'afegeix _imprimible com a "nom" + "_imprimible" + ".pdf"
 			fileName = fileName.substring(0, fileName.lastIndexOf(".")) + "_imprimible.pdf";
 			documentContent.setFileName(fileName);
-			if (isCacheActiva()) {
+			if (isCacheActiva() && isFirmaValida(documentInfo)) {
 				cacheHelper.setContent(documentInfo.getCodi(), CacheHelper.CacheType.IMPRIMIBLE, lang, documentContent);
 			}
 			return documentContent;
@@ -883,6 +883,14 @@ public class HashService implements HashServiceInterface {
 
 	public void setDocumentsExclososHelper(DocumentsExclososHelper documentsExclososHelper) {
 		this.documentsExclososHelper = documentsExclososHelper;
+	}
+
+	boolean isFirmaValida(DocumentInfo documentInfo) {
+		if (documentInfo != null && documentInfo.getSigners() != null) {
+			return documentInfo.getSigners().stream()
+				.noneMatch(s -> DocumentSigner.CERTIFICATE_ERROR.equals(s.getSignerCN()));
+		}
+		return true;
 	}
 
 	/** Classe privada per detectar els canvis de pàgina durant l'edició de la pàgina resum

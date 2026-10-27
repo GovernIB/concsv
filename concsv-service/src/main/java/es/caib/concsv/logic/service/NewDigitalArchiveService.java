@@ -164,10 +164,10 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             if (documentoDevuelto == null) {
             	throw new DocumentNotExistException("uuid:" + uuid);
             }
-            if (documentoDevuelto.getContent() == null || documentoDevuelto.getContent().isEmpty()) { 
+            if (documentoDevuelto.getContent() == null || documentoDevuelto.getContent().isEmpty()) {
             	throw new DocumentNotExistException("El contingut del fitxer amb uuid:" + uuid + " és buid.");
             }
-            
+
             DocumentInfo documentInfo = new DocumentInfo();
             documentInfo.setDocumentLocation(DocumentLocation.NewDigitalArchive);
 
@@ -215,7 +215,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             	SimpleDateFormat sdfParseArxiu = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
             	documentInfo.setDatacaptura(sdf.format(sdfParseArxiu.parse(dataTrasllat)));
             }
-            
+
             String downloadUrl = queryUrl + documentInfo.getHash();
             documentInfo.setDownloadUrl(downloadUrl);
 
@@ -235,7 +235,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
 	            } catch (Exception ex) {
 		            log.error("Error en la validació de firmes de tipus attached del document " + hash, ex);
 	            	DocumentSigner docSigner = new DocumentSigner();
-	            	docSigner.setSignerCN("Certificate Error");
+	            	docSigner.setSignerCN(DocumentSigner.CERTIFICATE_ERROR);
 	            	documentInfo.getSigners().add(docSigner);
 	            }
             } else if (listDetachedDocuments.contains(signType)) { // Signatura detached
@@ -249,7 +249,7 @@ public class NewDigitalArchiveService implements NewDigitalArchiveServiceInterfa
             		} catch (Exception ex) {
 			            log.error("Error en la validació de firmes de tipus detached del document " + hash, ex);
             			DocumentSigner docSigner = new DocumentSigner();
-            			docSigner.setSignerCN("Certificate Error");
+            			docSigner.setSignerCN(DocumentSigner.CERTIFICATE_ERROR);
     	            	documentInfo.getSigners().add(docSigner);
             		}
             	}

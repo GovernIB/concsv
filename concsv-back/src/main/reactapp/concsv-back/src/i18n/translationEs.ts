@@ -46,7 +46,7 @@ const translationEs = {
             entitats: 'Entidades',
             avisos: 'Avisos',
             documentsExclosos: 'Documentos excluidos',
-            propietats: 'Propiedades de sistema',
+            propietats: 'Propiedades de configuración',
             integracions: 'Monitor de integraciones',
             cacheDocuments: 'Caché de documentos',
         },
@@ -167,11 +167,11 @@ const translationEs = {
             },
         },
         propietats: {
-            title: 'Propiedades de sistema',
+            title: 'Propiedades de configuración',
             empty: 'No hay propiedades',
             accio: {
                 sync: {
-                    label: 'Sincroniza',
+                    label: 'Sincroniza con JBoss',
                     confirm:
                         'Se copiará a la base de datos el valor que los ficheros de propiedades del servidor definen para las propiedades editables, y se perderán los valores guardados desde esta pantalla. ¿Quieres continuar?',
                     ok: 'Las propiedades se han sincronizado correctamente',

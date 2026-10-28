@@ -74,12 +74,11 @@ export const IntegracioStacktrace: React.FC<IntegracioStacktraceProps> = ({
                         width: 'max-content',
                         minWidth: '100%',
                         whiteSpace: 'pre',
-                        color:
-                            theme.palette.mode === 'dark'
-                                ? lighten(theme.palette.error.main, 0.5)
-                                : theme.palette.error.dark,
+                        color: theme.palette.mode === 'dark' ? 'text.secondary' : 'error.dark',
                         fontFamily: 'monospace',
-                        '& .linia-excepcio': theme.palette.mode === 'dark' ? { fontWeight: 600 } : {},
+                        '& .linia-excepcio': theme.palette.mode === 'dark'
+                            ? { color: lighten(theme.palette.error.main, 0.5), fontWeight: 600 }
+                            : {},
                     })}
                 >
                     {stacktrace.split(/\r?\n/).map((linia, index, linies) => (

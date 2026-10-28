@@ -1,4 +1,4 @@
-import {Box, Card, CardContent, CardHeader, Grid, Typography, Icon, IconButton, Collapse} from "@mui/material";
+import {Box, Card, CardContent, CardHeader, Grid, Typography, Icon, IconButton, Collapse, darken} from "@mui/material";
 import React, {useState} from "react";
 import {useDetailContext} from "reactlib";
 
@@ -20,6 +20,8 @@ type DetailCardProps = CardPageProps & {
     /** Estils addicionals del contingut de la targeta (p. ex. per fer-hi scroll). */
     contentProps?: any;
     variant?: any;
+    /** Element HTML del títol quan ha de ser un encapçalament d'un nivell diferent del de `variant` (p. ex. 'h2'). */
+    titleComponent?: React.ElementType;
     buttons?: any[];
     hidden?: boolean;
 }
@@ -38,6 +40,8 @@ type ContenidoDataProps = {
     hiddenIfEmpty?: boolean;
 }
 type DetailCardContentProps = ContenidoDataProps & {
+    /** Amplada fixa (px) de l'etiqueta, per alinear els valors (amb titleSize 'auto'); com a màxim el 45% del camp. */
+    labelWidth?: number;
     sx?: any;
     isObject?:boolean;
 }
@@ -86,7 +90,7 @@ const isEmpty = (value:any) => {
 }
 
 export const DetailCard = (props: DetailCardProps) => {
-    const { icon, title, header, actionHeader, children, size = 12, hidden, cardProps = {}, headerProps = {}, gridProps = {}, contentProps = {}, variant = 'overline', ...other } = props;
+    const { icon, title, header, actionHeader, children, size = 12, hidden, cardProps = {}, headerProps = {}, gridProps = {}, contentProps = {}, variant = 'overline', titleComponent, ...other } = props;
 
     if (hidden) {
         return <></>;
@@ -96,9 +100,9 @@ export const DetailCard = (props: DetailCardProps) => {
         <Grid size={size} {...gridProps}>
             <Card sx={cardProps}>
                 {(title || header) && (
-                    <CardHead icon={icon} action={actionHeader} className={'detail'} sx={{ py: 0, px: 2, ...headerProps }}>
+                    <CardHead icon={icon} action={actionHeader} className={'detail'} sx={{ py: 0, px: 2, backgroundColor: 'primarySoft', ...headerProps }}>
                         {title && (
-                            <Typography mt={0.5} variant={variant}>
+                            <Typography mt={0.5} variant={variant} sx={{ fontWeight: 600, color: headerProps.color ?? 'primary.dark' }} {...(titleComponent && { component: titleComponent })}>
                                 {title}
                             </Typography>
                         )}
@@ -133,17 +137,17 @@ export const DetailExpandCard = (props: DetailCardProps) => {
         <Grid size={size}>
             <Card sx={cardProps}>
                 {(title || header) && (
-                    <CardHead icon={icon} className={'detail'} sx={{ py: 0, px: 2, ...headerProps }}
+                    <CardHead icon={icon} className={'detail'} sx={{ py: 0, px: 2, backgroundColor: 'primarySoft', ...headerProps }}
                               componentProps={{width: '100%', display: 'flex', justifyContent: 'space-between'}} onClick={handleExpandClick}>
                         {title && (<>
-                            <Typography mt={0.5} variant={variant}>
+                            <Typography mt={0.5} variant={variant} sx={{ fontWeight: 600, color: 'primary.dark' }}>
                                 {title}
                             </Typography>
 
                             <IconButton
                                 onClick={handleExpandClick}
                             >
-                                <Icon>{e?'expand_more':'expand_less'}</Icon>
+                                <Icon>{e?'expand_less':'expand_more'}</Icon>
                             </IconButton>
                         </>)}
                         {header}
@@ -163,11 +167,13 @@ export const DetailExpandCard = (props: DetailCardProps) => {
 };
 
 export const DetailCardContent = (props:DetailCardContentProps) => {
-    const {title, children, isObject, size = 12, titleSize = 12, textSize = 12, componentTitleProps, componentTextProps, hidden, hiddenIfEmpty, ...other} = props;
+    const {title, children, isObject, size = 12, titleSize = 12, textSize = 12, labelWidth, componentTitleProps, componentTextProps, hidden, hiddenIfEmpty, ...other} = props;
 
     if (hidden || (hiddenIfEmpty && isEmpty(children))) {
         return <></>;
     }
+
+    const compartitFila = size !== 12;
 
     return (
         <Grid
@@ -176,28 +182,30 @@ export const DetailCardContent = (props:DetailCardContentProps) => {
             direction={'row'}
             {...other}
             sx={{
-                p: 1,
-                border: '1px solid',
-                mt: '-1px',
+                py: 0.75,
+                px: 2,
+                borderBottom: '1px solid',
                 borderColor: other?.sx?.borderColor || 'divider',
+                // flexGrow: un camp que queda sol a la fila (p. ex. perquè el seu company està ocult) l'omple tota
+                ...(compartitFila && { borderLeft: '1px solid', borderLeftColor: 'divider', ml: '-1px', flexGrow: 1 }),
                 ...(other?.sx ?? {}),
             }}
         >
-            <Grid size={titleSize}>
+            <Grid size={titleSize} sx={labelWidth ? { width: labelWidth, maxWidth: '45%', flexShrink: 0, pr: 1 } : undefined}>
                 <Typography
                     variant={'body1'}
-                    sx={{ color: (theme) => (theme.palette.mode === 'dark' ? 'primary.light' : 'primary.main'), ...componentTitleProps }}
+                    sx={{ fontWeight: 'bold', color: 'text.primary', ...componentTitleProps }}
                 >
                     {title}
                 </Typography>
             </Grid>
-            <Grid size={textSize}>
+            <Grid size={textSize} sx={{ minWidth: 0 }}>
                 {isEmpty(children) ? (
                     ' - '
                 ) : isObject ? (
                     children
                 ) : (
-                    <Typography variant="inherit" color="textSecondary" sx={componentTextProps}>
+                    <Typography variant="inherit" color="text.primary" sx={{ overflowWrap: 'anywhere', ...componentTextProps }}>
                         {children}
                     </Typography>
                 )}
@@ -237,11 +245,17 @@ export const CardData = (props:CardDataProps) => {
 }
 
 export const CardPage = (props:CardPageProps) => {
-    const {icon, title, header, headerProps, children, ...other} = props;
+    const {icon, title, header, headerProps, cardProps, children, ...other} = props;
     return <Card sx={{
         height: '100%',
+        // La Card té overflow hidden i, com a element flex, es podria encongir per davall del
+        // contingut i retallar-lo (p. ex. la graella amb la seva alçada mínima en una finestra
+        // baixa). Així no s'encongeix per davall del contingut i fa scroll la pàgina.
+        minHeight: 'min-content',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        // Permet a una pantalla que gestioni el seu propi scroll (p. ex. minHeight: 0)
+        ...cardProps,
     }}>
         {(title || header) &&
             <CardHead icon={icon} sx={(theme: any) => ({
@@ -249,8 +263,7 @@ export const CardPage = (props:CardPageProps) => {
                 // bgcolor: theme.palette.primary.main,
                 borderBottom: 'none',
                 '& h1': { color: theme.palette.primary.contrastText, fontWeight: 600 },
-                // Mateix color en tots els temes (el corporatiu, veure theme.ts), sense enfosquir-lo en mode obscur.
-                backgroundColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === 'dark' ? darken(theme.palette.primary.main, 0.3) : theme.palette.primary.main,
                 ...headerProps,
             })}>
                 {title && <Typography mt={0.5} variant={"h4"} component={"h1"}>{title}</Typography>}
@@ -288,18 +301,27 @@ export const ContenidoData = (props:ContenidoDataProps) => {
 }
 
 // Only with MuiDetail
-export const DetailField = (props:any) => {
-    const {name, size, inline = false, children} = props;
-    const {data, fields} = useDetailContext()
+export const DetailField = (props: any) => {
+    const { name, size, inline = false, children, formatterValue, ...other } = props;
+    const { data, fields } = useDetailContext();
     const field = fields?.find?.((item: any) => item?.name === name);
     const value = field?.options?.[data[name]] ?? data[name];
 
+    const v = value?.description || value;
+    // inline, l'etiqueta té una amplada fixa (no una proporció de la graella) perquè els valors quedin
+    // alineats entre camps de fila sencera, de mitja fila i de targetes estretes; en tres columnes és més curta.
+    const labelWidth = (size ?? 12) <= 4 ? 100 : 140;
+
     return (
         <DetailCardContent
-            title={props.label ?? (field?.label ?? name)}
+            title={props.label ?? field?.label ?? name}
             size={size}
-            titleSize={inline ?4 :12}
-            textSize={inline ?8 :12}
-        >{children || value?.description || value}</DetailCardContent>
-    )
-}
+            titleSize={inline ? 'auto' : 12}
+            textSize={inline ? 'grow' : 12}
+            labelWidth={inline ? labelWidth : undefined}
+            {...other}
+        >
+            {children || formatterValue?.(v, data) || v}
+        </DetailCardContent>
+    );
+};

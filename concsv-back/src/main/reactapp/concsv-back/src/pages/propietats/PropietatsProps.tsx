@@ -14,7 +14,7 @@ import type { PropietatGrup, PropietatItem } from './PropietatsTypes';
 type PropietatsPropsProps = {
     /** Identificador del grup a mostrar. */
     groupId?: string;
-    /** Tots els grups (per localitzar el grup i els seus subgrups). */
+    /** Tots els grups visibles (per localitzar el grup). */
     grups: PropietatGrup[];
     /** Propietats ja filtrades. */
     configs: PropietatItem[];
@@ -24,16 +24,12 @@ type PropietatsPropsProps = {
     refreshKey?: number;
     /** Es crida amb la propietat desada. */
     onSaved?: (item: PropietatItem) => void;
-    /**
-     * Grup de nivell superior: ocupa tota l'alçada del contenidor, amb la capçalera fixa i només
-     * el contingut amb scroll. Els subgrups no ho són i flueixen dins el contingut del pare.
-     */
-    root?: boolean;
 };
 
 /**
- * Propietats d'un grup: una fila per cada propietat del grup i, a sota, els seus subgrups (cada un
- * amb el mateix aspecte).
+ * Propietats del grup seleccionat: una fila per cada propietat del grup. Els subgrups es naveguen
+ * des de l'arbre del menú. Ocupa tota l'alçada del contenidor, amb la capçalera fixa i només el
+ * contingut amb scroll.
  */
 export const PropietatsProps: React.FC<PropietatsPropsProps> = ({
     groupId,
@@ -42,13 +38,11 @@ export const PropietatsProps: React.FC<PropietatsPropsProps> = ({
     highlight,
     refreshKey = 0,
     onSaved,
-    root = false,
 }) => {
     const { t } = useTranslation();
 
     const group = React.useMemo(() => grups?.find((g) => g.id === groupId), [groupId, grups]);
     const confProps = configs?.filter((p) => p.group?.id === groupId);
-    const children = grups?.filter((p) => p.parent?.id === groupId);
 
     return (
         <Load value={group} noEffect>
@@ -56,37 +50,21 @@ export const PropietatsProps: React.FC<PropietatsPropsProps> = ({
                 title={group?.description}
                 variant={'h6'}
                 headerProps={{ color: 'white', backgroundColor: 'primary.main' }}
-                {...(root && {
-                    gridProps: { sx: { height: '100%' } },
-                    cardProps: { height: '100%', display: 'flex', flexDirection: 'column' },
-                    contentProps: { flex: 1, minHeight: 0, overflow: 'auto' },
-                })}
+                gridProps={{ sx: { height: '100%' } }}
+                cardProps={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                contentProps={{ flex: 1, minHeight: 0, overflow: 'auto' }}
             >
                 <Grid size={12}>
                     <List component={Paper}>
-                        {confProps?.length || children?.length ? (
-                            <>
-                                {confProps?.map((c) => (
-                                    <PropietatsForm
-                                        key={`item-${refreshKey}-${c.id}`}
-                                        id={c.id}
-                                        highlight={highlight}
-                                        onSaved={onSaved}
-                                    />
-                                ))}
-                                {children?.map((c) => (
-                                    <Box key={c.key} sx={{ px: 1 }}>
-                                        <PropietatsProps
-                                            groupId={c.id}
-                                            grups={grups}
-                                            configs={configs}
-                                            highlight={highlight}
-                                            refreshKey={refreshKey}
-                                            onSaved={onSaved}
-                                        />
-                                    </Box>
-                                ))}
-                            </>
+                        {confProps?.length ? (
+                            confProps.map((c) => (
+                                <PropietatsForm
+                                    key={`item-${refreshKey}-${c.id}`}
+                                    id={c.id}
+                                    highlight={highlight}
+                                    onSaved={onSaved}
+                                />
+                            ))
                         ) : (
                             <Box sx={{ width: '100%', textAlign: 'center', px: 2, py: 4 }}>
                                 <Icon fontSize="large" color="disabled">

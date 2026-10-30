@@ -11,7 +11,7 @@ import Recaptcha from 'react-google-recaptcha';
 import { BasePage, useAppContext, envVar } from '@programari-limit/base-react';
 import { envVars } from '../main';
 import AvisosAlert from '../components/AvisosAlert';
-
+import { useTitolPagina } from '../components/TitolPagina';
 
 const isRecaptchaShow = () => {
     const recaptchaEnvVar = envVar('VITE_RECAPTCHA_ENABLED', envVars);
@@ -36,6 +36,7 @@ const Home: React.FC = () => {
     const [csv, setCsv] = React.useState<string>('');
     const [validationError, setValidationError] = React.useState<string>();
     const [recaptchaValid, setRecaptchaValid] = React.useState<boolean>(!isRecaptchaShow());
+    useTitolPagina(t('page.home.title'));
     const handleValidateClick = () => {
         setValidationError(undefined);
         if (!csv) {

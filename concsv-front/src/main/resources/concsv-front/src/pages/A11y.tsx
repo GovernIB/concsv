@@ -4,9 +4,11 @@ import Typography from '@mui/material/Typography';
 import { BasePage } from '@programari-limit/base-react';
 import AvisosAlert from '../components/AvisosAlert';
 import { Box } from '@mui/material';
+import { useTitolPagina } from '../components/TitolPagina';
 
 const A11y: React.FC = () => {
     const { t } = useTranslation();
+    useTitolPagina(t('page.a11y.title'));
     const rd = <a href="https://www.boe.es/diario_boe/txt.php?id=BOE-A-2018-12699">RD 1112/2018</a>;
     return <BasePage>
         <Box sx={{ mx: 'auto' }}>

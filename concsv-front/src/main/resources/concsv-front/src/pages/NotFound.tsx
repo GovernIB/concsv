@@ -3,9 +3,11 @@ import Box from '@mui/material/Box';
 import Icon from '@mui/material/Icon';
 import Typography from '@mui/material/Typography';
 import { BasePage } from '@programari-limit/base-react';
+import { useTitolPagina } from '../components/TitolPagina';
 
 const NotFound: React.FC = () => {
     const { t } = useTranslation();
+    useTitolPagina('404 ' + t('page.notFound.title'));
     return <BasePage>
         <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1,mt: 2}}>
             <Box sx={{ textAlign: 'center' }}>

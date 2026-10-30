@@ -11,11 +11,20 @@
 		<role-name>CSV_SUPER</role-name>
 	</security-role>
 	<security-constraint>
+		<!-- Fitxers estàtics que l'index.html de l'SPA demana directament (no contenen dades). Han
+		     de ser públics: mentre la pàgina va i torna de Keycloak per iniciar la sessió, el
+		     navegador els demana, i si fossin protegits cada un rebria una redirecció al login amb
+		     una galeta OAuth_Token_Request_State nova (path "/", compartida) que trepitjaria la de
+		     la pàgina; en tornar, l'adaptador respondria "state parameter invalid" (400). L'arrel
+		     /reactapp/ i l'index.html continuen protegits. Spring Security els declara públics
+		     igual a WebSecurityConfig.publicRequestMatchers(). -->
 		<web-resource-collection>
 			<web-resource-name>Public Resources</web-resource-name>
 			<url-pattern>/sysenv</url-pattern>
 			<url-pattern>/manifest</url-pattern>
 			<url-pattern>/reactapp/assets/*</url-pattern>
+			<url-pattern>/reactapp/favicon.png</url-pattern>
+			<url-pattern>/reactapp/favicon.svg</url-pattern>
 		</web-resource-collection>
 		<!-- L'API no la protegeix el contenidor (una petició AJAX sense sessió rebria una redirecció
 		     al login de Keycloak en lloc d'un 401/403): ho fa Spring Security, que exigeix usuari

@@ -13,6 +13,7 @@ import org.keycloak.representations.IDToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,7 @@ import org.springframework.security.core.authority.mapping.SimpleMappableAttribu
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails;
 import org.springframework.security.web.authentication.preauth.j2ee.J2eeBasedPreAuthenticatedWebAuthenticationDetailsSource;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -87,6 +89,14 @@ public class WebSecurityConfig extends BaseWebSecurityConfig {
 		http.addFilterBefore(
 				new RolSeleccionatFilter(selectedRoleHttpHeader),
 				AuthorizationFilter.class);
+		if (isJboss()) {
+			// La pre-autenticació J2EE no registra cap entry point i Spring hi posaria el
+			// Http403ForbiddenEntryPoint: una petició a l'API sense sessió rebria un 403, que
+			// ConcsvAuthProvider no distingeix d'un error i no tornaria a iniciar la sessió.
+			http.exceptionHandling(eh -> eh.defaultAuthenticationEntryPointFor(
+					new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+					new AntPathRequestMatcher(BaseConfig.API_PATH + "/**")));
+		}
 		if (!isJboss()) {
 			http.sessionManagement(session -> session.
 					sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));

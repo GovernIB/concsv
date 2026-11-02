@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import { GridPage } from 'reactlib';
 import ScreenFrame from '../components/ScreenFrame';
 import { icons } from '../util/icons';
+import { tonal } from '../util/tonal';
 
 const Home: React.FC = () => {
     const { t } = useTranslation();
@@ -15,16 +16,8 @@ const Home: React.FC = () => {
                 icon={icons.inici}
                 title={t('page.home.toolbar.title')}
                 actions={
-                    <Chip
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                        label={`v${import.meta.env.VITE_APP_VERSION}`}
-                        sx={(theme) => ({
-                            bgcolor: theme.palette.primarySoft,
-                            ...(theme.palette.mode === 'dark' && { color: theme.palette.text.primary }),
-                        })}
-                    />
+                    // Sense color="primary": la sobreescriptura de MuiChip de theme.ts hi posaria el fons ple
+                    <Chip size="small" label={`v${import.meta.env.VITE_APP_VERSION}`} sx={tonal('primary')} />
                 }
             >
                 <Typography variant="body1" color="text.secondary">

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { MenuActionButton } from './MenuButton.tsx';
 import Load from './Load.tsx';
 import { icons } from '../util/icons';
+import { tonal, tonalNeutre } from '../util/tonal';
 
 export type MassiveActionProps = {
     title?: string;
@@ -144,7 +145,8 @@ const MassiveActionSelector: React.FC<MassiveActionSelectorProps> = (props: Mass
                         <Chip
                             label={selectedRows?.length}
                             size="small"
-                            color={selectedRows?.length > 0 ? 'primary' : 'default'}
+                            // Sense color="primary": la sobreescriptura de MuiChip de theme.ts hi posaria el fons ple
+                            sx={selectedRows?.length > 0 ? tonal('primary') : tonalNeutre}
                             disabled={!(selectedRows?.length > 0)}
                         />
                     </Button>

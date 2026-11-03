@@ -20,6 +20,7 @@ import Preview from '../components/Preview';
 import { envVars } from '../main';
 import { Alert } from '@mui/material';
 import AvisosAlert from '../components/AvisosAlert';
+import { useTitolPagina } from '../components/TitolPagina';
 
 const SignerRow: React.FC<any> = (props) => {
     const {
@@ -230,6 +231,7 @@ const MetadadesEni: React.FC<any> = (props) => {
 
 const ViewLoading: React.FC = () => {
   const { t } = useTranslation();
+  useTitolPagina(t("page.view.loading.title"));
   return (
     <BasePage>
       <Box
@@ -256,6 +258,7 @@ const ViewLoading: React.FC = () => {
 const ViewError: React.FC<any> = (props) => {
   const { /*error,*/ handleGoBack } = props;
   const { t } = useTranslation();
+  useTitolPagina(t("page.view.error.title"));
 
   return (
     <BasePage>
@@ -296,6 +299,7 @@ const ViewFound: React.FC<any> = (props) => {
       setPrintableFailed
     } = props;
     const { t } = useTranslation();
+    useTitolPagina(t('page.view.found.title'));
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
     const noImprimible = !data.printable || !!data.hasPassword || !!data.malformatted;
@@ -417,6 +421,7 @@ const ViewFound: React.FC<any> = (props) => {
 const ViewNotFound: React.FC<any> = (props) => {
     const { t } = useTranslation();
     const { handleGoBack } = props;
+    useTitolPagina(t('page.view.notFound.title'));
     return <BasePage>
         <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1,mt: 2}}>
             <Box sx={{ textAlign: 'center' }}>

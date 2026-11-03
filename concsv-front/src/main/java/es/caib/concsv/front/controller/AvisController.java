@@ -64,7 +64,7 @@ public class AvisController {
 		@RequestParam(name = "entitatId", required = false) final Long entitatId,
 		@RequestParam(name = "lang", required = false, defaultValue = "ca") final String lang)
 		throws DuplicatedHashException, DocumentNotExistException, GenericServiceException, IOException {
-		return ejecutarYRegistrar("Avisos d'entitats", () -> {
+		return ejecutarYRegistrar(EnviamentTipus.AVIS.name(), () -> {
 			log.debug("Consultar avisos entitat (entitat={}, lang={})", entitatId, lang);
 			List<AvisResource> result = avisResourceService.findActius(entitatId);
 			List<Link> links = new ArrayList<>();

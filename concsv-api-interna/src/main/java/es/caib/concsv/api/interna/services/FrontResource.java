@@ -12,6 +12,7 @@ import es.caib.concsv.logic.intf.model.DocumentContent;
 import es.caib.concsv.logic.intf.model.DocumentInfo;
 import es.caib.concsv.logic.intf.model.EnviamentOrigen;
 import es.caib.concsv.logic.intf.model.EnviamentTipus;
+import es.caib.concsv.logic.intf.model.FitxerStream;
 import es.caib.concsv.logic.intf.service.ComandaServiceInterface;
 import es.caib.concsv.logic.intf.service.HashServiceInterface;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,8 +30,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -389,6 +392,32 @@ public class FrontResource {
 		@Parameter(description = "Nom fitxer a recuperar") @PathParam("nomFitxer") String nomFitxer)
 		throws GenericServiceException {
 		return Response.ok(comandaService.getFitxerByNom(nomFitxer), MediaType.APPLICATION_JSON_TYPE).build();
+	}
+
+	/**
+	 * Descàrrega del fitxer en streaming. Comanda prova primer aquest endpoint i, només si falla, torna
+	 * a {@code /v1/logs/{nomFitxer}}, que carrega el fitxer sencer a memòria.
+	 */
+	@GET
+	@Path("/v1/logs/{nomFitxer}/directe")
+	@Produces({MediaType.APPLICATION_OCTET_STREAM, "application/zip", MediaType.TEXT_PLAIN})
+	@Operation(summary = "(Integració amb Comanda) Descarrega el fitxer sol·licitat en streaming (comprimit en zip si no ho estava)", security = @SecurityRequirement(name = "basic-auth"))
+	public Response descarregarFitxerDirecte(
+		@Parameter(description = "Nom fitxer a recuperar") @PathParam("nomFitxer") String nomFitxer)
+		throws GenericServiceException {
+		FitxerStream fitxer = comandaService.getFitxerStreamByNom(nomFitxer);
+		StreamingOutput cos = out -> {
+			// Tancar l'stream esborra el zip temporal, també si el client talla la connexió.
+			try (InputStream in = fitxer.getInputStream()) {
+				in.transferTo(out);
+				out.flush();
+			}
+		};
+		String mimeType = StringUtils.isNotBlank(fitxer.getMimeType()) ? fitxer.getMimeType() : MediaType.APPLICATION_OCTET_STREAM;
+		return Response.ok(cos, mimeType)
+			.header(HttpHeaders.CONTENT_LENGTH, fitxer.getMida())
+			.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fitxer.getNom().replace("\"", "") + "\"")
+			.build();
 	}
 
 	@GET

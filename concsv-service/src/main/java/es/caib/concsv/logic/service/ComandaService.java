@@ -1,6 +1,7 @@
 package es.caib.concsv.logic.service;
 
 import es.caib.comanda.model.server.monitoring.*;
+import es.caib.comanda.ms.log.helper.LogFileStream;
 import es.caib.comanda.ms.log.helper.LogHelper;
 import es.caib.comanda.ms.salut.helper.MonitorHelper;
 import es.caib.concsv.logic.annotation.ErrorInt;
@@ -17,6 +18,7 @@ import es.caib.concsv.logic.intf.enums.ResultTypeEnum;
 import es.caib.concsv.logic.intf.exception.GenericServiceException;
 import es.caib.concsv.logic.intf.model.EnviamentOrigen;
 import es.caib.concsv.logic.intf.model.EnviamentTipus;
+import es.caib.concsv.logic.intf.model.FitxerStream;
 import es.caib.concsv.logic.intf.qualifier.LogicService;
 import es.caib.concsv.logic.intf.service.ComandaServiceInterface;
 import es.caib.concsv.persistence.entity.ExplotDimensioEntity;
@@ -207,7 +209,27 @@ public class ComandaService implements ComandaServiceInterface {
 
 	@Override
 	public FitxerContingut getFitxerByNom(String nomFitxer) throws GenericServiceException {
-		return LogHelper.getFitxerByNom(getLogsLocation(), nomFitxer);
+		String logsLocation = getLogsLocation();
+		// La mida es consulta amb el mateix LogHelper perquè resolgui el directori igual que en llegir-lo.
+		Optional<Long> mida = LogHelper.llistarFitxers(logsLocation, "concsv").stream()
+			.filter(f -> f.getNom() != null && f.getNom().equals(nomFitxer))
+			.map(FitxerInfo::getMida)
+			.filter(Objects::nonNull)
+			.findFirst();
+		if (mida.isPresent() && mida.get() > MIDA_MAXIMA_LOG_JSON) {
+			throw new GenericServiceException("El fitxer de log " + nomFitxer + " fa " + (mida.get() / (1024 * 1024))
+				+ " MB i supera el màxim de " + (MIDA_MAXIMA_LOG_JSON / (1024 * 1024))
+				+ " MB per retornar-lo en JSON. Feu servir /v1/logs/" + nomFitxer + "/directe o /v1/logs/"
+				+ nomFitxer + "/linies/{n}.");
+		}
+		return LogHelper.getFitxerByNom(logsLocation, nomFitxer);
+	}
+
+	@Override
+	public FitxerStream getFitxerStreamByNom(String nomFitxer) throws GenericServiceException {
+		LogFileStream fitxer = LogHelper.getFileStreamByNom(getLogsLocation(), nomFitxer);
+		// getInputStream() embolcalla l'stream perquè el close() esborri el zip temporal, si n'hi ha.
+		return new FitxerStream(fitxer.getInputStream(), fitxer.getFileName(), fitxer.getSize(), fitxer.getContentType());
 	}
 
 	@Override

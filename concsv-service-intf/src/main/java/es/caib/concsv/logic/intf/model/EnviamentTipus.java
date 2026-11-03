@@ -12,5 +12,6 @@ public enum  EnviamentTipus implements Serializable {
     IMPRIMIBLE,
     ORIGINAL,
     ENI,
-    METADATOS
+    METADATOS,
+	AVIS,
 }

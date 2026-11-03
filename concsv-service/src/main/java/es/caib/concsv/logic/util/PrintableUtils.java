@@ -140,7 +140,9 @@ public class PrintableUtils {
 				try {
 					PdfAcroForm.getAcroForm(pdfDoc, false).flattenFields();
 				} catch (StackOverflowError th) {
-					log.warn("Error aplanant el formulari. Es provarà amb AddIndexStrategy :" + th.toString(), th);
+					// Sense traça: d'un StackOverflowError són ~1.000 línies de recursió que no aporten res,
+					// i aquí ja es tracta (es torna a provar amb AddIndexStrategy).
+					log.warn("Error aplanant el formulari. Es provarà amb AddIndexStrategy: " + th);
 					srcPdf.close();
 					reader = new PdfReader(new ByteArrayInputStream(sourceDocument));
 					pdfDoc = new PdfDocument(reader, writer);

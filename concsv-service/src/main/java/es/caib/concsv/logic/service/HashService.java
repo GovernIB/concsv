@@ -46,6 +46,7 @@ import es.caib.concsv.logic.intf.qualifier.LogicService;
 import es.caib.concsv.logic.intf.service.HashServiceInterface;
 import es.caib.concsv.logic.intf.service.NewDigitalArchiveServiceInterface;
 import es.caib.concsv.logic.intf.service.OldSaveKeepingServiceInterface;
+import es.caib.concsv.logic.util.ErrorsEsperables;
 import es.caib.concsv.logic.util.MyDocumentConverter;
 import es.caib.concsv.logic.util.OptionalMetadataBlock;
 import es.caib.concsv.logic.util.PrintableUtils;
@@ -204,6 +205,14 @@ public class HashService implements HashServiceInterface {
 		} catch (DocumentNotExistException ex) {
 			hasError = false;
 			throw new GenericServiceException(ex, false);
+		} catch (GenericServiceException ex) {
+			if (!ex.isLoggable()) {
+				// Ja registrada per qui l'ha llançada: es propaga tal qual perquè el FrontResource tampoc la
+				// torni a registrar amb la traça.
+				throw ex;
+			}
+			log.error("Error al consultar el document amb hash {}", hash, ex);
+			throw new GenericServiceException(ex);
 		} catch (Exception ex) {
 			log.error("Error al consultar el document amb hash {}", hash, ex);
 			throw new GenericServiceException(ex);
@@ -280,8 +289,13 @@ public class HashService implements HashServiceInterface {
 			return documentContent;
 		} catch (Exception ex) {
 			isError = true;
-			log.error("Error obtenint el document " + documentInfo.getCodi(), ex);
 			subsistemesHelper.addErrorOperation(SubsistemesHelper.SubsistemesEnum.ORI);
+			if (ErrorsEsperables.isEsperable(ex)) {
+				// Error del servei remot (404, 502, timeout...): una sola línia, i no es torna a registrar a dalt
+				log.error("Error obtenint el document " + documentInfo.getCodi() + ": " + ErrorsEsperables.resum(ex));
+				throw new GenericServiceException(ex, false);
+			}
+			log.error("Error obtenint el document " + documentInfo.getCodi(), ex);
 			throw new GenericServiceException(ex);
 		} finally {
 			String identificador = documentInfo != null ?
@@ -812,7 +826,10 @@ public class HashService implements HashServiceInterface {
 		} else if (ex instanceof DocumentNotExistException) {
 			throw (DocumentNotExistException)ex;
 		} else if (ex instanceof GenericServiceException) {
-			log.error("Error al consultar document amb hash: " + hash, ex.getCause());
+			// Si no és "loggable", el servei que l'ha llançada ja l'ha registrat
+			if (((GenericServiceException) ex).isLoggable()) {
+				log.error("Error al consultar document amb hash: " + hash, ex.getCause());
+			}
 			throw (GenericServiceException)ex;
 		} else {
 			log.error("Error al consultar document", ex);

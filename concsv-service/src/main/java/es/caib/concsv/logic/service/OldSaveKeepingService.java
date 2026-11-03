@@ -17,6 +17,7 @@ import es.caib.concsv.logic.intf.qualifier.LogicService;
 import es.caib.concsv.logic.intf.service.OldSaveKeepingServiceInterface;
 import es.caib.concsv.logic.util.PdfSignerUtils;
 import es.caib.concsv.logic.util.StrUtils;
+import es.caib.concsv.logic.util.ErrorsEsperables;
 import es.caib.concsv.logic.util.ValidacioFirmaUtils;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -149,7 +150,12 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
                 validacio.setDocument(pdfSource);
                 documentInfo.setSigners(validacio.validaFirma());
             } catch (Exception ex) {
-            	log.error("Error en la validació de firmes del document " + hash, ex);
+            	if (ErrorsEsperables.isEsperable(ex)) {
+            		// p. ex. 413 Request Entity Too Large o timeout d'aFirma: es continua sense validar les firmes
+            		log.error("Error en la validació de firmes del document " + hash + ": " + ErrorsEsperables.resum(ex));
+            	} else {
+            		log.error("Error en la validació de firmes del document " + hash, ex);
+            	}
             	DocumentSigner docSigner = new DocumentSigner();
             	docSigner.setSignerCN(DocumentSigner.CERTIFICATE_ERROR);
             	documentInfo.getSigners().add(docSigner);
@@ -220,8 +226,15 @@ public class OldSaveKeepingService implements OldSaveKeepingServiceInterface {
 			error = ex;
 			String message = ex.getMessage();
             if (message == null || !message.contains("es.caib.signatura.error.ReservaNotFoundException")) {
-            	log.error("Error consultant el servei antic: " + message, ex);
-                throw new GenericServiceException(ex);
+            	// Els errors del servei remot (502, 503, timeout...) es repeteixen milers de vegades quan el servei
+            	// falla i la traça no aporta res: una sola línia. La resta, amb la traça completa.
+            	if (ErrorsEsperables.isEsperable(ex)) {
+            		log.error("Error consultant el servei antic per al hash " + hash + ": " + ErrorsEsperables.resum(ex));
+            	} else {
+            		log.error("Error consultant el servei antic per al hash " + hash + ": " + message, ex);
+            	}
+            	// Ja registrat: les capes superiors no l'han de tornar a registrar amb la traça.
+                throw new GenericServiceException(ex, false);
             }
         } finally {
 			integracionsHelper.addOperation(IntegracioApp.CUS, t0, "Consulta de custòdia per hash", endpoint,

@@ -3,6 +3,7 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import { useResourceApiService } from 'reactlib';
 import { StyledBadge } from '../../components/StyledBadge';
+import { tonal } from '../../util/tonal';
 
 const INTEGRACIO_RESOURCE = 'monitorIntegracioResource';
 const ACTION_PIPELLES = 'PIPELLES';
@@ -62,7 +63,12 @@ export const useIntegracioTabs = () => {
                     key={pipella.codi}
                     value={pipella.codi}
                     label={
-                        <StyledBadge badgeContent={pipella.errors} badgecolor="error" max={999}>
+                        <StyledBadge
+                            badgeContent={pipella.errors}
+                            max={999}
+                            // StyledBadge pinta el badge amb colors plens: el sx el passa a tonal
+                            sx={(theme) => ({ '& .MuiBadge-badge': tonal('error')(theme) })}
+                        >
                             {pipella.nom}
                         </StyledBadge>
                     }

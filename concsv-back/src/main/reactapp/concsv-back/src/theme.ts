@@ -98,9 +98,9 @@ const baseComponentStyles = {
     MuiCssBaseline: {
         styleOverrides: {
             // Contenidor del filtre dels llistats (veure components/StyledMuiFilter.tsx).
+            // Sense padding vertical: la separació amb la barra de títol i la graella és el `gap` de 15px
+            // (MAIN_GAP) del cos de ScreenFrame.
             '.styledFilter': {
-                paddingTop: '11px',
-                paddingBottom: '16px',
                 borderRadius: '4px',
                 backgroundColor: 'inherit',
             },
@@ -275,6 +275,28 @@ const baseComponentStyles = {
                 // Guia vertical dels submenús (la llibreria la dibuixa en blau fix): al color de la vora
                 '&.Mui-selected :before': { background: theme.palette.primary.main },
             }),
+        },
+    },
+    // Etiquetes dels camps (també fan de placeholder quan el camp és buit): cursiva, 14px i pes fi, igual
+    // que a la resta d'aplicacions de la família.
+    MuiFormLabel: {
+        styleOverrides: {
+            root: {
+                fontStyle: 'italic',
+                paddingRight: '2px',
+                fontSize: '14px',
+                fontWeight: 200,
+                '&.Mui-disabled': { fontStyle: 'italic', paddingRight: '2px' },
+                '&.Mui-focused': { fontStyle: 'italic', paddingRight: '2px' },
+            },
+            filled: {
+                fontStyle: 'italic',
+                paddingRight: '2px',
+                fontSize: '14px',
+                fontWeight: 200,
+                '&.Mui-disabled': { fontStyle: 'italic', paddingRight: '2px', opacity: 1 },
+                '&.Mui-focused': { fontStyle: 'italic', paddingRight: '2px' },
+            },
         },
     },
     MuiTypography: {
@@ -486,6 +508,13 @@ export const darkTheme = createTheme({
                 },
             },
         },
+        // El text d'ajuda d'un camp desactivat (p. ex. el nom de la propietat) és informació, no un
+        // control: amb el color de "desactivat" (blanc al 50%) queda a 4,41:1.
+        MuiFormHelperText: {
+            styleOverrides: {
+                root: { '&.Mui-disabled': { color: DARK_TEXT_SECONDARY } },
+            },
+        },
         MuiOutlinedInput: {
             styleOverrides: {
                 root: {
@@ -532,6 +561,11 @@ export const darkTheme = createTheme({
                     // Casella marcada d'una fila seleccionada: gairebé blanca, es veu sobre el lila fosc
                     '& .MuiDataGrid-row.Mui-selected .MuiCheckbox-root.Mui-checked': {
                         color: `${GRID_ROW_CHECKED_DARK} !important`,
+                    },
+                    // Enllaços d'una fila seleccionada: el color primari es confon amb el fons de la fila;
+                    // en el color del text es distingeixen pel subratllat.
+                    '& .MuiDataGrid-row.Mui-selected .MuiLink-root': {
+                        color: `#ffffff !important`,
                     },
                 },
                 row: {
@@ -608,6 +642,13 @@ export const draculaTheme = createTheme({
                 },
             },
         },
+        // El text d'ajuda d'un camp desactivat (p. ex. el nom de la propietat) és informació, no un
+        // control: amb el color de "desactivat" (blanc al 50%) queda a 4,41:1.
+        MuiFormHelperText: {
+            styleOverrides: {
+                root: { '&.Mui-disabled': { color: DRACULA_TEXT_SECONDARY } },
+            },
+        },
         MuiOutlinedInput: {
             styleOverrides: {
                 root: {
@@ -654,6 +695,11 @@ export const draculaTheme = createTheme({
                     // Casella marcada d'una fila seleccionada: gairebé blanca, es veu sobre el lila fosc
                     '& .MuiDataGrid-row.Mui-selected .MuiCheckbox-root.Mui-checked': {
                         color: `${GRID_ROW_CHECKED_DARK} !important`,
+                    },
+                    // Enllaços d'una fila seleccionada: el color primari es confon amb el fons de la fila;
+                    // en el color del text es distingeixen pel subratllat.
+                    '& .MuiDataGrid-row.Mui-selected .MuiLink-root': {
+                        color: `#f8f8f2 !important`,
                     },
                 },
                 row: {

@@ -3,8 +3,8 @@
 # CONCSV 
 Consulta de documents per Codi Segur de Verificació Aplicació de frontal per recuperar documents enmagatzemats a l'arxiu i a l'antic sistema de custòdia
 
-- Versió estable: 2.1.7 (branca 2.0)
-- Versió Desenvolupament: 2.2.1 (branca dev)
+- Versió estable: 2.2.1 (branca 2.0)
+- Versió Desenvolupament: 2.2.2 (branca dev)
 
 
 Contextos/entorns
@@ -31,6 +31,8 @@ CONCSV
 - concsv-service-intf - Mòdul amb classes i interfícies pels serveis.
 - concsv-service - Mòdul amb classes per la lògica de serveis.
 - concsv-presistence - Mòdul per persistir i consultar les dades des de la BD.
+- concsv-back - Backend per gestionar l'aplicació.
+- concsv-backend - Llibreria pel backend.
 
 # Rols
 Per accedir a CONCSV des de l'interfície web hi pot accedir tothom que sàbiga el CSV corresponent al document a recuperar.

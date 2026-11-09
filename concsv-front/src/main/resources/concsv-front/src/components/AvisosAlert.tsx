@@ -77,13 +77,15 @@ const AvisosAlert: React.FC = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', mb: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ width: '100%', mb: 2, display: 'flex', flexDirection: 'column', gap: '2px' }}>
       {avisos.map((aviso) => (
         <Alert 
           key={aviso.id} 
           severity={getSeverity(aviso.avisNivell)}
           sx={{ 
-            alignItems: 'flex-start',
+            py: 0,
+            px: 1.5,
+            alignItems: 'center',
             '& .MuiAlert-message': { width: '100%' }
           }}
           action={
@@ -99,7 +101,7 @@ const AvisosAlert: React.FC = () => {
             </IconButton>
           }
         >
-          <AlertTitle sx={{ fontWeight: 'bold', mb: 0.5 }}>
+          <AlertTitle sx={{ fontWeight: 'bold', m: 0, lineHeight: 1.4 }}>
             {aviso.assumpte}
           </AlertTitle>
           

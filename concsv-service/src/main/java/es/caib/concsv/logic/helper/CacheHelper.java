@@ -121,7 +121,10 @@ public class CacheHelper {
 	 */
 	public int cleanExpired() throws IOException {
 		int removed = 0;
-		if (getCacheTtlMinuts() == 0) {
+		// El TTL es llegeix un sol cop: abans es llegia dues vegades per fitxer i, amb milers de
+		// fitxers, la neteja no acabava dins el minut (WFLYEJB0043).
+		long ttlMinuts = getCacheTtlMinuts();
+		if (ttlMinuts == 0) {
 			return removed;
 		}
 		Path root = resolveCacheRoot();
@@ -136,7 +139,7 @@ public class CacheHelper {
 		}
 		for (Path file: files) {
 			long ts = Files.getLastModifiedTime(file).toMillis();
-			if (isExpired(ts)) {
+			if (isExpired(ts, ttlMinuts)) {
 				Files.deleteIfExists(file);
 				removed++;
 			}
@@ -161,7 +164,7 @@ public class CacheHelper {
 			if (!Files.exists(file)) {
 				return Optional.empty();
 			}
-			if (isExpired(Files.getLastModifiedTime(file).toMillis())) {
+			if (isExpired(Files.getLastModifiedTime(file).toMillis(), getCacheTtlMinuts())) {
 				Files.deleteIfExists(file);
 				return Optional.empty();
 			}
@@ -232,13 +235,9 @@ public class CacheHelper {
 		return cacheTtlMinuts != null ? cacheTtlMinuts : configValues.getLong(PropertyConfig.PROP_CACHE_TTL_MINUTS, 30L);
 	}
 
-	private boolean isExpired(long timestamp) {
-		if (getCacheTtlMinuts() == 0) return false;
-		return (System.currentTimeMillis() - timestamp) > ttlMillis();
-	}
-
-	private long ttlMillis() {
-		return Duration.ofMinutes(getCacheTtlMinuts()).toMillis();
+	private static boolean isExpired(long timestamp, long ttlMinuts) {
+		if (ttlMinuts == 0) return false;
+		return (System.currentTimeMillis() - timestamp) > Duration.ofMinutes(ttlMinuts).toMillis();
 	}
 
 	public enum CacheType {
@@ -247,6 +246,10 @@ public class CacheHelper {
 	}
 
 	/** Mètodes per fer tests */
+
+	void setConfigValues(ConfigValues configValues) {
+		this.configValues = configValues;
+	}
 
 	public void setFitxersPath(String fitxersPath) {
 		this.fitxersPath = fitxersPath;

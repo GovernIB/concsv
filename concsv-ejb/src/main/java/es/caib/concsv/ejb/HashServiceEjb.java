@@ -8,11 +8,21 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Local;
 import javax.ejb.Schedule;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import java.io.IOException;
 
+/**
+ * Consulta de documents. Sense transacció: cap mètode no escriu a la base de dades amb JPA, i dins
+ * una transacció JTA la primera connexió de {@code concsvDS} que es demana queda retinguda fins al
+ * final de la crida, també mentre s'espera la custòdia, l'arxiu digital o @firma. Amb molta càrrega
+ * això exhauria el pool (caiguda de PRO del 06/11/2026). Sense transacció, cada connexió torna al
+ * pool tan bon punt es tanca.
+ */
 @Local
 @Stateless
+@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class HashServiceEjb implements HashServiceInterface {
 
 	@Inject

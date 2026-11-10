@@ -281,19 +281,20 @@ const baseComponentStyles = {
     // que a la resta d'aplicacions de la família.
     MuiFormLabel: {
         styleOverrides: {
-            root: {
+            root: ({ theme }: { theme: Theme }) => ({
                 fontStyle: 'italic',
                 paddingRight: '2px',
                 fontSize: '14px',
-                fontWeight: 200,
+                fontWeight: 300,
+                ...(theme.palette.mode === 'light' && { color: 'rgba(0, 0, 0, 0.74)' }),
                 '&.Mui-disabled': { fontStyle: 'italic', paddingRight: '2px' },
                 '&.Mui-focused': { fontStyle: 'italic', paddingRight: '2px' },
-            },
+            }),
             filled: {
                 fontStyle: 'italic',
                 paddingRight: '2px',
                 fontSize: '14px',
-                fontWeight: 200,
+                fontWeight: 300,
                 '&.Mui-disabled': { fontStyle: 'italic', paddingRight: '2px', opacity: 1 },
                 '&.Mui-focused': { fontStyle: 'italic', paddingRight: '2px' },
             },
@@ -407,6 +408,7 @@ const LIGHT_GREY_BACKGROUND = '#e7e7e7';
 export const lightTheme = createTheme({
     palette: {
         mode: 'light',
+        text: { disabled: '#6e6e6e' },
         primary: { main: LIGHT_PRIMARY_MAIN, dark: CONCSV_PRIMARY_DARK },
         error: { main: '#d32f2f', contrastText: '#f8f8f2' },
         warning: { main: '#ed6c02', contrastText: '#f8f8f2' },
@@ -485,6 +487,7 @@ const DARK_PRIMARY_SOFT = darken(CONCSV_PRIMARY_MAIN, 0.7);
 export const darkTheme = createTheme({
     palette: {
         mode: 'dark',
+        text: { disabled: '#a0a0a0' },
         primary: { light: DARK_PRIMARY_LIGHT, main: DARK_PRIMARY_MAIN, dark: CONCSV_PRIMARY_DARK },
         error: { main: '#c62828', contrastText: '#f8f8f2' },
         warning: { main: '#e65100', contrastText: '#f8f8f2' },
@@ -618,7 +621,7 @@ export const draculaTheme = createTheme({
         },
         secondary: { main: '#f8f8f2' },
         background: { default: '#282a36', paper: '#303341' },
-        text: { primary: '#f8f8f2', secondary: '#d6d6c2' },
+        text: { primary: '#f8f8f2', secondary: '#d6d6c2', disabled: '#a8aab8' },
         error: { main: '#c62828', contrastText: '#f8f8f2' },
         warning: { main: '#e65100', contrastText: '#f8f8f2' },
         success: { main: '#1b5e20', contrastText: '#f8f8f2' },

@@ -28,6 +28,15 @@ const translationCa = {
             validFinsA: "Finalitza el ",
             collapse: "Contraure",
             expand: "Expandir",
+            tanca: "Minimitza l'avís",
+            nivell: {
+                INFO: "Informació",
+                WARNING: "Advertència",
+                ERROR: "Error",
+            },
+            chip: "{{nivell}}: {{count}}",
+            chipRestaura: "Mostra els avisos de nivell «{{nivell}}» que has minimitzat",
+            chipBuit: "Cap avís de nivell «{{nivell}}»",
         },
         view: {
             loading: {

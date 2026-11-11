@@ -19,6 +19,8 @@ import logoConcsv from '../assets/CON_DRA_COL.png';
 import logoFooter from '../assets/DRA_B.png';
 import { MuiBaseApp, MenuEntry } from '@programari-limit/base-react';
 import LanguageSelectorButton from './LanguageSelectorButton';
+import AvisosChips from './AvisosChips';
+import { AvisosProvider } from './AvisosProvider';
 
 export type HeaderBackgroundModuleItem = {
     color?: string;
@@ -264,39 +266,59 @@ export const BaseCaibApp: React.FC<BaseCaibAppProps> = (props) => {
         }
     }
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-    return <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Box sx={{ flex: 1 }}>
-            <MuiBaseApp
-                code={code}
-                title={title}
-                titleLogo={logoConcsv}
-                titleLogoStyle={isSmallScreen ? titleLogoStyleSm : titleLogoStyle}
-                version={version}
-                logo={logo}
-                logoStyle={isSmallScreen ? logoStyleSm : logoStyle}
-                persistentSession
-                //persistentLanguage
-                i18nUseTranslation={useTranslation}
-                i18nCurrentLanguage={defaultLanguage ?? i18n.language}
-                i18nHandleLanguageChange={i18nHandleLanguageChange}
-                i18nAddResourceBundleCallback={i18nAddResourceBundleCallback}
-                routerGoBack={goBack}
-                routerUseLocationPath={useLocationPath}
-                routerAnyHistoryEntryExist={anyHistoryEntryExist}
-                linkComponent={Link}
-                //menuEntries={menuEntries}
-                additionalHeaderComponents={[
-                    <LanguageSelectorButton key="sel_lang"/>
-                ]}
-                appbarStyle={headerStyle}
-                appbarBackgroundColor={headerBackgroundColor}
-                appbarBackgroundImg={headerBackgroundImage}>
-                <CaibMenuToolbar menuEntries={menuEntries} isSmallScreen={isSmallScreen} />
-                {children}
-            </MuiBaseApp>
-        </Box>
-        <CaibFooter title={title} version={version} />
-    </Box>;
+
+    return (
+        <AvisosProvider>
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: "100vh",
+                }}
+            >
+                <Box sx={{ flex: 1 }}>
+                    <MuiBaseApp
+                        code={code}
+                        title={title}
+                        titleLogo={logoConcsv}
+                        titleLogoStyle={
+                            isSmallScreen ? titleLogoStyleSm : titleLogoStyle
+                        }
+                        version={version}
+                        logo={logo}
+                        logoStyle={isSmallScreen ? logoStyleSm : logoStyle}
+                        persistentSession
+                        //persistentLanguage
+                        i18nUseTranslation={useTranslation}
+                        i18nCurrentLanguage={defaultLanguage ?? i18n.language}
+                        i18nHandleLanguageChange={i18nHandleLanguageChange}
+                        i18nAddResourceBundleCallback={
+                            i18nAddResourceBundleCallback
+                        }
+                        routerGoBack={goBack}
+                        routerUseLocationPath={useLocationPath}
+                        routerAnyHistoryEntryExist={anyHistoryEntryExist}
+                        linkComponent={Link}
+                        //menuEntries={menuEntries}
+                        additionalHeaderComponents={[
+                            <AvisosChips key="avisos" />,
+                            <LanguageSelectorButton key="sel_lang" />,
+                        ]}
+                        appbarStyle={headerStyle}
+                        appbarBackgroundColor={headerBackgroundColor}
+                        appbarBackgroundImg={headerBackgroundImage}
+                    >
+                        <CaibMenuToolbar
+                            menuEntries={menuEntries}
+                            isSmallScreen={isSmallScreen}
+                        />
+                        {children}
+                    </MuiBaseApp>
+                </Box>
+                <CaibFooter title={title} version={version} />
+            </Box>
+        </AvisosProvider>
+    );
 }
 
 export default BaseCaibApp;

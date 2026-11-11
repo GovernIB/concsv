@@ -22,7 +22,8 @@ const LanguageSelectorButton = () => {
       sx={{
         display: "flex",
         gap: 1,
-        mr: 4,
+        ml: { xs: 0.75, sm: 0 },
+        mr: { xs: 1, sm: 4 },
         color: "black",
       }}
     >
@@ -34,7 +35,7 @@ const LanguageSelectorButton = () => {
               currentLanguageTwoChars === "ca" ? "none" : "underline",
           },
           fontWeight: currentLanguageTwoChars === "ca" ? "bold" : "normal",
-          fontSize: "20px",
+          fontSize: { xs: "16px", sm: "20px" },
         }}
         onClick={() => changeLanguage("ca")}
       >
@@ -49,7 +50,7 @@ const LanguageSelectorButton = () => {
               currentLanguageTwoChars === "es" ? "none" : "underline",
           },
           fontWeight: currentLanguageTwoChars === "es" ? "bold" : "normal",
-          fontSize: "20px",
+          fontSize: { xs: "16px", sm: "20px" },
         }}
         onClick={() => changeLanguage("es")}
       >

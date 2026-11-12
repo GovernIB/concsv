@@ -13,9 +13,12 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.env.Environment;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import es.caib.concsv.logic.helper.CacheEsborratHelper;
 import es.caib.concsv.logic.helper.ConfigHelper;
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.intf.base.exception.ResourceNotUpdatedException;
 import es.caib.concsv.logic.intf.model.ConfigResource;
 import es.caib.concsv.persist.entity.ConfigEntity;
@@ -229,6 +232,50 @@ public class ConfigResourceServiceImplTest {
 	@Test
 	public void conversio_unaCredencialSenseValorNoMostraMascara() {
 		assertNull(converteix(config("clau.password", "CREDENTIALS", null, true)).getValue());
+	}
+
+	// ---- Invalidació de la memòria cau de ConfigValues ----
+
+	private void desa() {
+		service.afterUpdateSave(config(KEY, "INT", "5", false), resource(KEY, "5"), Collections.emptyMap(), false);
+	}
+
+	@Test
+	public void update_senseTransaccioInvalidaConfigValuesALInstant() {
+		long abans = ConfigValues.getGeneracio();
+
+		desa();
+
+		assertEquals(abans + 1, ConfigValues.getGeneracio());
+	}
+
+	@Test
+	public void update_ambTransaccioInvalidaConfigValuesNomesDespresDelCommit() {
+		long abans = ConfigValues.getGeneracio();
+		TransactionSynchronizationManager.initSynchronization();
+		try {
+			desa();
+			assertEquals("No s'ha d'invalidar abans del commit", abans, ConfigValues.getGeneracio());
+
+			TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+			assertEquals(abans + 1, ConfigValues.getGeneracio());
+		} finally {
+			TransactionSynchronizationManager.clearSynchronization();
+		}
+	}
+
+	@Test
+	public void update_siLaTransaccioEsDesfaNoInvalidaConfigValues() {
+		long abans = ConfigValues.getGeneracio();
+		TransactionSynchronizationManager.initSynchronization();
+		try {
+			desa();
+			TransactionSynchronizationManager.getSynchronizations()
+					.forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+		} finally {
+			TransactionSynchronizationManager.clearSynchronization();
+		}
+		assertEquals(abans, ConfigValues.getGeneracio());
 	}
 
 }

@@ -3,6 +3,7 @@ package es.caib.concsv.logic.resourceservice;
 import es.caib.concsv.logic.base.service.BaseMutableResourceService;
 import es.caib.concsv.logic.helper.CacheEsborratHelper;
 import es.caib.concsv.logic.helper.ConfigHelper;
+import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.intf.base.exception.ActionExecutionException;
 import es.caib.concsv.logic.intf.base.exception.AnswerRequiredException;
 import es.caib.concsv.logic.intf.base.exception.ResourceNotUpdatedException;
@@ -15,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
@@ -29,8 +32,9 @@ import java.util.regex.Pattern;
  * Implementació del servei de gestió de propietats configurables.
  * <p>
  * Només es pot modificar el valor de les propietats que no són del fitxer de propietats del
- * servidor. En desar-lo es valida segons el tipus de la propietat; els serveis llegeixen el valor
- * de la base de dades a cada ús (veure {@link ConfigHelper}).
+ * servidor. En desar-lo es valida segons el tipus de la propietat. Un cop fet el commit s'invalida
+ * la memòria cau de {@link ConfigValues}, perquè els serveis CDI d'aquest node apliquin el canvi a
+ * l'instant (els altres nodes l'apliquen en recarregar, veure {@link ConfigValues#DURADA_CACHE_MS}).
  *
  * @author Límit Tecnologies
  */
@@ -104,6 +108,33 @@ public class ConfigResourceServiceImpl extends BaseMutableResourceService<Config
 			ConfigResource resource,
 			Map<String, AnswerRequiredException.AnswerValue> answers) {
 		log.info("Propietat {} modificada per {}", entity.getKey(), usuariActual());
+	}
+
+	@Override
+	protected void afterUpdateSave(
+			ConfigEntity entity,
+			ConfigResource resource,
+			Map<String, AnswerRequiredException.AnswerValue> answers,
+			boolean anyOrderChanged) {
+		invalidaConfigValuesDespresDelCommit();
+	}
+
+	/**
+	 * Invalida la memòria cau de {@link ConfigValues} un cop fet el commit. Si s'invalidés abans, una
+	 * consulta concurrent podria tornar a carregar el valor anterior i conservar-lo fins a la pròxima
+	 * recàrrega; si la transacció es desfà, no s'invalida. Sense transacció s'invalida a l'instant.
+	 */
+	static void invalidaConfigValuesDespresDelCommit() {
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					ConfigValues.invalida();
+				}
+			});
+		} else {
+			ConfigValues.invalida();
+		}
 	}
 
 	/**
@@ -197,7 +228,9 @@ public class ConfigResourceServiceImpl extends BaseMutableResourceService<Config
 				String code,
 				ConfigEntity entity,
 				Serializable params) throws ActionExecutionException {
-			return configHelper.synchronize();
+			Serializable resultat = configHelper.synchronize();
+			invalidaConfigValuesDespresDelCommit();
+			return resultat;
 		}
 
 	}

@@ -6,7 +6,8 @@ import { BaseApp } from './components/BaseApp';
 import DrassanaFooter from './components/DrassanaFooter';
 import goibLogoLight from './assets/goib_logo_light.svg';
 import goibLogoDark from './assets/goib_logo_dark.svg';
-import concsvLogo from './assets/CON_DRA_COL.png';
+import concsvLogo from './assets/CON_DRA_COL.svg';
+import concsvLogoBlanc from './assets/CON_DRA_COL_blanc.svg';
 import { UserPreferencesProvider, useUserPreferences } from './components/UserProfile';
 import { TemaProvider } from './components/TemaProvider';
 import { ConcsvProvider } from './components/ConcsvProvider';
@@ -98,9 +99,7 @@ const InnerApp: React.FC = () => {
 
     const bgColor = mode === 'light' ? theme.palette.background.paper : undefined;
     const textColor = bgColor ? theme.palette.getContrastText(bgColor) : undefined;
-    // CON_DRA_COL.png (el mateix que fa servir concsv-front) té els colors fixats i serveix per
-    // als dos modes; si algun dia cal una variant per a fons foscos, fer-ne un ternari.
-    const logoColor = concsvLogo;
+    const logoColor = mode === 'light' ? concsvLogo : concsvLogoBlanc;
     const { estilMenu } = useUserPreferences();
 
     return (
@@ -108,7 +107,8 @@ const InnerApp: React.FC = () => {
             code="CONCSV"
             logo={mode === 'light' ? goibLogoLight : goibLogoDark}
             logoStyle={{
-                '& img': { height: LOGO_HEIGHT + 'px', display: 'block' },
+                // El logo del Govern és més ample que la caixa: s'hi ajusta sense deformar-se.
+                '& img': { height: LOGO_HEIGHT + 'px', maxWidth: '100%', objectFit: 'contain', display: 'block' },
                 // El separador vertical ha de caure sobre la vora dreta del menú obert, i omplir
                 // l'alçada de la capçalera. El botó de menú duu un marge esquerre de -12 i un dret de
                 // 16, així que la caixa del logo arrenca a LOGO_BOX_LEFT. Fixant-ne l'amplada (en

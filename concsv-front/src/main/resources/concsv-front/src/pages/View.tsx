@@ -302,7 +302,7 @@ const ViewFound: React.FC<any> = (props) => {
     useTitolPagina(t('page.view.found.title'));
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
-    const noImprimible = !data.printable || !!data.hasPassword || !!data.malformatted;
+    const noImprimible = !data.printable || !!data.hasPassword || !!data.malformatted || !!data.imprimibleExclos;
     const previewEnabled = envVar('VITE_PREVIEW_ENABLED', envVars)?.toLowerCase() === 'true';
     const amagarBotoOriginal = envVar('VITE_AMAGAR_BOTO_ORIGINAL', envVars)?.toLowerCase() === 'true';
     const previewByDefault = previewEnabled && !noImprimible;
@@ -357,6 +357,15 @@ const ViewFound: React.FC<any> = (props) => {
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                 <Alert severity="warning" sx={{ display: 'inline-flex', textAlign: 'center' }} >
                     {t('page.view.found.download.malformatted')}
+                </Alert>
+            </Box>
+        )}
+        {data.imprimibleExclos === true && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                <Alert severity="info" sx={{ display: 'inline-flex', textAlign: 'center' }} >
+                    {t(data.portafoli === true
+                        ? 'page.view.found.download.portafoli'
+                        : 'page.view.found.download.fitxersAdjunts')}
                 </Alert>
             </Box>
         )}

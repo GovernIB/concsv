@@ -1,0 +1,12 @@
+# Fitxers binaris: git no n'ha de convertir mai els finals de línia.
+# Els PDF signats guarden posicions de bytes (/ByteRange) i qualsevol CR afegit els invalida.
+*.pdf binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.ico binary
+*.odt binary
+*.jar binary
+*.jks binary
+*.p12 binary

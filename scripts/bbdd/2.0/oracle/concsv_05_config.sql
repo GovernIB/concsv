@@ -6,6 +6,7 @@ INSERT INTO CSV_CONFIG_TYPE (CODE, VALUE) VALUES ('BOOL', NULL);
 INSERT INTO CSV_CONFIG_TYPE (CODE, VALUE) VALUES ('TEXT', NULL);
 INSERT INTO CSV_CONFIG_TYPE (CODE, VALUE) VALUES ('INT', NULL);
 INSERT INTO CSV_CONFIG_TYPE (CODE, VALUE) VALUES ('CREDENTIALS', NULL);
+INSERT INTO CSV_CONFIG_TYPE (CODE, VALUE) VALUES ('IMPRIMIBLE_EXCLUSIO', 'DESACTIVAT,PORTAFOLI,PORTAFOLI_ADJUNTS');
 
 -- ---------------------------------------------------------------------------------------------
 -- Dades: grups de propietats
@@ -74,6 +75,7 @@ INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION
 INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.front.preview.enabled', NULL, 'Indica si es mostra la previsualització del document', 'CONSULTA', 'BOOL', 5, 0);
 INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.front.recaptcha.enabled', NULL, 'Indica si la consulta està protegida amb reCAPTCHA', 'CONSULTA', 'BOOL', 6, 0);
 INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.front.recaptcha.sitekey', NULL, 'Clau pública (site key) de reCAPTCHA', 'CONSULTA', 'TEXT', 7, 0);
+INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.imprimible.exclusio', 'PORTAFOLI', 'PDF dels quals no es genera la còpia autèntica imprimible (només se''n pot descarregar l''original)', 'CONSULTA', 'IMPRIMIBLE_EXCLUSIO', 8, 0);
 
 -- Monitor d'integració
 INSERT INTO CSV_CONFIG (KEY, VALUE, DESCRIPTION, GROUP_CODE, TYPE_CODE, POSITION, JBOSS_PROPERTY) VALUES ('es.caib.concsv.integracio.monitor.actiu', NULL, 'Indica si es registren les peticions a les integracions al monitor (per defecte, sí)', 'GENERAL', 'BOOL', 7, 0);

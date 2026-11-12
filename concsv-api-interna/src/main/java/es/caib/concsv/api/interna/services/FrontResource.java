@@ -102,6 +102,9 @@ public class FrontResource {
 			while (StringUtils.isBlank(documentInfo.getHash()) && !StringUtils.isBlank(documentInfo.getNuevaLocalizacion())) {
 				documentInfo = hashService.checkHashFromUUID(documentInfo.getNuevaLocalizacion());
 			}
+			if (Boolean.TRUE.equals(documentInfo.getImprimibleExclos())) {
+				return respostaImprimibleExclos(documentInfo);
+			}
 			final String idioma = (lang != null) ? lang : "ca";
 			DocumentContent doc = hashService.getPrintableDocument(documentInfo, idioma);
 			return Response.ok(new ByteArrayInputStream(doc.getContent()), MediaType.APPLICATION_OCTET_STREAM)
@@ -131,6 +134,9 @@ public class FrontResource {
 				return Response.status(Response.Status.BAD_REQUEST)
 					.entity("El document no té CSV.")
 					.build();
+			}
+			if (Boolean.TRUE.equals(documentInfo.getImprimibleExclos())) {
+				return respostaImprimibleExclos(documentInfo);
 			}
 			final String idioma = (lang != null) ? lang : "ca";
 			DocumentContent doc = hashService.getPrintableDocument(documentInfo, idioma);
@@ -442,6 +448,17 @@ public class FrontResource {
 		} else {
 			return Collections.emptyMap();
 		}
+	}
+
+	/**
+	 * Resposta per a un document del qual no es genera la versió imprimible perquè és un portafoli PDF
+	 * o conté fitxers adjunts (propietat imprimible.exclusio, #18): se n'ha de descarregar l'original.
+	 */
+	private static Response respostaImprimibleExclos(DocumentInfo documentInfo) {
+		String motiu = Boolean.TRUE.equals(documentInfo.getPortafoli()) ? "és un portafoli PDF" : "conté fitxers adjunts";
+		return Response.status(Response.Status.CONFLICT)
+			.entity("No es genera la versió imprimible perquè el document " + motiu + ". Se'n pot descarregar l'original.")
+			.build();
 	}
 
 	/**

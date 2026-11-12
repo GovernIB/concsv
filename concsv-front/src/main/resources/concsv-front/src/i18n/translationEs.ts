@@ -48,6 +48,8 @@ const translationEs = {
                     notavailable: "La versión imprimible no está disponible para este documento",
                     hasPassword: "Este documento está protegido con contraseña y, por eso, no se puede generar la copia auténtica imprimible del documento ni obtener los datos de las firmas. En este caso, puede descargar la versión original.",
                     malformatted: "Este documento PDF está mal formado o contiene errores y no puede generarse la copia auténtica imprimible. Sin embargo, puede descargar la versión original y consultar las firmas que contiene.",
+                    portafoli: "Este documento es un portafolio PDF que contiene otros documentos. La copia auténtica imprimible solo reproduciría su portada y, por eso, no se ofrece. Puede descargar la versión original y abrirla con un lector de PDF que muestre los documentos que contiene.",
+                    fitxersAdjunts: "Este documento PDF contiene ficheros adjuntos. La copia auténtica imprimible no los incluiría y, por eso, no se ofrece. Puede descargar la versión original, que los conserva.",
                 },
                 preview: {
                     error1: "Se han producido errores el previsualitzar la versión imprimible. En su lugar se muestra la versión original.",

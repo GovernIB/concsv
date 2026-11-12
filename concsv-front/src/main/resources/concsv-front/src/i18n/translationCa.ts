@@ -48,6 +48,8 @@ const translationCa = {
                     notavailable: "La versió imprimible no està disponible per a aquest document",
                     hasPassword: "Aquest document està protegit amb contrasenya i, per això, no es pot generar la còpia autèntica imprimible del document ni obtenir les dades de les signatures. En aquest cas, pot descarregar la versió original.",
                     malformatted: "Aquest document PDF està mal format o conté errors i no es pot generar la còpia autèntica imprimible. Tot i així, pot descarregar la versió original i consultar les signatures que hi conté.",
+                    portafoli: "Aquest document és un portafoli PDF que conté altres documents. La còpia autèntica imprimible només en reproduiria la portada i, per això, no s'ofereix. Pot descarregar la versió original i obrir-la amb un lector de PDF que mostri els documents que conté.",
+                    fitxersAdjunts: "Aquest document PDF conté fitxers adjunts. La còpia autèntica imprimible no els inclouria i, per això, no s'ofereix. Pot descarregar la versió original, que els conserva.",
                 },
                 preview: {
                     error1: "S'han produït errors al previsualitzar la versió imprimible. En el seu lloc es mostra la versió original.",

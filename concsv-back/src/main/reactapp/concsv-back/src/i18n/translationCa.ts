@@ -307,6 +307,16 @@ const translationCa = {
             },
         },
     },
+    enum: {
+        // Etiquetes dels valors dels tipus de propietat enumerats (CSV_CONFIG_TYPE), veure PropietatsUtils
+        configType: {
+            IMPRIMIBLE_EXCLUSIO: {
+                DESACTIVAT: 'Cap: es genera la còpia imprimible de tots els PDF',
+                PORTAFOLI: 'Només els PDF portafoli',
+                PORTAFOLI_ADJUNTS: 'Els PDF portafoli i els PDF amb fitxers adjunts',
+            },
+        },
+    },
     component: {
         Offline: {
             message: "No s'ha pogut connectar amb el servidor",

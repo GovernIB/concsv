@@ -19,6 +19,8 @@ public class PropertyConfig {
 	public static final String PROP_FORCE_VALIDE_CERT = PROPERTY_PREFIX + "forceValideCert";
 	public static final String PROP_CONVERT_PDF_TO_IMG = PROPERTY_PREFIX + "convertpdf2img";
 	public static final String PROP_AMAGAR_BOTO_ORIGINAL = PROPERTY_PREFIX + "amagar.boto.original";
+	/** PDF dels quals no es genera la còpia autèntica imprimible: un dels valors de {@code ExclusioImprimible}. */
+	public static final String PROP_IMPRIMIBLE_EXCLUSIO = PROPERTY_PREFIX + "imprimible.exclusio";
 	public static final String PROP_ESTADISTICAS_DIAS_CONSERVAR = PROPERTY_PREFIX + "estadisticas.dias.conservar";
 	public static final String PROP_INTEGRACIO_MONITOR_ACTIU = PROPERTY_PREFIX + "integracio.monitor.actiu";
 	public static final String PROP_INTEGRACIO_MONITOR_DIES_CONSERVAR = PROPERTY_PREFIX + "integracio.monitor.dies.conservar";

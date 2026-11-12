@@ -161,7 +161,9 @@ public class DocumentController {
 				throw new DocumentNotExistException();
 			}
 			DocumentContent content = null;
-			if (!Boolean.TRUE.equals(documentInfo.getMalformatted())) {
+			// Dels mal formats i dels exclosos de la còpia imprimible (portafolis, #18) es previsualitza l'original
+			if (!Boolean.TRUE.equals(documentInfo.getMalformatted())
+				&& !Boolean.TRUE.equals(documentInfo.getImprimibleExclos())) {
 				try {
 					content = hashService.getPrintableDocument(documentInfo, lang);
 				} catch (Exception ignored) {

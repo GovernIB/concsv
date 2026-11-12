@@ -36,6 +36,7 @@ import es.caib.concsv.logic.intf.enums.DocumentLocation;
 import es.caib.concsv.logic.intf.enums.EniDocumentType;
 import es.caib.concsv.logic.intf.enums.EniElaborationStatus;
 import es.caib.concsv.logic.intf.enums.EniSignatureType;
+import es.caib.concsv.logic.intf.enums.ExclusioImprimible;
 import es.caib.concsv.logic.intf.exception.DocumentNotExistException;
 import es.caib.concsv.logic.intf.exception.DuplicatedHashException;
 import es.caib.concsv.logic.intf.exception.GenericServiceException;
@@ -60,6 +61,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -87,6 +89,8 @@ public class HashService implements HashServiceInterface {
 	 */
 	private String logoPath;
 	private PrintableUtils printableUtils = new PrintableUtils();
+	/** Darrer valor no vàlid de {@code imprimible.exclusio} de què s'ha avisat (veure {@link #getExclusioImprimible()}). */
+	private volatile String darrerValorExclusioInvalid;
 
 	@Inject
 	@LogicService
@@ -111,9 +115,11 @@ public class HashService implements HashServiceInterface {
 			}
 			if (documentInfoCache.isPresent()) {
 				hasError = false;
-				// El flag es recalcula: la llista d'exclosos pot haver canviat des que es va desar a la memòria cau.
+				// Els flags es recalculen: la llista d'exclosos i la propietat imprimible.exclusio poden haver
+				// canviat des que es va desar a la memòria cau.
 				DocumentInfo cachedInfo = documentInfoCache.get();
 				cachedInfo.setCsvExclos(isDocumentExclos(cachedInfo.getDocumentCode(), hash));
+				aplicaExclusioImprimible(cachedInfo);
 				return cachedInfo;
 			}
 			DocumentInfo documentInfoNewDigitalArchive = null;
@@ -188,6 +194,7 @@ public class HashService implements HashServiceInterface {
 					throw new GenericServiceException("Error comprovant si el document " + hash + " és imprimible", ex);
 				}
 				docInfo.setCsvExclos(isDocumentExclos(docInfo.getDocumentCode(), hash));
+				aplicaExclusioImprimible(docInfo);
 			} else {
 				log.debug("\tHash " + hash + " no trobat.");
 				// Si no s'ha trobat i s'ha produit excepció la enregistra i propaga
@@ -234,13 +241,16 @@ public class HashService implements HashServiceInterface {
 			}
 			if (documentInfoCache.isPresent()) {
 				isError = false;
-				// El flag es recalcula: la llista d'exclosos pot haver canviat des que es va desar a la memòria cau.
+				// Els flags es recalculen: la llista d'exclosos i la propietat imprimible.exclusio poden haver
+				// canviat des que es va desar a la memòria cau.
 				DocumentInfo cachedInfo = documentInfoCache.get();
 				cachedInfo.setCsvExclos(isDocumentExclos(uuid, cachedInfo.getHash()));
+				aplicaExclusioImprimible(cachedInfo);
 				return cachedInfo;
 			}
 			DocumentInfo documentInfo = this.newDigitalArchiveService.checkHashFromUUID(uuid, null);
 			documentInfo.setCsvExclos(isDocumentExclos(uuid, documentInfo.getHash()));
+			aplicaExclusioImprimible(documentInfo);
 			isError = false;
 			if (isCacheActiva() && isFirmaValida(documentInfo)) {
 				cacheHelper.setInfo(uuid, true, documentInfo);
@@ -309,6 +319,16 @@ public class HashService implements HashServiceInterface {
 
 	@PermitAll
 	public DocumentContent getPrintableDocument(DocumentInfo documentInfo, String lang) throws GenericServiceException, IOException {
+		// Abans de la memòria cau: hi pot haver una còpia imprimible desada abans d'excloure el document
+		aplicaExclusioImprimible(documentInfo);
+		if (Boolean.TRUE.equals(documentInfo.getImprimibleExclos())) {
+			throw new GenericServiceException(
+					"No es genera la versió imprimible del document " + documentInfo.getCodi() + " perquè " +
+							(Boolean.TRUE.equals(documentInfo.getPortafoli()) ? "és un portafoli PDF" : "conté fitxers adjunts") +
+							" (propietat " + PropertyConfig.PROP_IMPRIMIBLE_EXCLUSIO + "). Se'n pot descarregar l'original.",
+					null,
+					false);
+		}
 		boolean isError = false;
 		long t0 = System.currentTimeMillis();
 		try {
@@ -860,6 +880,47 @@ public class HashService implements HashServiceInterface {
 		return documentsExclososHelper.isExclos(identificadors);
 	}
 
+	/**
+	 * Decideix si s'exclou de la còpia autèntica imprimible un PDF portafoli o amb fitxers adjunts,
+	 * segons la propietat {@code imprimible.exclusio} (#18), i n'informa {@code imprimibleExclos} i
+	 * {@code printable}. Es crida a cada consulta, també quan el document ve de la memòria cau, perquè
+	 * la propietat es pot canviar des del backoffice. S'ha de cridar després d'informar
+	 * {@code csvExclos}: els documents exclosos de la descàrrega de l'original funcionen com abans.
+	 */
+	void aplicaExclusioImprimible(DocumentInfo documentInfo) {
+		boolean portafoli = Boolean.TRUE.equals(documentInfo.getPortafoli());
+		boolean fitxersAdjunts = Boolean.TRUE.equals(documentInfo.getFitxersAdjunts());
+		if (!portafoli && !fitxersAdjunts) {
+			documentInfo.setImprimibleExclos(false);
+			return;
+		}
+		boolean exclos = !Boolean.TRUE.equals(documentInfo.getCsvExclos())
+				&& getExclusioImprimible().exclou(portafoli, fitxersAdjunts);
+		documentInfo.setImprimibleExclos(exclos);
+		// Només els PDF tenen aquests flags, i un PDF sempre és imprimible si no s'exclou
+		documentInfo.setPrintable(!exclos);
+	}
+
+	/** Valor de la propietat {@code imprimible.exclusio}; si no és vàlid s'avisa i s'aplica el valor per defecte. */
+	ExclusioImprimible getExclusioImprimible() {
+		String valor = configValues.get(PropertyConfig.PROP_IMPRIMIBLE_EXCLUSIO);
+		if (valor == null || valor.trim().isEmpty()) {
+			return ExclusioImprimible.PER_DEFECTE;
+		}
+		Optional<ExclusioImprimible> exclusio = ExclusioImprimible.fromValor(valor);
+		if (!exclusio.isPresent() && !valor.equals(darrerValorExclusioInvalid)) {
+			// S'avisa un sol cop per valor, no a cada consulta
+			darrerValorExclusioInvalid = valor;
+			log.warn(
+					"El valor \"{}\" de la propietat {} no és vàlid (valors: {}); s'aplica {}",
+					valor,
+					PropertyConfig.PROP_IMPRIMIBLE_EXCLUSIO,
+					Arrays.toString(ExclusioImprimible.values()),
+					ExclusioImprimible.PER_DEFECTE);
+		}
+		return exclusio.orElse(ExclusioImprimible.PER_DEFECTE);
+	}
+
 	@Override
 	public void cacheClearExpiredFiles() throws IOException {
 		if (isCacheActiva()) {
@@ -900,6 +961,10 @@ public class HashService implements HashServiceInterface {
 
 	public void setDocumentsExclososHelper(DocumentsExclososHelper documentsExclososHelper) {
 		this.documentsExclososHelper = documentsExclososHelper;
+	}
+
+	public void setConfigValues(ConfigValues configValues) {
+		this.configValues = configValues;
 	}
 
 	boolean isFirmaValida(DocumentInfo documentInfo) {

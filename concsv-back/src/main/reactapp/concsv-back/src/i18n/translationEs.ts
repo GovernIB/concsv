@@ -307,6 +307,16 @@ const translationEs = {
             },
         },
     },
+    enum: {
+        // Etiquetas de los valores de los tipos de propiedad enumerados (CSV_CONFIG_TYPE), ver PropietatsUtils
+        configType: {
+            IMPRIMIBLE_EXCLUSIO: {
+                DESACTIVAT: 'Ninguno: se genera la copia imprimible de todos los PDF',
+                PORTAFOLI: 'Solo los PDF portafolio',
+                PORTAFOLI_ADJUNTS: 'Los PDF portafolio y los PDF con ficheros adjuntos',
+            },
+        },
+    },
     component: {
         Offline: {
             message: 'No se ha podido conectar con el servidor',

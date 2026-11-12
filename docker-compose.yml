@@ -52,6 +52,7 @@ services:
       - es.caib.concsv.plugins.documentconverter.openoffice.port=${OPENOFFICE_PORT:-8100}
       - es.caib.concsv.front.api.url=${FRONT_API_URL:-http://localhost:8080/concsvfront/api}
       - es.caib.concsv.front.preview.enabled=${PREVIEW_ENABLED:-true}
+      - es.caib.concsv.imprimible.exclusio=${IMPRIMIBLE_EXCLUSIO:-PORTAFOLI}
       - es.caib.concsv.front.recaptcha.enabled=${RECAPTCHA_ENABLED:-false}
       - es.caib.concsv.front.recaptcha.sitekey=${RECAPTCHA_SITEKEY:-}
       - DEBUG=${DEBUG:-true}

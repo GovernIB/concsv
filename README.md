@@ -42,6 +42,11 @@ es.caib.concsv.cache.ttl.minuts=CACHE_TTL_MINUTS
 es.caib.concsv.query.url=http://APP_HOST/concsvfront/view.xhtml?hash=
 
 es.caib.concsv.front.preview.enabled=PREVIEW_ENABLED
+
+# PDF dels quals no es genera la còpia autèntica imprimible (només se'n pot descarregar l'original):
+# DESACTIVAT (cap), PORTAFOLI (només els PDF portafoli, valor per defecte) o
+# PORTAFOLI_ADJUNTS (els PDF portafoli i els PDF amb fitxers adjunts)
+es.caib.concsv.imprimible.exclusio=IMPRIMIBLE_EXCLUSIO
 ```
 Exemple de contingut del fitxer jboss_system.properties:
 

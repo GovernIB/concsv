@@ -59,6 +59,9 @@ public class PdfSignerUtils {
 			PdfReader reader = new PdfReader(new ByteArrayInputStream(pdfDocument));
 			reader.setUnethicalReading(true); // problemes amb el desencriptat d'algunes parts del document
 			PdfDocument pdfDoc = new PdfDocument(reader);
+			// S'aprofita que el PDF ja és obert per saber si és un portafoli o té adjunts (#18). Ha
+			// d'anar abans del return dels documents sense formulari.
+			PdfFitxersAdjuntsUtils.detecta(pdfDoc, documentInfo);
 			PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, false);
 			if (form == null) {
 				log.debug("\tDocument sense formulari (d'on obtenim les firmes).");

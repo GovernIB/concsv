@@ -235,7 +235,7 @@ const translationEs = {
         },
         documentsExclosos: {
             grid: {
-                title: 'Fichero de documentos excluidos para la descarga del original',
+                title: 'Documentos excluidos para la descarga del original',
             },
             form: {
                 resourceTitle: 'documento excluido',

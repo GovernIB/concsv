@@ -235,7 +235,7 @@ const translationCa = {
         },
         documentsExclosos: {
             grid: {
-                title: "Fitxer de documents exclosos per la descàrrega d'original",
+                title: "Documents exclosos per la descàrrega d'original",
             },
             form: {
                 resourceTitle: 'document exclòs',

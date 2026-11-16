@@ -5,6 +5,7 @@ import es.caib.concsv.logic.intf.base.service.ResourceApiService;
 import es.caib.concsv.logic.intf.config.BaseConfig;
 import es.caib.concsv.logic.intf.resourceservice.AvisResourceService;
 import es.caib.concsv.logic.intf.resourceservice.ConfigGroupResourceService;
+import es.caib.concsv.logic.intf.resourceservice.CacheDocumentResourceService;
 import es.caib.concsv.logic.intf.resourceservice.ConfigResourceService;
 import es.caib.concsv.logic.intf.resourceservice.ConfigTypeResourceService;
 import es.caib.concsv.logic.intf.resourceservice.DocumentExclosResourceService;
@@ -93,6 +94,12 @@ public class EjbClientConfig {
 	@ConditionalOnWarDeployment
 	public LocalStatelessSessionProxyFactoryBean monitorIntegracioResourceService() {
 		return getLocalEjbFactoyBean(MonitorIntegracioResourceService.class);
+	}
+
+	@Bean
+	@ConditionalOnWarDeployment
+	public LocalStatelessSessionProxyFactoryBean cacheDocumentResourceService() {
+		return getLocalEjbFactoyBean(CacheDocumentResourceService.class);
 	}
 
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {

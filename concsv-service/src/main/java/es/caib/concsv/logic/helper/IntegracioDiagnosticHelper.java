@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * a cada integració externa.
  * <p>
  * Els serveis d'integració són beans CDI i no es poden injectar als serveis de Spring (com passa
- * amb {@link CacheEsborratHelper}), així que aquest helper llegeix la mateixa configuració que
+ * amb {@link CacheDocumentHelper}), així que aquest helper llegeix la mateixa configuració que
  * ells i construeix els seus propis clients. Si es canvia la forma de cridar una integració en un
  * servei, cal revisar també la prova corresponent d'aquí.
  * <p>

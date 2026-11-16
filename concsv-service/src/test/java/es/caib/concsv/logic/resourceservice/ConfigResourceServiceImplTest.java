@@ -16,7 +16,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import es.caib.concsv.logic.helper.CacheEsborratHelper;
 import es.caib.concsv.logic.helper.ConfigHelper;
 import es.caib.concsv.logic.helper.ConfigValues;
 import es.caib.concsv.logic.intf.base.exception.ResourceNotUpdatedException;
@@ -45,7 +44,7 @@ public class ConfigResourceServiceImplTest {
 		configRepository = mock(ConfigRepository.class);
 		environment = mock(Environment.class);
 		ConfigHelper configHelper = new ConfigHelper(configRepository, environment);
-		service = new ConfigResourceServiceImpl(configHelper, new CacheEsborratHelper(configHelper));
+		service = new ConfigResourceServiceImpl(configHelper);
 	}
 
 	private ConfigTypeEntity tipus(String codi) {

@@ -1,218 +1,121 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Box, Button, Grid, Icon, Typography } from '@mui/material';
-import {
-    MuiActionReportButton as ActionReportButton,
-    GridPage,
-    useBaseAppContext,
-    useResourceApiService,
-} from 'reactlib';
+import { Box, Typography } from '@mui/material';
+import { GridPage, type MuiDataGridColDef, useMuiDataGridApiRef } from 'reactlib';
 import ScreenFrame from '../../components/ScreenFrame';
+import StyledMuiGrid from '../../components/StyledMuiGrid';
 import { icons } from '../../util/icons';
-import { outlinedControlBorderSx } from '../../components/titleBarControlsSx';
-import { missatgeError } from '../propietats/PropietatsUtils';
+import { formatDate } from '../../util/dateUtils';
+import CacheDocumentFilter from './CacheDocumentFilter';
+import { useCacheDocumentAccions } from './CacheDocumentAccions';
 
-const ACCIO_COMPTAR = 'COMPTAR_CACHE';
+const CARPETES = ['INFO', 'ORIGINAL', 'IMPRIMIBLE'] as const;
 
-type Carpeta = 'IMPRIMIBLE' | 'INFO' | 'ORIGINAL';
+const FORMAT_DATA = 'DD/MM/YYYY HH:mm:ss';
 
-/** Nombre de fitxers de cada carpeta i carpeta consultada (ConfigResource.ResumCache). */
-type ResumCache = { info: number; original: number; imprimible: number; ruta: string };
-
-type ResultatEsborrat = { esborrats: number; errors: number };
-
-const BOTONS_CARPETA: { carpeta: Carpeta; accio: string }[] = [
-    { carpeta: 'IMPRIMIBLE', accio: 'ESBORRAR_CACHE_IMPRIMIBLE' },
-    { carpeta: 'INFO', accio: 'ESBORRAR_CACHE_INFO' },
-    { carpeta: 'ORIGINAL', accio: 'ESBORRAR_CACHE_ORIGINAL' },
-];
-const ACCIO_ESBORRAR_TOTES = 'ESBORRAR_CACHE_TOTES';
-
-const recompteCarpeta = (resum: ResumCache, carpeta: Carpeta) =>
-    ({ IMPRIMIBLE: resum.imprimible, INFO: resum.info, ORIGINAL: resum.original })[carpeta];
-
-/** Ruta de la carpeta, amb el separador que usa la ruta de la cache del servidor. */
-const rutaCarpeta = (ruta: string, carpeta?: Carpeta) =>
-    carpeta ? ruta + (ruta.includes('\\') ? '\\' : '/') + carpeta : ruta;
-
-/**
- * Contingut del diàleg de confirmació. Consulta el nombre de fitxers (acció COMPTAR_CACHE) quan
- * s'obre el diàleg, de manera que sempre és el de just abans de confirmar.
- */
-const ConfirmacioEsborrat: React.FC<{ carpeta?: Carpeta }> = ({ carpeta }) => {
-    const { t } = useTranslation();
-    const { isReady, artifactAction } = useResourceApiService('configResource');
-    const [resum, setResum] = React.useState<ResumCache>();
-    const [error, setError] = React.useState(false);
-
-    React.useEffect(() => {
-        if (isReady) {
-            artifactAction(undefined, { code: ACCIO_COMPTAR })
-                .then((resultat: ResumCache) => setResum(resultat))
-                .catch(() => setError(true));
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady]);
-
-    const recompte = () => {
-        if (error) {
-            return t('page.cacheDocuments.accio.recompteError');
-        }
-        if (!resum) {
-            return t('page.cacheDocuments.accio.recompteCarregant');
-        }
-        if (carpeta) {
-            return t('page.cacheDocuments.accio.confirmRecompte', { count: recompteCarpeta(resum, carpeta) });
-        }
-        return t('page.cacheDocuments.accio.confirmRecompteTotes', {
-            count: resum.info + resum.original + resum.imprimible,
-            info: resum.info,
-            original: resum.original,
-            imprimible: resum.imprimible,
-        });
-    };
-
-    return (
-        <>
-            <Typography>
-                {carpeta
-                    ? t('page.cacheDocuments.accio.confirmCarpeta', { carpeta })
-                    : t('page.cacheDocuments.accio.confirmTotes')}
-            </Typography>
-            <Typography sx={{ mt: 1, fontWeight: 'bold' }}>{recompte()}</Typography>
-            {resum?.ruta && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                    {t('page.cacheDocuments.accio.ruta', { ruta: rutaCarpeta(resum.ruta, carpeta) })}
-                </Typography>
-            )}
-        </>
-    );
+/** Mida en bytes en una unitat llegible (KB, MB, ...). */
+const formatMida = (bytes?: number | null): string => {
+    if (bytes == null) {
+        return '';
+    }
+    const unitats = ['B', 'KB', 'MB', 'GB'];
+    let valor = bytes;
+    let unitat = 0;
+    while (valor >= 1024 && unitat < unitats.length - 1) {
+        valor /= 1024;
+        unitat++;
+    }
+    return `${unitat === 0 ? valor : valor.toFixed(1)} ${unitats[unitat]}`;
 };
 
+const sortModel = [{ field: 'darreraConsulta', sort: 'desc' as const }];
+
 /**
- * Manteniment de la cache de documents.
- * Cada botó és una acció de ConfigResource que esborra els fitxers d'una carpeta de la cache, o de totes.
+ * Cache de documents del servidor: llistat dels documents que hi ha a cada carpeta de la cache, amb la darrera
+ * consulta i la data d'expiració. Es poden filtrar per carpeta i per UUID / CSV, i esborrar des de les accions
+ * massives (amb "Selecciona-ho tot" s'esborra tot el que mostra el filtre).
  */
 export const CacheDocument: React.FC = () => {
     const { t } = useTranslation();
-    const { temporalMessageShow } = useBaseAppContext();
-    const { isReady, artifactAction } = useResourceApiService('configResource');
-    const [resum, setResum] = React.useState<ResumCache>();
+    const apiRef = useMuiDataGridApiRef();
+    const [filtre, setFiltre] = React.useState<string>();
+    const refresh = () => apiRef.current?.refresh?.();
+    const { accionsMassives } = useCacheDocumentAccions(refresh);
 
-    const [carregant, setCarregant] = React.useState(false);
-
-    const refrescarBotons = React.useCallback(() => {
-        if (isReady) {
-            setCarregant(true);
-            artifactAction(undefined, { code: ACCIO_COMPTAR })
-                .then((resultat: ResumCache) => setResum(resultat))
-                // Sense recompte els botons es mostren sense el nombre
-                .catch(() => setResum(undefined))
-                .finally(() => setCarregant(false));
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady]);
-
-    React.useEffect(refrescarBotons, [refrescarBotons]);
-
-    const onSucces = (resultat?: ResultatEsborrat) => {
-        refrescarBotons();
-        if (resultat && resultat.errors > 0) {
-            temporalMessageShow(
-                null,
-                t('page.cacheDocuments.accio.okAmbErrors', {
-                    esborrats: resultat.esborrats,
-                    errors: resultat.errors,
-                }),
-                'warning'
-            );
-        } else {
-            temporalMessageShow(
-                null,
-                t('page.cacheDocuments.accio.ok', { esborrats: resultat?.esborrats ?? 0 }),
-                'success'
-            );
-        }
-    };
-
-    const onError = (error: unknown) => {
-        refrescarBotons();
-        temporalMessageShow(t('page.cacheDocuments.accio.error'), missatgeError(error), 'error');
-    };
-
-    const titolCarpeta = (carpeta: Carpeta) =>
-        t('page.cacheDocuments.accio.esborrarCarpeta', { carpeta }) +
-        (resum ? ` (${recompteCarpeta(resum, carpeta)})` : '');
-
-    const titolTotes = () =>
-        t('page.cacheDocuments.accio.esborrarTotes') +
-        (resum ? ` (${resum.info + resum.original + resum.imprimible})` : '');
+    const columns: MuiDataGridColDef[] = React.useMemo(
+        () => [
+            { field: 'carpeta', flex: 0.8 },
+            { field: 'identificador', flex: 1.2 },
+            // Nom real del document: només es coneix a INFO (es llegeix de l'objecte serialitzat); a
+            // ORIGINAL i IMPRIMIBLE queda buit a propòsit, veure CacheDocumentHelper.
+            { field: 'nomDocument', flex: 1.3 },
+            { field: 'tipusIdentificador', flex: 0.5 },
+            { field: 'idioma', flex: 0.4 },
+            { field: 'mida', flex: 0.4, valueFormatter: (value: number) => formatMida(value) },
+            {
+                field: 'darreraConsulta',
+                flex: 0.8,
+                minWidth: 160,
+                valueFormatter: (value: string) => (value ? formatDate(value, FORMAT_DATA) : ''),
+            },
+            {
+                field: 'expiracio',
+                flex: 0.9,
+                minWidth: 140,
+                renderCell: (params: { row?: { expiracio?: string } }) => {
+                    const expiracio: string | undefined = params?.row?.expiracio;
+                    if (!expiracio) {
+                        return (
+                            <Typography variant="body2" color="text.secondary">
+                                {t('page.cacheDocuments.grid.senseExpiracio')}
+                            </Typography>
+                        );
+                    }
+                    const caducada = new Date(expiracio).getTime() < Date.now();
+                    return (
+                        <Typography variant="body2" color={caducada ? 'warning.main' : 'text.primary'}>
+                            {formatDate(expiracio, FORMAT_DATA)}
+                            {caducada ? ` (${t('page.cacheDocuments.grid.caducada')})` : ''}
+                        </Typography>
+                    );
+                },
+            },
+        ],
+        [t]
+    );
 
     return (
         <GridPage>
             <ScreenFrame icon={icons.cacheDocument} title={t('page.cacheDocuments.title')}>
-                <Grid container spacing={2}>
-                    <Grid size={12} sx={{ px: 1 }}>
-                        <Typography color="text.secondary">{t('page.cacheDocuments.descripcio.intro')}</Typography>
-                        <Box component="ul" sx={{ color: 'text.secondary', my: 1, pl: 3 }}>
-                            {BOTONS_CARPETA.map(({ carpeta }) => (
-                                <li key={carpeta}>
-                                    <Typography component="span" color="text.primary" sx={{ fontWeight: 'bold' }}>
-                                        {carpeta}
-                                    </Typography>
-                                    {': ' + t(`page.cacheDocuments.descripcio.${carpeta.toLowerCase()}`)}
-                                </li>
-                            ))}
-                        </Box>
-                        <Typography color="text.secondary">{t('page.cacheDocuments.descripcio.final')}</Typography>
-                    </Grid>
-                    <Grid size={12} sx={{ my: 1 }} display={'flex'} flexWrap={'wrap'} gap={1}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<Icon>{icons.refresca}</Icon>}
-                            disabled={!isReady || carregant}
-                            onClick={refrescarBotons}
-                            sx={[{ borderRadius: '4px', ml: 'auto' }, outlinedControlBorderSx]}
-                        >
-                            {t('page.cacheDocuments.accio.refrescar')}
-                        </Button>
-                        {BOTONS_CARPETA.map(({ carpeta, accio }) => (
-                            <ActionReportButton
-                                key={accio}
-                                resourceName="configResource"
-                                action={accio}
-                                title={titolCarpeta(carpeta)}
-                                buttonIcon={icons.esborra}
-                                confirm
-                                confirmMessage={<ConfirmacioEsborrat carpeta={carpeta} />}
-                                onSuccess={onSucces}
-                                onError={onError}
-                                buttonComponentProps={{
-                                    variant: 'contained',
-                                    size: 'small',
-                                    sx: { borderRadius: '4px', '& .MuiButton-startIcon': { mr: 1 } },
-                                }}
-                            />
+                <Box sx={{ px: 1, pb: 1 }}>
+                    <Typography color="text.secondary">{t('page.cacheDocuments.descripcio.intro')}</Typography>
+                    <Box component="ul" sx={{ color: 'text.secondary', my: 1, pl: 3 }}>
+                        {CARPETES.map((carpeta) => (
+                            <li key={carpeta}>
+                                <Typography component="span" color="text.primary" sx={{ fontWeight: 'bold' }}>
+                                    {carpeta}
+                                </Typography>
+                                {': ' + t(`page.cacheDocuments.descripcio.${carpeta.toLowerCase()}`)}
+                            </li>
                         ))}
-                        <ActionReportButton
-                            resourceName="configResource"
-                            action={ACCIO_ESBORRAR_TOTES}
-                            title={titolTotes()}
-                            buttonIcon={icons.esborraTot}
-                            confirm
-                            confirmMessage={<ConfirmacioEsborrat />}
-                            onSuccess={onSucces}
-                            onError={onError}
-                            buttonComponentProps={{
-                                variant: 'contained',
-                                color: 'error',
-                                size: 'small',
-                                sx: { borderRadius: '4px', '& .MuiButton-startIcon': { mr: 1.5 } },
-                            }}
-                        />
-                    </Grid>
-                </Grid>
+                    </Box>
+                    <Typography color="text.secondary">{t('page.cacheDocuments.descripcio.final')}</Typography>
+                </Box>
+                <CacheDocumentFilter onSpringFilterChange={setFiltre} />
+                <StyledMuiGrid
+                    toolbarHideCreate
+                    toolbarShowFilterCount
+                    rowHideUpdateButton
+                    rowHideDeleteButton
+                    resourceName="cacheDocumentResource"
+                    apiRef={apiRef}
+                    columns={columns}
+                    filter={filtre}
+                    sortModel={sortModel}
+                    paginationActive
+                    selectionActive
+                    toolbarMassiveActions={accionsMassives}
+                />
             </ScreenFrame>
         </GridPage>
     );

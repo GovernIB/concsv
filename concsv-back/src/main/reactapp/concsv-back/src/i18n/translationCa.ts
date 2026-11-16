@@ -183,26 +183,20 @@ const translationCa = {
         cacheDocuments: {
             title: 'Cache de documents',
             descripcio: {
-                intro: "Des d'aquesta pantalla es pot esborrar la cache de documents del servidor. Cada botó esborra els fitxers d'una de les carpetes de la cache, i el darrer les esborra totes:",
+                intro: "Documents que hi ha a la memòria cau del servidor, amb la darrera vegada que s'han consultat i la data en què expiraran. Per esborrar-ne, filtrau-los, seleccionau-los (el menú d'accions massives permet seleccionar-ho tot) i feis servir l'acció Esborra. Les carpetes de la cache són:",
                 imprimible: 'PDF imprimible amb els marges, per UUID o CSV i idioma.',
                 info: "Informació del document recuperada de l'Arxiu i dels signants validats amb Afirma, perquè no s'hagi de tornar a consultar l'Arxiu.",
                 original: "Document original recuperat de l'Arxiu.",
                 final: "Els documents que es tornin a consultar s'obtindran de nou de l'origen.",
             },
+            grid: {
+                senseExpiracio: 'No expira',
+                caducada: 'caducat',
+            },
             accio: {
-                esborrarCarpeta: 'Esborra {{carpeta}}',
-                esborrarTotes: 'Esborra tots els documents',
-                refrescar: 'Refresca el nombre de documents',
-                confirmCarpeta:
-                    "Confirmau que voleu esborrar els documents de la cache que hi ha a la carpeta {{carpeta}}. Aquesa acció no es pot desfer.",
-                confirmRecompte: "Documents que s'esborraran: {{count}}.",
-                recompteCarregant: 'Consultant el nombre de documents...',
-                recompteError: "No s'ha pogut consultar el nombre de documents.",
-                ruta: 'Ruta: {{ruta}}',
-                confirmTotes:
-                    "Confirmau que voleu esborrar la cache de documents, és a dir, tots els documents de les carpetes IMPRIMIBLE, INFO i ORIGINAL. Les carpetes no s'esborren, només el seu contingut.",
-                confirmRecompteTotes:
-                    "Documents que s'esborraran: {{count}} (INFO: {{info}}, ORIGINAL: {{original}}, IMPRIMIBLE: {{imprimible}}).",
+                esborrar: 'Esborra',
+                confirmarEsborrat:
+                    "Confirmau que voleu esborrar {{count}} documents de la cache. Aquesta acció no es pot desfer.",
                 ok: 'Fitxers esborrats: {{esborrats}}',
                 okAmbErrors:
                     "Fitxers esborrats: {{esborrats}}. Fitxers que no s'han pogut esborrar: {{errors}}. Consultau el log del servidor.",

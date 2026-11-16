@@ -183,26 +183,20 @@ const translationEs = {
         cacheDocuments: {
             title: 'Caché de documentos',
             descripcio: {
-                intro: 'Desde esta pantalla se puede borrar la caché de documentos del servidor. Cada botón borra los ficheros de una de las carpetas de la caché, y el último las borra todas:',
+                intro: 'Documentos que hay en la memoria caché del servidor, con la última vez que se han consultado y la fecha en que expirarán. Para borrarlos, filtradlos, seleccionadlos (el menú de acciones masivas permite seleccionarlo todo) y usad la acción Borrar. Las carpetas de la caché son:',
                 imprimible: 'PDF imprimible con los márgenes, por UUID o CSV e idioma.',
                 info: 'Información del documento recuperada del Archivo y de los firmantes validados con Afirma, para que no haya que volver a consultar el Archivo.',
                 original: 'Documento original recuperado del Archivo.',
                 final: 'Los documentos que se vuelvan a consultar se obtendrán de nuevo del origen.',
             },
+            grid: {
+                senseExpiracio: 'No expira',
+                caducada: 'caducado',
+            },
             accio: {
-                esborrarCarpeta: 'Borrar {{carpeta}}',
-                esborrarTotes: 'Borrar todos los documentos',
-                refrescar: 'Refresca el número de documentos',
-                confirmCarpeta:
-                    'Confirmad que queréis borrar los documentos de la caché que hay en la carpeta {{carpeta}}. Esta acció no se puede deshacer.',
-                confirmRecompte: 'Documentos que se borrarán: {{count}}.',
-                recompteCarregant: 'Consultando el número de documentos...',
-                recompteError: 'No se ha podido consultar el número de documentos.',
-                ruta: 'Ruta: {{ruta}}',
-                confirmTotes:
-                    'Confirmad que queréis borrar la caché de documentos, es decir, todos los documentos de las carpetas IMPRIMIBLE, INFO y ORIGINAL. Las carpetas no se borran, solo su contenido.',
-                confirmRecompteTotes:
-                    'Documentos que se borrarán: {{count}} (INFO: {{info}}, ORIGINAL: {{original}}, IMPRIMIBLE: {{imprimible}}).',
+                esborrar: 'Borrar',
+                confirmarEsborrat:
+                    'Confirmad que queréis borrar {{count}} documentos de la caché. Esta acción no se puede deshacer.',
                 ok: 'Ficheros borrados: {{esborrats}}',
                 okAmbErrors:
                     'Ficheros borrados: {{esborrats}}. Ficheros que no se han podido borrar: {{errors}}. Consultad el log del servidor.',

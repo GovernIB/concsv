@@ -1,6 +1,11 @@
 package es.caib.concsv.logic.resourceservice;
 
+import es.caib.concsv.logic.helper.ConfigHelper;
+import es.caib.concsv.logic.helper.DocumentExclosMetadadesHelper;
+import es.caib.concsv.logic.intf.model.DocumentExclosEstatEnum;
+import es.caib.concsv.logic.intf.model.DocumentExclosOrigenEnum;
 import es.caib.concsv.logic.intf.model.DocumentExclosResource;
+import es.caib.concsv.logic.intf.model.DocumentExclosUbicacioEnum;
 import es.caib.concsv.persist.entity.DocumentExclosEntity;
 import es.caib.concsv.persist.repository.DocumentExclosRepository;
 import org.junit.Before;
@@ -8,6 +13,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,12 +37,43 @@ import static org.mockito.Mockito.when;
 public class DocumentExclosResourceServiceImplTest {
 
 	private DocumentExclosRepository repository;
+	private DocumentExclosMetadadesHelper metadadesHelper;
+	private ConfigHelper configHelper;
 	private DocumentExclosResourceServiceImpl service;
 
 	@Before
 	public void setUp() {
 		repository = mock(DocumentExclosRepository.class);
-		service = new DocumentExclosResourceServiceImpl(repository);
+		metadadesHelper = mock(DocumentExclosMetadadesHelper.class);
+		configHelper = mock(ConfigHelper.class);
+		service = new DocumentExclosResourceServiceImpl(repository, metadadesHelper, configHelper);
+	}
+
+	private static DocumentExclosMetadadesHelper.Metadades ok() {
+		DocumentExclosMetadadesHelper.Metadades m = new DocumentExclosMetadadesHelper.Metadades();
+		m.estat = DocumentExclosEstatEnum.OK;
+		m.nomDocument = "Informe.pdf";
+		m.dataCaptura = LocalDateTime.of(2020, 3, 31, 13, 48);
+		m.csv = "a".repeat(64);
+		m.uuid = "12e2f405-ac11-49ed-9b93-c2f11cac41e7";
+		m.organ = "A04003003";
+		m.origen = DocumentExclosOrigenEnum.ADMINISTRACIO;
+		m.ubicacio = DocumentExclosUbicacioEnum.ARXIU;
+		return m;
+	}
+
+	private static DocumentExclosMetadadesHelper.Metadades error() {
+		DocumentExclosMetadadesHelper.Metadades m = new DocumentExclosMetadadesHelper.Metadades();
+		m.estat = DocumentExclosEstatEnum.ERROR;
+		m.missatge = "Timeout";
+		return m;
+	}
+
+	private static DocumentExclosEntity entitat(Long id, String valor) {
+		DocumentExclosEntity entitat = new DocumentExclosEntity();
+		entitat.setId(id);
+		entitat.setValor(valor);
+		return entitat;
 	}
 
 	private static byte[] text(String contingut) {
@@ -187,6 +224,208 @@ public class DocumentExclosResourceServiceImplTest {
 				DocumentExclosResourceServiceImpl.contingutExportacio(Arrays.asList("a", "b")),
 				StandardCharsets.UTF_8));
 		assertEquals(0, DocumentExclosResourceServiceImpl.contingutExportacio(new ArrayList<>()).length);
+	}
+
+	// --- Dades del document ------------------------------------------------------------------
+
+	@Test
+	public void alCrearOmpleLesDadesDelDocumentAmbElValorJaCopiatAlEntity() {
+		DocumentExclosEntity entity = entitat(null, "12e2f405-ac11-49ed-9b93-c2f11cac41e7");
+		// El que enviï el client no hi val: es descarta amb el resultat de la consulta.
+		entity.setNomDocument("Falsificat.pdf");
+		when(metadadesHelper.resol("12e2f405-ac11-49ed-9b93-c2f11cac41e7")).thenReturn(ok());
+
+		service.beforeCreateSave(entity, new DocumentExclosResource(), null);
+
+		assertEquals("Informe.pdf", entity.getNomDocument());
+		assertEquals(LocalDateTime.of(2020, 3, 31, 13, 48), entity.getDataCaptura());
+		assertEquals("a".repeat(64), entity.getCsv());
+		assertEquals("12e2f405-ac11-49ed-9b93-c2f11cac41e7", entity.getUuid());
+		assertEquals("A04003003", entity.getOrgan());
+		assertEquals(DocumentExclosOrigenEnum.ADMINISTRACIO, entity.getOrigen());
+		assertEquals(DocumentExclosUbicacioEnum.ARXIU, entity.getUbicacio());
+		assertEquals(DocumentExclosEstatEnum.OK, entity.getEstatActualitzacio());
+		assertNotNull(entity.getDataActualitzacio());
+		assertNull(entity.getMissatgeActualitzacio());
+	}
+
+	@Test
+	public void alModificarTornaAConsultarElDocument() {
+		DocumentExclosEntity entity = entitat(1L, "nou-valor");
+		when(metadadesHelper.resol("nou-valor")).thenReturn(ok());
+
+		service.beforeUpdateSave(entity, new DocumentExclosResource(), null);
+
+		verify(metadadesHelper).resol("nou-valor");
+		assertEquals("Informe.pdf", entity.getNomDocument());
+	}
+
+	@Test
+	public void alCrearAmbErrorDeConsultaDeixaLesDadesBuidesIAnotaElMotiu() {
+		DocumentExclosEntity entity = entitat(null, "x");
+		entity.setNomDocument("Enviat pel client.pdf");
+		when(metadadesHelper.resol("x")).thenReturn(error());
+
+		service.beforeCreateSave(entity, new DocumentExclosResource(), null);
+
+		assertEquals(DocumentExclosEstatEnum.ERROR, entity.getEstatActualitzacio());
+		assertEquals("Timeout", entity.getMissatgeActualitzacio());
+		assertNull(entity.getNomDocument());
+	}
+
+	@Test
+	public void actualitzaUnaFilaDesaElResultat() {
+		DocumentExclosEntity entity = entitat(1L, "x");
+		when(metadadesHelper.resol("x")).thenReturn(ok());
+
+		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(entity);
+
+		verify(repository).save(entity);
+		assertEquals(1, resultat.getActualitzats());
+		assertEquals(0, resultat.getErrors());
+	}
+
+	@Test
+	public void actualitzaUnaFilaAmbErrorPassatgerConservaLesDadesAnteriors() {
+		DocumentExclosEntity entity = entitat(1L, "x");
+		entity.setNomDocument("Anterior.pdf");
+		entity.setEstatActualitzacio(DocumentExclosEstatEnum.OK);
+		when(metadadesHelper.resol("x")).thenReturn(error());
+
+		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(entity);
+
+		assertEquals("Anterior.pdf", entity.getNomDocument());
+		assertEquals(DocumentExclosEstatEnum.ERROR, entity.getEstatActualitzacio());
+		assertEquals("Timeout", entity.getMissatgeActualitzacio());
+		assertEquals(1, resultat.getErrors());
+		assertEquals(0, resultat.getActualitzats());
+	}
+
+	@Test
+	public void actualitzaUnaFilaNoTrobadaLaComptaAPart() {
+		DocumentExclosEntity entity = entitat(1L, "x");
+		DocumentExclosMetadadesHelper.Metadades noTrobat = new DocumentExclosMetadadesHelper.Metadades();
+		noTrobat.estat = DocumentExclosEstatEnum.NO_TROBAT;
+		noTrobat.missatge = "No existeix";
+		when(metadadesHelper.resol("x")).thenReturn(noTrobat);
+
+		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(entity);
+
+		assertEquals(1, resultat.getNoTrobats());
+		assertEquals(0, resultat.getActualitzats());
+		assertNull(entity.getNomDocument());
+	}
+
+	@Test
+	public void actualitzaMassiuUnaFilaFallidaNoAturaLesAltres() {
+		DocumentExclosEntity a = entitat(1L, "a");
+		DocumentExclosEntity b = entitat(2L, "b");
+		DocumentExclosEntity c = entitat(3L, "c");
+		when(repository.findAllById(Arrays.asList(1L, 2L, 3L))).thenReturn(Arrays.asList(a, b, c));
+		when(metadadesHelper.resol("a")).thenReturn(ok());
+		when(metadadesHelper.resol("b")).thenReturn(error());
+		when(metadadesHelper.resol("c")).thenReturn(ok());
+
+		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(Arrays.asList(1L, 2L, 3L));
+
+		assertEquals(2, resultat.getActualitzats());
+		assertEquals(1, resultat.getErrors());
+		assertTrue(resultat.getPendents().isEmpty());
+		verify(repository, times(3)).save(org.mockito.ArgumentMatchers.any(DocumentExclosEntity.class));
+	}
+
+	@Test
+	public void actualitzaMassiuIgnoraLesFilesEsborradesIElsRepetits() {
+		DocumentExclosEntity a = entitat(1L, "a");
+		when(repository.findAllById(Arrays.asList(1L, 9L))).thenReturn(Arrays.asList(a));
+		when(metadadesHelper.resol("a")).thenReturn(ok());
+
+		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(Arrays.asList(1L, 1L, 9L));
+
+		assertEquals(1, resultat.getActualitzats());
+		verify(metadadesHelper, times(1)).resol("a");
+	}
+
+	@Test
+	public void actualitzaMassiuAmbElTempsEsgotatRetornaElsQueFaltenComAPendents() {
+		DocumentExclosEntity a = entitat(1L, "a");
+		DocumentExclosEntity b = entitat(2L, "b");
+		when(repository.findAllById(Arrays.asList(1L, 2L))).thenReturn(Arrays.asList(a, b));
+		service.tempsMaximMassiuMs = -1;
+
+		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(Arrays.asList(1L, 2L));
+
+		assertEquals(0, resultat.getActualitzats());
+		assertEquals(Arrays.asList(1L, 2L), resultat.getPendents());
+		verify(metadadesHelper, never()).resol(org.mockito.ArgumentMatchers.anyString());
+	}
+
+	@Test
+	public void motiuRebuigActualitzacio_validaLaSeleccio() {
+		assertNotNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(null));
+		assertNotNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(new ArrayList<>()));
+		assertNotNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(
+				LongStream.rangeClosed(1, DocumentExclosResource.ACTUALITZAR_MASSIU_MAX + 1).boxed().collect(Collectors.toList())));
+		assertNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(
+				LongStream.rangeClosed(1, DocumentExclosResource.ACTUALITZAR_MASSIU_MAX).boxed().collect(Collectors.toList())));
+	}
+
+	@Test
+	public void importarDeixaLesFilesNovesPendentsSenseConsultarRes() {
+		when(repository.findAllValors()).thenReturn(new ArrayList<>());
+
+		service.importa(text("uuid-1\nuuid-2\n"));
+
+		ArgumentCaptor<List<DocumentExclosEntity>> desades = ArgumentCaptor.forClass(List.class);
+		verify(repository).saveAll(desades.capture());
+		for (DocumentExclosEntity entitat : desades.getValue()) {
+			assertEquals(DocumentExclosEstatEnum.PENDENT, entitat.getEstatActualitzacio());
+			assertNull(entitat.getNomDocument());
+		}
+		verify(metadadesHelper, never()).resol(org.mockito.ArgumentMatchers.anyString());
+	}
+
+	@Test
+	public void construeixEnllac_ambLesDuesFormesDeLaUrlBase() {
+		assertEquals("http://localhost:8080/concsvfront/view/abc",
+				DocumentExclosResourceServiceImpl.construeixEnllac("http://localhost:8080/concsvfront/view/", "abc"));
+		assertEquals("http://host/concsvfront/view.xhtml?hash=abc",
+				DocumentExclosResourceServiceImpl.construeixEnllac(" http://host/concsvfront/view.xhtml?hash= ", " abc "));
+	}
+
+	@Test
+	public void construeixEnllac_senseCsvOSenseUrlBaseNoHiHaEnllac() {
+		assertNull(DocumentExclosResourceServiceImpl.construeixEnllac("http://host/view/", null));
+		assertNull(DocumentExclosResourceServiceImpl.construeixEnllac("http://host/view/", " "));
+		assertNull(DocumentExclosResourceServiceImpl.construeixEnllac(null, "abc"));
+		assertNull(DocumentExclosResourceServiceImpl.construeixEnllac("", "abc"));
+	}
+
+	@Test
+	public void alConvertirOmpleLEnllacAmbElCsvResolt() {
+		when(configHelper.getEnvironmentProperty(
+				es.caib.concsv.logic.intf.config.PropertyConfig.PROP_QUERY_URL, null)).thenReturn("http://host/view/");
+		DocumentExclosEntity entity = entitat(1L, "uuid");
+		entity.setCsv("csv123");
+		DocumentExclosResource resource = new DocumentExclosResource();
+
+		service.afterConversion(entity, resource);
+
+		assertEquals("http://host/view/csv123", resource.getEnllac());
+	}
+
+
+	@Test
+	public void origenEsDesaALaBaseDeDadesComZeroOUn() {
+		es.caib.concsv.persist.entity.DocumentExclosOrigenConverter converter =
+				new es.caib.concsv.persist.entity.DocumentExclosOrigenConverter();
+		assertEquals("0", converter.convertToDatabaseColumn(DocumentExclosOrigenEnum.CIUTADA));
+		assertEquals("1", converter.convertToDatabaseColumn(DocumentExclosOrigenEnum.ADMINISTRACIO));
+		assertNull(converter.convertToDatabaseColumn(null));
+		assertEquals(DocumentExclosOrigenEnum.CIUTADA, converter.convertToEntityAttribute("0"));
+		assertEquals(DocumentExclosOrigenEnum.ADMINISTRACIO, converter.convertToEntityAttribute("1"));
+		assertNull(converter.convertToEntityAttribute("7"));
+		assertNull(converter.convertToEntityAttribute(null));
 	}
 
 }

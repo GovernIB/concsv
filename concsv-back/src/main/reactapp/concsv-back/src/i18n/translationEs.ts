@@ -230,13 +230,31 @@ const translationEs = {
         documentsExclosos: {
             grid: {
                 title: 'Documentos excluidos para la descarga del original',
+                obreEnllac: 'Abrir',
             },
             form: {
                 resourceTitle: 'documento excluido',
             },
+            estat: {
+                PENDENT: 'Pendiente',
+                OK: 'Consultado',
+                NO_TROBAT: 'No encontrado',
+                ERROR: 'Error',
+            },
             accio: {
                 nova: 'Nueva entrada',
                 modificar: 'Modifica',
+                actualitza: 'Actualiza datos',
+                actualitzaFilaOk: 'Datos del documento actualizados',
+                actualitzaFilaNoTrobat: 'El documento no se ha encontrado: consulte el motivo en el estado',
+                actualitzaFilaError: 'No se ha podido consultar el documento: consulte el motivo en el estado',
+                confirmarActualitzacio:
+                    'Se volverán a consultar los datos de {{count}} documentos seleccionados. Puede tardar un rato. ¿Desea continuar?',
+                actualitzaProgres: 'Actualizando datos: {{fets}} de {{total}}',
+                actualitzaMassivaOk:
+                    'Actualización terminada: {{actualitzats}} consultados, {{noTrobats}} no encontrados y {{errors}} con error',
+                actualitzaMassivaCancelada:
+                    'Actualización cancelada: {{actualitzats}} consultados, {{noTrobats}} no encontrados, {{errors}} con error y {{pendents}} sin procesar',
                 esborrar: 'Borra',
                 descarrega: 'Descarga',
                 carrega: 'Carga',

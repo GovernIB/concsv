@@ -1,12 +1,17 @@
 package es.caib.concsv.logic.resourceservice;
 
 import es.caib.concsv.logic.base.service.BaseMutableResourceService;
+import es.caib.concsv.logic.helper.ConfigHelper;
+import es.caib.concsv.logic.helper.DocumentExclosMetadadesHelper;
+import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.base.exception.ActionExecutionException;
 import es.caib.concsv.logic.intf.base.exception.AnswerRequiredException;
 import es.caib.concsv.logic.intf.base.exception.ReportGenerationException;
 import es.caib.concsv.logic.intf.base.model.DownloadableFile;
 import es.caib.concsv.logic.intf.base.model.ReportFileType;
+import es.caib.concsv.logic.intf.model.DocumentExclosEstatEnum;
 import es.caib.concsv.logic.intf.model.DocumentExclosResource;
+import es.caib.concsv.logic.intf.model.DocumentExclosUbicacioEnum;
 import es.caib.concsv.logic.intf.resourceservice.DocumentExclosResourceService;
 import es.caib.concsv.persist.entity.DocumentExclosEntity;
 import es.caib.concsv.persist.repository.DocumentExclosRepository;
@@ -17,11 +22,15 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,14 +58,27 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 	static final String EXTENSIO_IMPORTACIO = ".txt";
 	/** Mida dels blocs d'eliminació: Oracle no admet més de 1000 elements a un {@code IN}. */
 	static final int MIDA_BLOC_ELIMINACIO = 500;
+	/** Temps màxim d'una petició d'actualització massiva (veure {@link #tempsMaximMassiuMs}). */
+	static final long TEMPS_MAXIM_MASSIU_MS = 120_000;
 
 	private final DocumentExclosRepository documentExclosRepository;
+	private final DocumentExclosMetadadesHelper metadadesHelper;
+	private final ConfigHelper configHelper;
+
+	/**
+	 * Temps màxim d'una petició d'actualització massiva: l'acció s'executa dins una transacció amb
+	 * temps límit i cada document és una consulta a l'Arxiu. Els que no s'arriben a processar es
+	 * retornen com a pendents. Modificable per als tests.
+	 */
+	long tempsMaximMassiuMs = TEMPS_MAXIM_MASSIU_MS;
 
 	@PostConstruct
 	public void init() {
 		register(DocumentExclosResource.REPORT_EXPORTAR_CODE, new ExportarReportGenerator());
 		register(DocumentExclosResource.ACTION_IMPORTAR_CODE, new ImportarActionExecutor());
 		register(DocumentExclosResource.ACTION_ELIMINAR_MASSIU_CODE, new EliminarMassiuActionExecutor());
+		register(DocumentExclosResource.ACTION_ACTUALITZAR_CODE, new ActualitzarActionExecutor());
+		register(DocumentExclosResource.ACTION_ACTUALITZAR_MASSIU_CODE, new ActualitzarMassiuActionExecutor());
 	}
 
 	@Override
@@ -73,6 +95,144 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 			DocumentExclosResource resource,
 			Map<String, AnswerRequiredException.AnswerValue> answers) {
 		normalitzaValor(resource);
+	}
+
+	/**
+	 * Les dades del document s'omplen en crear, <b>després</b> que el recurs s'hagi copiat a l'entitat:
+	 * així no se sobreescriuen i el que hagi enviat el client no hi val. Si la consulta falla es crea
+	 * igualment, amb l'estat {@code ERROR}.
+	 */
+	@Override
+	protected void beforeCreateSave(
+			DocumentExclosEntity entity,
+			DocumentExclosResource resource,
+			Map<String, AnswerRequiredException.AnswerValue> answers) {
+		aplica(entity, metadadesHelper.resol(entity.getValor()), false);
+	}
+
+	/**
+	 * En modificar es torna a consultar sempre, encara que el valor no hagi canviat: serveix també
+	 * per refrescar-les i descarta el que hagi enviat el client.
+	 */
+	@Override
+	protected void beforeUpdateSave(
+			DocumentExclosEntity entity,
+			DocumentExclosResource resource,
+			Map<String, AnswerRequiredException.AnswerValue> answers) {
+		aplica(entity, metadadesHelper.resol(entity.getValor()), false);
+	}
+
+	/** L'enllaç al front públic no es persisteix: es calcula amb el CSV i la URL de consulta. */
+	@Override
+	protected void afterConversion(DocumentExclosEntity entity, DocumentExclosResource resource) {
+		resource.setEnllac(construeixEnllac(
+				configHelper.getEnvironmentProperty(PropertyConfig.PROP_QUERY_URL, null),
+				entity.getCsv()));
+	}
+
+	/**
+	 * URL de consulta del document al front: la mateixa que els serveis de consulta, la URL base
+	 * ({@code es.caib.concsv.query.url}, que pot acabar en {@code /view/} o en {@code ?hash=}) amb el
+	 * CSV al final. Sense CSV (encara no consultat, o no trobat) o sense URL base no hi ha enllaç.
+	 */
+	static String construeixEnllac(String urlBase, String csv) {
+		if (urlBase == null || urlBase.trim().isEmpty() || csv == null || csv.trim().isEmpty()) {
+			return null;
+		}
+		try {
+			return urlBase.trim() + URLEncoder.encode(csv.trim(), StandardCharsets.UTF_8.name());
+		} catch (UnsupportedEncodingException ex) {
+			throw new IllegalStateException(ex);
+		}
+	}
+
+	/**
+	 * Copia el resultat de la consulta a l'entitat i en deixa constància (data i estat).
+	 *
+	 * @param conservaEnError
+	 *            si és cert i la consulta ha fallat ({@code ERROR}), es mantenen les dades que ja
+	 *            tenia el document: un error passatger no n'ha d'esborrar les bones. Només s'hi pot
+	 *            confiar si l'entitat ve de la base de dades (no d'un recurs enviat pel client).
+	 */
+	void aplica(DocumentExclosEntity entity, DocumentExclosMetadadesHelper.Metadades metadades, boolean conservaEnError) {
+		entity.setDataActualitzacio(LocalDateTime.now());
+		entity.setEstatActualitzacio(metadades.estat);
+		entity.setMissatgeActualitzacio(metadades.missatge);
+		if (conservaEnError && DocumentExclosEstatEnum.ERROR.equals(metadades.estat)) {
+			return;
+		}
+		entity.setNomDocument(metadades.nomDocument);
+		entity.setDataCaptura(metadades.dataCaptura);
+		entity.setCsv(metadades.csv);
+		entity.setUuid(metadades.uuid);
+		entity.setOrgan(metadades.organ);
+		entity.setOrigen(metadades.origen);
+		entity.setUbicacio(metadades.ubicacio);
+	}
+
+	/** Torna a consultar les dades d'una fila i les desa. */
+	DocumentExclosResource.ResultatActualitzacio actualitza(DocumentExclosEntity entity) {
+		DocumentExclosMetadadesHelper.Metadades metadades = metadadesHelper.resol(entity.getValor());
+		aplica(entity, metadades, true);
+		documentExclosRepository.save(entity);
+		return resultat(metadades.estat);
+	}
+
+	/**
+	 * Torna a consultar les dades de les files indicades, una per una i desant-les a mesura que es
+	 * van consultant. Una fila que falla no atura les altres. Si s'acaba el temps màxim de la
+	 * petició, els identificadors que falten es retornen a {@code pendents}.
+	 */
+	DocumentExclosResource.ResultatActualitzacio actualitza(List<Long> ids) {
+		List<Long> sensePendents = ids == null ? new ArrayList<>() : ids.stream().distinct().collect(Collectors.toList());
+		Map<Long, DocumentExclosEntity> entitats = new HashMap<>();
+		for (DocumentExclosEntity entitat : documentExclosRepository.findAllById(sensePendents)) {
+			entitats.put(entitat.getId(), entitat);
+		}
+		long limit = System.currentTimeMillis() + tempsMaximMassiuMs;
+		int actualitzats = 0;
+		int noTrobats = 0;
+		int errors = 0;
+		List<Long> pendents = new ArrayList<>();
+		for (Long id : sensePendents) {
+			DocumentExclosEntity entitat = entitats.get(id);
+			if (entitat == null) {
+				// Esborrada mentrestant: no hi ha res a actualitzar.
+				continue;
+			}
+			if (System.currentTimeMillis() >= limit) {
+				pendents.add(id);
+				continue;
+			}
+			DocumentExclosResource.ResultatActualitzacio resultat = actualitza(entitat);
+			actualitzats += resultat.getActualitzats();
+			noTrobats += resultat.getNoTrobats();
+			errors += resultat.getErrors();
+		}
+		log.info("Actualitzades les dades de {} documents exclosos ({} no trobats, {} amb error, {} pendents)",
+				actualitzats, noTrobats, errors, pendents.size());
+		return new DocumentExclosResource.ResultatActualitzacio(actualitzats, noTrobats, errors, pendents);
+	}
+
+	private static DocumentExclosResource.ResultatActualitzacio resultat(DocumentExclosEstatEnum estat) {
+		boolean ok = DocumentExclosEstatEnum.OK == estat;
+		boolean noTrobat = DocumentExclosEstatEnum.NO_TROBAT == estat;
+		return new DocumentExclosResource.ResultatActualitzacio(
+				ok ? 1 : 0,
+				noTrobat ? 1 : 0,
+				ok || noTrobat ? 0 : 1,
+				new ArrayList<>());
+	}
+
+	/** Comprova els identificadors d'una actualització massiva. @return el motiu del rebuig, o {@code null} si són vàlids. */
+	static String motiuRebuigActualitzacio(List<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return "No s'ha seleccionat cap document";
+		}
+		if (ids.size() > DocumentExclosResource.ACTUALITZAR_MASSIU_MAX) {
+			return "S'han d'actualitzar com a màxim " + DocumentExclosResource.ACTUALITZAR_MASSIU_MAX + " documents per petició";
+		}
+		return null;
 	}
 
 	/** Elimina els espais del principi i del final, que no formen part de l'UUID o del CSV. */
@@ -252,6 +412,62 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 				throw new ActionExecutionException(DocumentExclosResource.class, null, code, motiu);
 			}
 			return importa(params.getFitxer().getContent());
+		}
+
+	}
+
+	/** Torna a consultar les dades del document d'una fila. */
+	private class ActualitzarActionExecutor
+			implements ActionExecutor<DocumentExclosEntity, Serializable, DocumentExclosResource.ResultatActualitzacio> {
+
+		@Override
+		public void onChange(
+				Serializable id,
+				Serializable previous,
+				String fieldName,
+				Object fieldValue,
+				Map<String, AnswerRequiredException.AnswerValue> answers,
+				String[] previousFieldNames,
+				Serializable target) {
+			// Sense formulari no hi ha cap camp que pugui canviar.
+		}
+
+		@Override
+		public DocumentExclosResource.ResultatActualitzacio exec(
+				String code,
+				DocumentExclosEntity entity,
+				Serializable params) throws ActionExecutionException {
+			return actualitza(entity);
+		}
+
+	}
+
+	/** Torna a consultar les dades del document de les files seleccionades. */
+	private class ActualitzarMassiuActionExecutor
+			implements ActionExecutor<DocumentExclosEntity, DocumentExclosResource.FormActualitzarMassiu, DocumentExclosResource.ResultatActualitzacio> {
+
+		@Override
+		public void onChange(
+				Serializable id,
+				DocumentExclosResource.FormActualitzarMassiu previous,
+				String fieldName,
+				Object fieldValue,
+				Map<String, AnswerRequiredException.AnswerValue> answers,
+				String[] previousFieldNames,
+				DocumentExclosResource.FormActualitzarMassiu target) {
+			// El formulari no té cap camp que depengui dels altres.
+		}
+
+		@Override
+		public DocumentExclosResource.ResultatActualitzacio exec(
+				String code,
+				DocumentExclosEntity entity,
+				DocumentExclosResource.FormActualitzarMassiu params) throws ActionExecutionException {
+			String motiu = motiuRebuigActualitzacio(params.getIds());
+			if (motiu != null) {
+				throw new ActionExecutionException(DocumentExclosResource.class, null, code, motiu);
+			}
+			return actualitza(params.getIds());
 		}
 
 	}

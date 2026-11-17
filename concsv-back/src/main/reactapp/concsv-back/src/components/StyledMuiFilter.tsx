@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid, Typography } from '@mui/material';
-import { MuiFilter, useFilterApiRef } from 'reactlib';
+import { MuiFilter, useFilterApiRef, useFormContext } from 'reactlib';
 import { useTranslation } from 'react-i18next';
 import { useSession } from './SessionStorageContext';
 import { CombinedIcon, GridButton, GridButtonField } from './GridFormField';
@@ -71,6 +71,16 @@ export type FilterButtonProps = {
     componentProps?: any;
 };
 
+/**
+ * Llegeix, des de dins el formulari del filtre, els seus camps: el valor per defecte d'un camp (`field.value`)
+ * ve del backend i és el que "Neteja" ha de recuperar.
+ */
+const FilterFieldsProbe = ({ fieldsRef }: { fieldsRef: { current?: any[] } }) => {
+    const { fields } = useFormContext();
+    fieldsRef.current = fields;
+    return null;
+};
+
 const StyledMuiFilter = (props: any) => {
     const { t } = useTranslation();
     const filterRef = useFilterApiRef();
@@ -123,6 +133,7 @@ const StyledMuiFilter = (props: any) => {
     // (veure FilterAutoApply, que els fa servir per no repetir cerques).
     const lastAppliedRef = React.useRef<string | undefined>(undefined);
     const autoApplyCancelRef = React.useRef<(() => void) | undefined>(undefined);
+    const fieldsRef = React.useRef<any[] | undefined>(undefined);
 
     const cercar = () => {
         apiRef?.current?.filter?.();
@@ -133,7 +144,12 @@ const StyledMuiFilter = (props: any) => {
         }
         netejarPendingRef.current = true;
         autoApplyCancelRef.current?.();
-        apiRef?.current?.clear?.();
+        // No s'usa apiRef.clear(): fa un revert al que el formulari va rebre en muntar-se, que són les dades
+        // desades a la sessió. Així, en tornar a la pantalla amb un filtre aplicat, "Neteja" el tornava a deixar
+        // tal com estava. Es reinicia explícitament amb els valors per defecte (els del backend i defaultData).
+        const defaults: Record<string, unknown> = {};
+        fieldsRef.current?.forEach((f: any) => f.value && (defaults[f.name] = f.value));
+        apiRef?.current?.reset?.({ ...defaults, ...defaultData });
     };
 
     const callback = (value: string) => {
@@ -212,6 +228,7 @@ const StyledMuiFilter = (props: any) => {
             <FilterAutoApplyContext.Provider value>
                 <Grid container direction="row" columnSpacing={1} rowSpacing={1}>
                     {children}
+                    <FilterFieldsProbe fieldsRef={fieldsRef} />
                     <FilterAutoApply lastAppliedRef={lastAppliedRef} cancelRef={autoApplyCancelRef} />
 
                     <Grid

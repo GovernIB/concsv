@@ -230,13 +230,31 @@ const translationCa = {
         documentsExclosos: {
             grid: {
                 title: "Documents exclosos per la descàrrega d'original",
+                obreEnllac: 'Obre',
             },
             form: {
                 resourceTitle: 'document exclòs',
             },
+            estat: {
+                PENDENT: 'Pendent',
+                OK: 'Consultat',
+                NO_TROBAT: 'No trobat',
+                ERROR: 'Error',
+            },
             accio: {
                 nova: 'Nova entrada',
                 modificar: 'Modifica',
+                actualitza: 'Actualitza dades',
+                actualitzaFilaOk: 'Dades del document actualitzades',
+                actualitzaFilaNoTrobat: "El document no s'ha trobat: consulteu el motiu a l'estat",
+                actualitzaFilaError: "No s'ha pogut consultar el document: consulteu el motiu a l'estat",
+                confirmarActualitzacio:
+                    'Es tornaran a consultar les dades de {{count}} documents seleccionats. Pot trigar una estona. Voleu continuar?',
+                actualitzaProgres: 'Actualitzant dades: {{fets}} de {{total}}',
+                actualitzaMassivaOk:
+                    "Actualització acabada: {{actualitzats}} consultats, {{noTrobats}} no trobats i {{errors}} amb error",
+                actualitzaMassivaCancelada:
+                    "Actualització cancel·lada: {{actualitzats}} consultats, {{noTrobats}} no trobats, {{errors}} amb error i {{pendents}} sense processar",
                 esborrar: 'Esborra',
                 descarrega: 'Descarrega',
                 carrega: 'Carrega',

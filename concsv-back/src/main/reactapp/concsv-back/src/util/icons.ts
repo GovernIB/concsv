@@ -35,6 +35,7 @@ export const icons = {
     executa: 'bolt',
     refresca: 'refresh',
     sincronitza: 'cached',
+    obreEnllac: 'launch',
     copia: 'content_copy',
     descarrega: 'file_download',
     carrega: 'file_upload',

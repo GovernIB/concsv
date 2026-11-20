@@ -10,6 +10,8 @@ import es.caib.concsv.logic.intf.resourceservice.ConfigResourceService;
 import es.caib.concsv.logic.intf.resourceservice.ConfigTypeResourceService;
 import es.caib.concsv.logic.intf.resourceservice.DocumentExclosResourceService;
 import es.caib.concsv.logic.intf.resourceservice.EntitatResourceService;
+import es.caib.concsv.logic.intf.resourceservice.ExecucioMassivaContingutResourceService;
+import es.caib.concsv.logic.intf.resourceservice.ExecucioMassivaResourceService;
 import es.caib.concsv.logic.intf.resourceservice.MonitorIntegracioResourceService;
 import es.caib.concsv.logic.intf.resourceservice.UsuariResourceService;
 import lombok.extern.slf4j.Slf4j;
@@ -94,6 +96,18 @@ public class EjbClientConfig {
 	@ConditionalOnWarDeployment
 	public LocalStatelessSessionProxyFactoryBean monitorIntegracioResourceService() {
 		return getLocalEjbFactoyBean(MonitorIntegracioResourceService.class);
+	}
+
+	@Bean
+	@ConditionalOnWarDeployment
+	public LocalStatelessSessionProxyFactoryBean execucioMassivaResourceService() {
+		return getLocalEjbFactoyBean(ExecucioMassivaResourceService.class);
+	}
+
+	@Bean
+	@ConditionalOnWarDeployment
+	public LocalStatelessSessionProxyFactoryBean execucioMassivaContingutResourceService() {
+		return getLocalEjbFactoyBean(ExecucioMassivaContingutResourceService.class);
 	}
 
 	@Bean

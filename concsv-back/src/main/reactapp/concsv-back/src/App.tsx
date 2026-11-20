@@ -95,6 +95,13 @@ const InnerApp: React.FC = () => {
             icon: icons.cacheDocument,
             pantalla: 'cacheDocument',
         },
+        {
+            id: 'execucionsMassives',
+            title: t('app.menu.execucionsMassives'),
+            to: 'execucioMassiva',
+            icon: icons.execucioMassiva,
+            pantalla: 'execucioMassiva',
+        },
     ];
 
     const bgColor = mode === 'light' ? theme.palette.background.paper : undefined;

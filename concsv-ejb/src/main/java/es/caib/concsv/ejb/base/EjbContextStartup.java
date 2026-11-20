@@ -4,6 +4,7 @@
 package es.caib.concsv.ejb.base;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionManagement;
@@ -22,6 +23,11 @@ public class EjbContextStartup {
 	@PostConstruct
 	private void startup() {
 		EjbContextConfig.getApplicationContext();
+	}
+
+	@PreDestroy
+	private void shutdown() {
+		EjbContextConfig.closeApplicationContext();
 	}
 
 }

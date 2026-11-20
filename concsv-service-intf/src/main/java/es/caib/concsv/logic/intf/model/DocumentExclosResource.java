@@ -77,7 +77,8 @@ import java.util.List;
 						type = ResourceArtifactType.ACTION,
 						code = DocumentExclosResource.ACTION_ACTUALITZAR_CODE,
 						requiresId = true),
-				// Nova consulta de les dades del document de les files seleccionades.
+				// Crea una execució massiva que torna a consultar, en segon pla, les dades del document de
+				// les files seleccionades.
 				@ResourceArtifact(
 						type = ResourceArtifactType.ACTION,
 						code = DocumentExclosResource.ACTION_ACTUALITZAR_MASSIU_CODE,
@@ -96,13 +97,6 @@ public class DocumentExclosResource extends BaseResource<Long> {
 
 	/** Longitud màxima del valor (columna {@code VALOR}). */
 	public static final int VALOR_MAX = 256;
-
-	/**
-	 * Nombre màxim d'identificadors d'una sola petició d'actualització massiva: cada document és una
-	 * consulta a l'Arxiu i l'acció s'executa dins una transacció amb temps límit. El front parteix la
-	 * selecció en lots d'aquesta mida.
-	 */
-	public static final int ACTUALITZAR_MASSIU_MAX = 10;
 
 	/** UUID o CSV del document. */
 	@NotNull
@@ -194,8 +188,8 @@ public class DocumentExclosResource extends BaseResource<Long> {
 	}
 
 	/**
-	 * Formulari de l'actualització de les dades del document en bloc: com a màxim
-	 * {@link #ACTUALITZAR_MASSIU_MAX} identificadors per petició.
+	 * Formulari de l'actualització de les dades del document en bloc: els identificadors de les
+	 * files seleccionades, sense límit, ja que no es consulten en aquesta petició sinó en segon pla.
 	 */
 	@Getter
 	@Setter
@@ -208,9 +202,8 @@ public class DocumentExclosResource extends BaseResource<Long> {
 	}
 
 	/**
-	 * Resultat de l'actualització en bloc: documents consultats correctament, no trobats, amb error
-	 * i ids que no s'han pogut processar dins el temps màxim de la petició (el client els ha de
-	 * tornar a enviar).
+	 * Resultat de l'actualització d'una fila: documents consultats correctament, no trobats i amb
+	 * error (un només, dels tres, amb valor 1).
 	 */
 	@Getter
 	@AllArgsConstructor
@@ -220,7 +213,22 @@ public class DocumentExclosResource extends BaseResource<Long> {
 		private int actualitzats;
 		private int noTrobats;
 		private int errors;
-		private List<Long> pendents;
+	}
+
+	/**
+	 * Resultat de l'actualització en bloc: l'execució massiva que s'ha creat i que ho farà en segon
+	 * pla ({@code null} si no n'ha calgut cap perquè tots els documents s'han omès), els documents que
+	 * s'hi han afegit i els que s'han deixat fora per ser repetits, ja pendents en una altra execució
+	 * o inexistents.
+	 */
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class ResultatActualitzacioMassiva implements Serializable {
+		private static final long serialVersionUID = 1L;
+		private Long execucioId;
+		private int total;
+		private int omesos;
 	}
 
 }

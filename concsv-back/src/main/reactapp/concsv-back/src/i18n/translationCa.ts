@@ -49,6 +49,7 @@ const translationCa = {
             propietats: 'Propietats de configuració',
             integracions: "Monitor d'integracions",
             cacheDocuments: 'Cache de documents',
+            execucionsMassives: 'Execucions massives',
         },
     },
     page: {
@@ -249,12 +250,13 @@ const translationCa = {
                 actualitzaFilaNoTrobat: "El document no s'ha trobat: consulteu el motiu a l'estat",
                 actualitzaFilaError: "No s'ha pogut consultar el document: consulteu el motiu a l'estat",
                 confirmarActualitzacio:
-                    'Es tornaran a consultar les dades de {{count}} documents seleccionats. Pot trigar una estona. Voleu continuar?',
-                actualitzaProgres: 'Actualitzant dades: {{fets}} de {{total}}',
-                actualitzaMassivaOk:
-                    "Actualització acabada: {{actualitzats}} consultats, {{noTrobats}} no trobats i {{errors}} amb error",
-                actualitzaMassivaCancelada:
-                    "Actualització cancel·lada: {{actualitzats}} consultats, {{noTrobats}} no trobats, {{errors}} amb error i {{pendents}} sense processar",
+                    "Es tornaran a consultar les dades de {{count}} documents seleccionats. L'actualització s'executarà en segon pla. Voleu continuar?",
+                actualitzaMassivaSegonPla:
+                    "El procés d'actualització de {{total}} documents s'està executant en segon pla. Podeu seguir-lo a Execucions massives.",
+                actualitzaMassivaSegonPlaOmesos:
+                    "El procés d'actualització de {{total}} documents s'està executant en segon pla. Podeu seguir-lo a Execucions massives. {{omesos}} documents seleccionats no s'han inclòs (repetits, ja pendents en una altra execució o que ja no existeixen).",
+                actualitzaMassivaSenseElements:
+                    "No s'ha creat cap actualització: tots els documents seleccionats s'han omès ({{omesos}}), perquè ja són pendents en una altra execució o ja no existeixen.",
                 esborrar: 'Esborra',
                 descarrega: 'Descarrega',
                 carrega: 'Carrega',
@@ -307,6 +309,60 @@ const translationCa = {
                 copiaTraca: 'Copia la traça',
                 mostraTraca: 'Mostra la traça',
                 amagaTraca: 'Amaga la traça',
+            },
+        },
+        execucionsMassives: {
+            grid: {
+                title: 'Execucions massives',
+                elements: 'Elements',
+                progres: 'Progrés',
+                activaRefresc: 'Activa refresc cada 10s',
+                desactivaRefresc: 'Desactiva refresc cada 10s',
+            },
+            accio: {
+                detall: 'Detall',
+                cancela: 'Cancel·la',
+                cancelaTitol: "Cancel·la l'execució",
+                confirmarCancelacio:
+                    "Segur que voleu cancel·lar l'execució massiva {{id}}? Els elements pendents no es processaran.",
+                cancelada: "L'execució massiva s'ha cancel·lat",
+                cancelacioDemanada:
+                    "S'ha demanat la cancel·lació: l'execució s'aturarà abans de l'element següent",
+                error: "No s'ha pogut cancel·lar l'execució",
+            },
+            estat: {
+                cancelant: 'Cancel·lant...',
+                cancelantTitol: "S'ha demanat la cancel·lació; l'execució s'aturarà abans de l'element següent",
+            },
+            detail: {
+                title: "Detall de l'execució massiva",
+                tipus: 'Tipus',
+                estat: 'Estat',
+                dataInici: 'Data inici',
+                dataFi: 'Data fi',
+                usuari: 'Usuari',
+                progresTitol: 'Progrés',
+                progres: '{{fets}} de {{total}}',
+            },
+            continguts: {
+                tipusElement: {
+                    DOCUMENT: 'Document',
+                },
+                estat: {
+                    PENDENT: 'Pendent',
+                    FINALITZAT: 'Finalitzat',
+                    ERROR: 'Error',
+                    CANCELAT: 'Cancel·lat',
+                },
+            },
+            estatValor: {
+                PENDENT: 'Pendent',
+                EN_CURS: 'En curs',
+                FINALITZADA: 'Finalitzada',
+                CANCELADA: 'Cancel·lada',
+            },
+            tipusValor: {
+                ACTUALITZAR_DADES_DOCUMENTS_EXCLOSOS: 'Actualitzar dades documents exclosos',
             },
         },
         enConstruccio: {

@@ -1,12 +1,5 @@
 import React from 'react';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
-import LinearProgress from '@mui/material/LinearProgress';
-import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 import { useBaseAppContext, useConfirmDialogButtons, useResourceApiService, type MuiDataGridProps } from 'reactlib';
 import FormActionDialog, { type FormActionDialogApi } from '../../components/FormActionDialog';
@@ -21,17 +14,13 @@ const ACCIO_IMPORTAR = 'IMPORTAR';
 const ACCIO_ELIMINAR_MASSIU = 'ELIMINAR_MASSIU';
 const ACCIO_ACTUALITZAR = 'ACTUALITZAR';
 const ACCIO_ACTUALITZAR_MASSIU = 'ACTUALITZAR_MASSIU';
-/**
- * Documents per petició de l'actualització massiva: el backend en rebutja més de 10 (cada un és una consulta a
- * l'Arxiu i la petició té temps màxim).
- */
-const MIDA_LOT_ACTUALITZACIO = 10;
 
 /** Resultat de l'acció IMPORTAR (DocumentExclosResource.ResultatImportacio). */
 type ResultatImportacio = { afegits?: number; jaExistents?: number; descartats?: number };
-/** Resultat de les accions ACTUALITZAR i ACTUALITZAR_MASSIU (DocumentExclosResource.ResultatActualitzacio). */
-type ResultatActualitzacio = { actualitzats?: number; noTrobats?: number; errors?: number; pendents?: unknown[] };
-type Progres = { fets: number; total: number };
+/** Resultat de l'acció ACTUALITZAR (DocumentExclosResource.ResultatActualitzacio). */
+type ResultatActualitzacio = { actualitzats?: number; noTrobats?: number; errors?: number };
+/** Resultat de l'acció ACTUALITZAR_MASSIU (DocumentExclosResource.ResultatActualitzacioMassiva). */
+type ResultatActualitzacioMassiva = { execucioId?: number | null; total?: number; omesos?: number };
 type ErrorApi = { description?: string; message?: string };
 
 type AccionsFila = NonNullable<MuiDataGridProps['rowAdditionalActions']>;
@@ -44,7 +33,6 @@ export const useDocumentExclosAccions = (
     accionsMassives: MassiveActionProps[];
     botonsToolbar: ElementsToolbar;
     dialegImportacio: React.ReactElement;
-    dialegProgres: React.ReactElement;
 } => {
     const { t } = useTranslation();
     const { temporalMessageShow, messageDialogShow, saveAs } = useBaseAppContext();
@@ -55,10 +43,6 @@ export const useDocumentExclosAccions = (
         artifactAction: apiArtifactAction,
     } = useResourceApiService(RESOURCE_NAME);
     const importacioApiRef = React.useRef<FormActionDialogApi | undefined>(undefined);
-    // El progrés es manté en tancar el diàleg, perquè durant l'animació de sortida no es vegi "0 de 0".
-    const [progres, setProgres] = React.useState<Progres>({ fets: 0, total: 0 });
-    const [progresObert, setProgresObert] = React.useState(false);
-    const actualitzacioCancelada = React.useRef(false);
 
     const mostraError = (error: ErrorApi) =>
         temporalMessageShow(
@@ -87,54 +71,29 @@ export const useDocumentExclosAccions = (
             .catch(mostraError);
     };
 
-    /** Envia la selecció en lots, perquè cap petició superi el temps màxim; es pot cancel·lar entre lots. */
-    const actualitzaLots = async (ids: unknown[]) => {
-        const totals = { actualitzats: 0, noTrobats: 0, errors: 0 };
-        let pendents = [...ids];
-        let fets = 0;
-        actualitzacioCancelada.current = false;
-        setProgres({ fets, total: ids.length });
-        setProgresObert(true);
-        try {
-            while (pendents.length > 0 && !actualitzacioCancelada.current) {
-                const lot = pendents.slice(0, MIDA_LOT_ACTUALITZACIO);
-                const resta = pendents.slice(MIDA_LOT_ACTUALITZACIO);
-                const resultat = (await apiArtifactAction(undefined, {
-                    code: ACCIO_ACTUALITZAR_MASSIU,
-                    data: { ids: lot },
-                })) as ResultatActualitzacio;
-                totals.actualitzats += resultat?.actualitzats ?? 0;
-                totals.noTrobats += resultat?.noTrobats ?? 0;
-                totals.errors += resultat?.errors ?? 0;
-                // Els que el servidor no ha tingut temps de processar tornen a la cua.
-                const noProcessats = resultat?.pendents ?? [];
-                fets += lot.length - noProcessats.length;
-                setProgres({ fets, total: ids.length });
-                if (noProcessats.length >= lot.length) {
-                    // Sense progrés: es para, per no repetir la mateixa petició per sempre.
-                    totals.errors += noProcessats.length + resta.length;
-                    pendents = [];
-                } else {
-                    pendents = [...noProcessats, ...resta];
-                }
-            }
-        } catch (error) {
-            mostraError(error as ErrorApi);
-        } finally {
-            setProgresObert(false);
-            refresh();
-        }
-        const cancelada = actualitzacioCancelada.current && pendents.length > 0;
-        temporalMessageShow(
-            null,
-            t(
-                cancelada
-                    ? 'page.documentsExclosos.accio.actualitzaMassivaCancelada'
-                    : 'page.documentsExclosos.accio.actualitzaMassivaOk',
-                { ...totals, pendents: pendents.length }
-            ),
-            totals.errors > 0 || cancelada ? 'warning' : 'success'
-        );
+    /**
+     * Crea una execució massiva amb tota la selecció: el servidor ho fa en segon pla i la petició torna a l'acte, de
+     * manera que el missatge només avisa que s'ha posat en marxa (info, no èxit: encara no s'ha actualitzat res).
+     * El seguiment és a la pantalla d'execucions massives.
+     */
+    const programaActualitzacio = (ids: unknown[]) => {
+        apiArtifactAction(undefined, { code: ACCIO_ACTUALITZAR_MASSIU, data: { ids } })
+            .then((resultat: unknown) => {
+                const { execucioId, total = 0, omesos = 0 } = (resultat ?? {}) as ResultatActualitzacioMassiva;
+                temporalMessageShow(
+                    null,
+                    execucioId
+                        ? t(
+                              omesos > 0
+                                  ? 'page.documentsExclosos.accio.actualitzaMassivaSegonPlaOmesos'
+                                  : 'page.documentsExclosos.accio.actualitzaMassivaSegonPla',
+                              { total, omesos }
+                          )
+                        : t('page.documentsExclosos.accio.actualitzaMassivaSenseElements', { omesos }),
+                    execucioId ? 'info' : 'warning'
+                );
+            })
+            .catch(mostraError);
     };
 
     const actualitzaSeleccio = (ids: unknown[]) => {
@@ -148,7 +107,7 @@ export const useDocumentExclosAccions = (
             { maxWidth: 'sm', fullWidth: true }
         ).then((confirmat: unknown) => {
             if (confirmat) {
-                actualitzaLots(ids);
+                programaActualitzacio(ids);
             }
         });
     };
@@ -305,30 +264,7 @@ export const useDocumentExclosAccions = (
         </FormActionDialog>
     );
 
-    const dialegProgres = (
-        <Dialog open={progresObert} fullWidth maxWidth="sm">
-            <DialogTitle>{t('page.documentsExclosos.accio.actualitza')}</DialogTitle>
-            <DialogContent>
-                <Typography sx={{ mb: 2 }}>
-                    {t('page.documentsExclosos.accio.actualitzaProgres', {
-                        fets: progres.fets,
-                        total: progres.total,
-                    })}
-                </Typography>
-                <LinearProgress
-                    variant="determinate"
-                    value={progres.total > 0 ? (progres.fets / progres.total) * 100 : 0}
-                />
-            </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={() => (actualitzacioCancelada.current = true)}>
-                    {t('common.cancel')}
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
-
-    return { accions, accionsMassives, botonsToolbar, dialegImportacio, dialegProgres };
+    return { accions, accionsMassives, botonsToolbar, dialegImportacio };
 };
 
 export default useDocumentExclosAccions;

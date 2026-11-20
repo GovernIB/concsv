@@ -48,8 +48,7 @@ const DocumentExclosGrid: React.FC = () => {
     const apiRef = useMuiDataGridApiRef();
     const [formFilter, setFormFilter] = React.useState<string>();
     const refresh = () => apiRef.current?.refresh?.();
-    const { accions, accionsMassives, botonsToolbar, dialegImportacio, dialegProgres } =
-        useDocumentExclosAccions(refresh);
+    const { accions, accionsMassives, botonsToolbar, dialegImportacio } = useDocumentExclosAccions(refresh);
 
     const columns: MuiDataGridColDef[] = React.useMemo(
         () => [
@@ -136,7 +135,6 @@ const DocumentExclosGrid: React.FC = () => {
                     toolbarElementsWithPositions={botonsToolbar}
                 />
                 {dialegImportacio}
-                {dialegProgres}
             </ScreenFrame>
         </GridPage>
     );

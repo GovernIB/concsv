@@ -11,6 +11,7 @@ import Propietats from './pages/propietats/Propietats';
 import CacheDocument from './pages/cacheDocument/CacheDocument';
 import Accesibilitat from './pages/Accesibilitat';
 import IntegracioGrid from './pages/integracio/IntegracioGrid';
+import ExecucioMassivaGrid from './pages/execucioMassiva/ExecucioMassivaGrid';
 
 export const router = createBrowserRouter(
     [
@@ -93,6 +94,16 @@ export const router = createBrowserRouter(
                             path: 'cacheDocument',
                             element: <CacheDocument />,
                             handle: { titol: 'page.cacheDocuments.title' },
+                        },
+                    ],
+                },
+                {
+                    element: <ProtectedRoute pantalla="execucioMassiva" />,
+                    children: [
+                        {
+                            path: 'execucioMassiva',
+                            element: <ExecucioMassivaGrid />,
+                            handle: { titol: 'page.execucionsMassives.grid.title' },
                         },
                     ],
                 },

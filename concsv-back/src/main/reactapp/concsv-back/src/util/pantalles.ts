@@ -15,7 +15,8 @@ export type Pantalla =
     | 'documentExclos'
     | 'propietat'
     | 'integracio'
-    | 'cacheDocument';
+    | 'cacheDocument'
+    | 'execucioMassiva';
 
 /**
  * Rols autoritzats per pantalla. És l'única font de veritat del control d'accés de la interfície:
@@ -35,6 +36,7 @@ export const PANTALLA_ROLS: Record<Pantalla, string[]> = {
     propietat: [ROLE_SUPER],
     integracio: [ROLE_SUPER],
     cacheDocument: [ROLE_SUPER],
+    execucioMassiva: [ROLE_SUPER],
 };
 
 export const isPantallaPermesa = (pantalla: Pantalla, rol?: string): boolean =>

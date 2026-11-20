@@ -3,6 +3,7 @@ package es.caib.concsv.logic.resourceservice;
 import es.caib.concsv.logic.base.service.BaseMutableResourceService;
 import es.caib.concsv.logic.helper.ConfigHelper;
 import es.caib.concsv.logic.helper.DocumentExclosMetadadesHelper;
+import es.caib.concsv.logic.helper.ExecucioMassivaCreacioHelper;
 import es.caib.concsv.logic.intf.config.PropertyConfig;
 import es.caib.concsv.logic.intf.base.exception.ActionExecutionException;
 import es.caib.concsv.logic.intf.base.exception.AnswerRequiredException;
@@ -12,6 +13,8 @@ import es.caib.concsv.logic.intf.base.model.ReportFileType;
 import es.caib.concsv.logic.intf.model.DocumentExclosEstatEnum;
 import es.caib.concsv.logic.intf.model.DocumentExclosResource;
 import es.caib.concsv.logic.intf.model.DocumentExclosUbicacioEnum;
+import es.caib.concsv.logic.intf.model.ElementTipusEnum;
+import es.caib.concsv.logic.intf.model.ExecucioMassivaTipusEnum;
 import es.caib.concsv.logic.intf.resourceservice.DocumentExclosResourceService;
 import es.caib.concsv.persist.entity.DocumentExclosEntity;
 import es.caib.concsv.persist.repository.DocumentExclosRepository;
@@ -30,7 +33,6 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,19 +60,11 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 	static final String EXTENSIO_IMPORTACIO = ".txt";
 	/** Mida dels blocs d'eliminació: Oracle no admet més de 1000 elements a un {@code IN}. */
 	static final int MIDA_BLOC_ELIMINACIO = 500;
-	/** Temps màxim d'una petició d'actualització massiva (veure {@link #tempsMaximMassiuMs}). */
-	static final long TEMPS_MAXIM_MASSIU_MS = 120_000;
 
 	private final DocumentExclosRepository documentExclosRepository;
 	private final DocumentExclosMetadadesHelper metadadesHelper;
 	private final ConfigHelper configHelper;
-
-	/**
-	 * Temps màxim d'una petició d'actualització massiva: l'acció s'executa dins una transacció amb
-	 * temps límit i cada document és una consulta a l'Arxiu. Els que no s'arriben a processar es
-	 * retornen com a pendents. Modificable per als tests.
-	 */
-	long tempsMaximMassiuMs = TEMPS_MAXIM_MASSIU_MS;
+	private final ExecucioMassivaCreacioHelper execucioMassivaCreacioHelper;
 
 	@PostConstruct
 	public void init() {
@@ -179,39 +173,30 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 	}
 
 	/**
-	 * Torna a consultar les dades de les files indicades, una per una i desant-les a mesura que es
-	 * van consultant. Una fila que falla no atura les altres. Si s'acaba el temps màxim de la
-	 * petició, els identificadors que falten es retornen a {@code pendents}.
+	 * Torna a consultar les dades d'un document, per identificador. És el que fa el procés en segon pla
+	 * de les execucions massives per a cada element: si la consulta falla, l'error queda a l'estat de
+	 * l'entitat (mai no es propaga) i se'n mantenen les dades que ja tenia.
+	 *
+	 * @return el document actualitzat, o {@code null} si ja no existeix (esborrat des que es va crear l'execució).
 	 */
-	DocumentExclosResource.ResultatActualitzacio actualitza(List<Long> ids) {
-		List<Long> sensePendents = ids == null ? new ArrayList<>() : ids.stream().distinct().collect(Collectors.toList());
-		Map<Long, DocumentExclosEntity> entitats = new HashMap<>();
-		for (DocumentExclosEntity entitat : documentExclosRepository.findAllById(sensePendents)) {
-			entitats.put(entitat.getId(), entitat);
-		}
-		long limit = System.currentTimeMillis() + tempsMaximMassiuMs;
-		int actualitzats = 0;
-		int noTrobats = 0;
-		int errors = 0;
-		List<Long> pendents = new ArrayList<>();
-		for (Long id : sensePendents) {
-			DocumentExclosEntity entitat = entitats.get(id);
-			if (entitat == null) {
-				// Esborrada mentrestant: no hi ha res a actualitzar.
-				continue;
-			}
-			if (System.currentTimeMillis() >= limit) {
-				pendents.add(id);
-				continue;
-			}
-			DocumentExclosResource.ResultatActualitzacio resultat = actualitza(entitat);
-			actualitzats += resultat.getActualitzats();
-			noTrobats += resultat.getNoTrobats();
-			errors += resultat.getErrors();
-		}
-		log.info("Actualitzades les dades de {} documents exclosos ({} no trobats, {} amb error, {} pendents)",
-				actualitzats, noTrobats, errors, pendents.size());
-		return new DocumentExclosResource.ResultatActualitzacio(actualitzats, noTrobats, errors, pendents);
+	public DocumentExclosEntity actualitzaDocument(Long id) {
+		return documentExclosRepository.findById(id).map(entitat -> {
+			actualitza(entitat);
+			return entitat;
+		}).orElse(null);
+	}
+
+	/**
+	 * Crea l'execució massiva que torna a consultar, en segon pla, les dades dels documents indicats
+	 * (sense avís per correu per ara, vegeu el TODO d'aquest mètode).
+	 */
+	DocumentExclosResource.ResultatActualitzacioMassiva programaActualitzacio(List<Long> ids) {
+		ExecucioMassivaCreacioHelper.ResultatCreacio creada = execucioMassivaCreacioHelper.crea(
+				ExecucioMassivaTipusEnum.ACTUALITZAR_DADES_DOCUMENTS_EXCLOSOS,
+				ElementTipusEnum.DOCUMENT,
+				ids,
+				false); // TODO: posar-ho a true si s'implementa l'enviament del correu a l'usuari que crea l'execució
+		return new DocumentExclosResource.ResultatActualitzacioMassiva(creada.execucioId, creada.total, creada.omesos);
 	}
 
 	private static DocumentExclosResource.ResultatActualitzacio resultat(DocumentExclosEstatEnum estat) {
@@ -220,17 +205,13 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 		return new DocumentExclosResource.ResultatActualitzacio(
 				ok ? 1 : 0,
 				noTrobat ? 1 : 0,
-				ok || noTrobat ? 0 : 1,
-				new ArrayList<>());
+				ok || noTrobat ? 0 : 1);
 	}
 
 	/** Comprova els identificadors d'una actualització massiva. @return el motiu del rebuig, o {@code null} si són vàlids. */
 	static String motiuRebuigActualitzacio(List<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return "No s'ha seleccionat cap document";
-		}
-		if (ids.size() > DocumentExclosResource.ACTUALITZAR_MASSIU_MAX) {
-			return "S'han d'actualitzar com a màxim " + DocumentExclosResource.ACTUALITZAR_MASSIU_MAX + " documents per petició";
 		}
 		return null;
 	}
@@ -442,9 +423,9 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 
 	}
 
-	/** Torna a consultar les dades del document de les files seleccionades. */
+	/** Programa, en segon pla, la nova consulta de les dades del document de les files seleccionades. */
 	private class ActualitzarMassiuActionExecutor
-			implements ActionExecutor<DocumentExclosEntity, DocumentExclosResource.FormActualitzarMassiu, DocumentExclosResource.ResultatActualitzacio> {
+			implements ActionExecutor<DocumentExclosEntity, DocumentExclosResource.FormActualitzarMassiu, DocumentExclosResource.ResultatActualitzacioMassiva> {
 
 		@Override
 		public void onChange(
@@ -459,7 +440,7 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 		}
 
 		@Override
-		public DocumentExclosResource.ResultatActualitzacio exec(
+		public DocumentExclosResource.ResultatActualitzacioMassiva exec(
 				String code,
 				DocumentExclosEntity entity,
 				DocumentExclosResource.FormActualitzarMassiu params) throws ActionExecutionException {
@@ -467,7 +448,7 @@ public class DocumentExclosResourceServiceImpl extends BaseMutableResourceServic
 			if (motiu != null) {
 				throw new ActionExecutionException(DocumentExclosResource.class, null, code, motiu);
 			}
-			return actualitza(params.getIds());
+			return programaActualitzacio(params.getIds());
 		}
 
 	}

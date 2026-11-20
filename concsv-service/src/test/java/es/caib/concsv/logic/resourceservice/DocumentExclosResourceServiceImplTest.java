@@ -2,10 +2,13 @@ package es.caib.concsv.logic.resourceservice;
 
 import es.caib.concsv.logic.helper.ConfigHelper;
 import es.caib.concsv.logic.helper.DocumentExclosMetadadesHelper;
+import es.caib.concsv.logic.helper.ExecucioMassivaCreacioHelper;
 import es.caib.concsv.logic.intf.model.DocumentExclosEstatEnum;
 import es.caib.concsv.logic.intf.model.DocumentExclosOrigenEnum;
 import es.caib.concsv.logic.intf.model.DocumentExclosResource;
 import es.caib.concsv.logic.intf.model.DocumentExclosUbicacioEnum;
+import es.caib.concsv.logic.intf.model.ElementTipusEnum;
+import es.caib.concsv.logic.intf.model.ExecucioMassivaTipusEnum;
 import es.caib.concsv.persist.entity.DocumentExclosEntity;
 import es.caib.concsv.persist.repository.DocumentExclosRepository;
 import org.junit.Before;
@@ -17,12 +20,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.Mockito.mock;
@@ -39,6 +44,7 @@ public class DocumentExclosResourceServiceImplTest {
 	private DocumentExclosRepository repository;
 	private DocumentExclosMetadadesHelper metadadesHelper;
 	private ConfigHelper configHelper;
+	private ExecucioMassivaCreacioHelper creacioHelper;
 	private DocumentExclosResourceServiceImpl service;
 
 	@Before
@@ -46,7 +52,8 @@ public class DocumentExclosResourceServiceImplTest {
 		repository = mock(DocumentExclosRepository.class);
 		metadadesHelper = mock(DocumentExclosMetadadesHelper.class);
 		configHelper = mock(ConfigHelper.class);
-		service = new DocumentExclosResourceServiceImpl(repository, metadadesHelper, configHelper);
+		creacioHelper = mock(ExecucioMassivaCreacioHelper.class);
+		service = new DocumentExclosResourceServiceImpl(repository, metadadesHelper, configHelper, creacioHelper);
 	}
 
 	private static DocumentExclosMetadadesHelper.Metadades ok() {
@@ -317,57 +324,66 @@ public class DocumentExclosResourceServiceImplTest {
 	}
 
 	@Test
-	public void actualitzaMassiuUnaFilaFallidaNoAturaLesAltres() {
-		DocumentExclosEntity a = entitat(1L, "a");
-		DocumentExclosEntity b = entitat(2L, "b");
-		DocumentExclosEntity c = entitat(3L, "c");
-		when(repository.findAllById(Arrays.asList(1L, 2L, 3L))).thenReturn(Arrays.asList(a, b, c));
+	public void actualitzaDocumentPerIdConsultaIDesaLaFila() {
+		DocumentExclosEntity entity = entitat(1L, "a");
+		when(repository.findById(1L)).thenReturn(Optional.of(entity));
 		when(metadadesHelper.resol("a")).thenReturn(ok());
-		when(metadadesHelper.resol("b")).thenReturn(error());
-		when(metadadesHelper.resol("c")).thenReturn(ok());
 
-		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(Arrays.asList(1L, 2L, 3L));
+		DocumentExclosEntity resultat = service.actualitzaDocument(1L);
 
-		assertEquals(2, resultat.getActualitzats());
-		assertEquals(1, resultat.getErrors());
-		assertTrue(resultat.getPendents().isEmpty());
-		verify(repository, times(3)).save(org.mockito.ArgumentMatchers.any(DocumentExclosEntity.class));
+		assertSame(entity, resultat);
+		assertEquals(DocumentExclosEstatEnum.OK, resultat.getEstatActualitzacio());
+		verify(repository).save(entity);
 	}
 
 	@Test
-	public void actualitzaMassiuIgnoraLesFilesEsborradesIElsRepetits() {
-		DocumentExclosEntity a = entitat(1L, "a");
-		when(repository.findAllById(Arrays.asList(1L, 9L))).thenReturn(Arrays.asList(a));
-		when(metadadesHelper.resol("a")).thenReturn(ok());
+	public void actualitzaDocumentPerIdAmbErrorLiDeixaLEstatIConservaLesDades() {
+		DocumentExclosEntity entity = entitat(1L, "a");
+		entity.setNomDocument("Anterior.pdf");
+		when(repository.findById(1L)).thenReturn(Optional.of(entity));
+		when(metadadesHelper.resol("a")).thenReturn(error());
 
-		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(Arrays.asList(1L, 1L, 9L));
+		DocumentExclosEntity resultat = service.actualitzaDocument(1L);
 
-		assertEquals(1, resultat.getActualitzats());
-		verify(metadadesHelper, times(1)).resol("a");
+		assertEquals(DocumentExclosEstatEnum.ERROR, resultat.getEstatActualitzacio());
+		assertEquals("Timeout", resultat.getMissatgeActualitzacio());
+		assertEquals("Anterior.pdf", resultat.getNomDocument());
 	}
 
 	@Test
-	public void actualitzaMassiuAmbElTempsEsgotatRetornaElsQueFaltenComAPendents() {
-		DocumentExclosEntity a = entitat(1L, "a");
-		DocumentExclosEntity b = entitat(2L, "b");
-		when(repository.findAllById(Arrays.asList(1L, 2L))).thenReturn(Arrays.asList(a, b));
-		service.tempsMaximMassiuMs = -1;
+	public void actualitzaDocumentPerIdEsborratRetornaNullSenseConsultarRes() {
+		when(repository.findById(9L)).thenReturn(Optional.empty());
 
-		DocumentExclosResource.ResultatActualitzacio resultat = service.actualitza(Arrays.asList(1L, 2L));
+		assertNull(service.actualitzaDocument(9L));
 
-		assertEquals(0, resultat.getActualitzats());
-		assertEquals(Arrays.asList(1L, 2L), resultat.getPendents());
+		verify(metadadesHelper, never()).resol(org.mockito.ArgumentMatchers.anyString());
+		verify(repository, never()).save(org.mockito.ArgumentMatchers.any(DocumentExclosEntity.class));
+	}
+
+	@Test
+	public void programaActualitzacioCreaLExecucioIRetornaElResultat() {
+		when(creacioHelper.crea(
+				ExecucioMassivaTipusEnum.ACTUALITZAR_DADES_DOCUMENTS_EXCLOSOS,
+				ElementTipusEnum.DOCUMENT,
+				Arrays.asList(1L, 2L, 3L),
+				false)).thenReturn(new ExecucioMassivaCreacioHelper.ResultatCreacio(77L, 2, 1));
+
+		DocumentExclosResource.ResultatActualitzacioMassiva resultat = service.programaActualitzacio(Arrays.asList(1L, 2L, 3L));
+
+		assertEquals(Long.valueOf(77L), resultat.getExecucioId());
+		assertEquals(2, resultat.getTotal());
+		assertEquals(1, resultat.getOmesos());
+		// La petició només crea l'execució: no consulta cap document
 		verify(metadadesHelper, never()).resol(org.mockito.ArgumentMatchers.anyString());
 	}
 
 	@Test
-	public void motiuRebuigActualitzacio_validaLaSeleccio() {
+	public void motiuRebuigActualitzacio_nomesRebutjaLaSeleccioBuida() {
 		assertNotNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(null));
 		assertNotNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(new ArrayList<>()));
-		assertNotNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(
-				LongStream.rangeClosed(1, DocumentExclosResource.ACTUALITZAR_MASSIU_MAX + 1).boxed().collect(Collectors.toList())));
+		// Ja no hi ha límit: la consulta es fa en segon pla
 		assertNull(DocumentExclosResourceServiceImpl.motiuRebuigActualitzacio(
-				LongStream.rangeClosed(1, DocumentExclosResource.ACTUALITZAR_MASSIU_MAX).boxed().collect(Collectors.toList())));
+				LongStream.rangeClosed(1, 5000).boxed().collect(Collectors.toList())));
 	}
 
 	@Test

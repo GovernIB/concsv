@@ -4,6 +4,7 @@ import es.caib.concsv.logic.intf.config.BaseConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -50,6 +51,20 @@ public class EjbContextConfig {
 			log.info("...EJB spring application started.");
 		}
 		return applicationContext;
+	}
+
+	/**
+	 * Tanca el context en aturar o redesplegar l'aplicació. Sense això, els fils que crea (com el
+	 * planificador de les execucions massives) sobreviurien al desplegament i n'hi hauria dos.
+	 */
+	public static synchronized void closeApplicationContext() {
+		if (applicationContext instanceof ConfigurableApplicationContext) {
+			log.info("Closing EJB spring application...");
+			((ConfigurableApplicationContext) applicationContext).close();
+			log.info("...EJB spring application closed.");
+		}
+		applicationContext = null;
+		initialized = false;
 	}
 
 	@Bean

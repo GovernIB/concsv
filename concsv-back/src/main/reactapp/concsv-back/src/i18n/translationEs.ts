@@ -49,6 +49,7 @@ const translationEs = {
             propietats: 'Propiedades de configuración',
             integracions: 'Monitor de integraciones',
             cacheDocuments: 'Caché de documentos',
+            execucionsMassives: 'Ejecuciones masivas',
         },
     },
     page: {
@@ -249,12 +250,13 @@ const translationEs = {
                 actualitzaFilaNoTrobat: 'El documento no se ha encontrado: consulte el motivo en el estado',
                 actualitzaFilaError: 'No se ha podido consultar el documento: consulte el motivo en el estado',
                 confirmarActualitzacio:
-                    'Se volverán a consultar los datos de {{count}} documentos seleccionados. Puede tardar un rato. ¿Desea continuar?',
-                actualitzaProgres: 'Actualizando datos: {{fets}} de {{total}}',
-                actualitzaMassivaOk:
-                    'Actualización terminada: {{actualitzats}} consultados, {{noTrobats}} no encontrados y {{errors}} con error',
-                actualitzaMassivaCancelada:
-                    'Actualización cancelada: {{actualitzats}} consultados, {{noTrobats}} no encontrados, {{errors}} con error y {{pendents}} sin procesar',
+                    'Se volverán a consultar los datos de {{count}} documentos seleccionados. La actualización se ejecutará en segundo plano. ¿Desea continuar?',
+                actualitzaMassivaSegonPla:
+                    'El proceso de actualización de {{total}} documentos se está ejecutando en segundo plano. Puede seguirlo en Ejecuciones masivas.',
+                actualitzaMassivaSegonPlaOmesos:
+                    'El proceso de actualización de {{total}} documentos se está ejecutando en segundo plano. Puede seguirlo en Ejecuciones masivas. {{omesos}} documentos seleccionados no se han incluido (repetidos, ya pendientes en otra ejecución o que ya no existen).',
+                actualitzaMassivaSenseElements:
+                    'No se ha creado ninguna actualización: todos los documentos seleccionados se han omitido ({{omesos}}), porque ya están pendientes en otra ejecución o ya no existen.',
                 esborrar: 'Borra',
                 descarrega: 'Descarga',
                 carrega: 'Carga',
@@ -307,6 +309,60 @@ const translationEs = {
                 copiaTraca: 'Copiar la traza',
                 mostraTraca: 'Mostrar la traza',
                 amagaTraca: 'Ocultar la traza',
+            },
+        },
+        execucionsMassives: {
+            grid: {
+                title: 'Ejecuciones masivas',
+                elements: 'Elementos',
+                progres: 'Progreso',
+                activaRefresc: 'Activa refresco cada 10s',
+                desactivaRefresc: 'Desactiva refresco cada 10s',
+            },
+            accio: {
+                detall: 'Detalle',
+                cancela: 'Cancela',
+                cancelaTitol: 'Cancela la ejecución',
+                confirmarCancelacio:
+                    '¿Seguro que desea cancelar la ejecución masiva {{id}}? Los elementos pendientes no se procesarán.',
+                cancelada: 'La ejecución masiva se ha cancelado',
+                cancelacioDemanada:
+                    'Se ha solicitado la cancelación: la ejecución se detendrá antes del siguiente elemento',
+                error: 'No se ha podido cancelar la ejecución',
+            },
+            estat: {
+                cancelant: 'Cancelando...',
+                cancelantTitol: 'Se ha solicitado la cancelación; la ejecución se detendrá antes del siguiente elemento',
+            },
+            detail: {
+                title: 'Detalle de la ejecución masiva',
+                tipus: 'Tipo',
+                estat: 'Estado',
+                dataInici: 'Fecha inicio',
+                dataFi: 'Fecha fin',
+                usuari: 'Usuario',
+                progresTitol: 'Progreso',
+                progres: '{{fets}} de {{total}}',
+            },
+            continguts: {
+                tipusElement: {
+                    DOCUMENT: 'Documento',
+                },
+                estat: {
+                    PENDENT: 'Pendiente',
+                    FINALITZAT: 'Finalizado',
+                    ERROR: 'Error',
+                    CANCELAT: 'Cancelado',
+                },
+            },
+            estatValor: {
+                PENDENT: 'Pendiente',
+                EN_CURS: 'En curso',
+                FINALITZADA: 'Finalizada',
+                CANCELADA: 'Cancelada',
+            },
+            tipusValor: {
+                ACTUALITZAR_DADES_DOCUMENTS_EXCLOSOS: 'Actualizar datos documentos excluidos',
             },
         },
         enConstruccio: {
